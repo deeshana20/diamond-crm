@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* CSS VARIABLES & RESET */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#060d1a;--surface:#0c1526;--surface2:#162033;--surface3:#1c2a42;
@@ -17,168 +16,301 @@
 body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden}
 .screen{display:none;min-height:100vh;flex-direction:column}
 .screen.active{display:flex}
-
-/* AUTH & PORTAL */
 #auth-screen.active{align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 30% 50%,#0d1f3c 0%,var(--bg) 70%)}
 .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:100%;max-width:400px}
-.auth-title{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--text);margin-bottom:28px;line-height:1.1}
-.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:13px 16px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;color-scheme:dark;}
+.auth-title{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--text);margin-bottom:6px;line-height:1.1}
+.auth-sub{color:var(--dim);font-size:13px;margin-bottom:28px;letter-spacing:.5px}
+.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:13px 16px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;color-scheme:dark;transition:border-color .2s}
 .auth-input:focus{border-color:#3b82f6}
-.auth-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;}
+.auth-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
 .auth-btn:hover{opacity:.85}
 
-/* FOLDERS */
-.folder-header{padding:24px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
-.folder-brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text)}
+/* PORTAL & FOLDERS */
+.folder-header{padding:22px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.folder-brand{font-family:'Syne',sans-serif}
+.folder-brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#3b82f6;font-weight:700;margin-bottom:2px}
+.folder-brand-name{font-size:18px;font-weight:800;color:var(--text)}
 .folder-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px}
 .folder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;width:100%;max-width:800px;margin-top:30px}
-.folder-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px 24px;cursor:pointer;transition:all 0.2s;}
+.folder-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px 24px;cursor:pointer;transition:all .2s}
 .folder-card.live:hover{transform:translateY(-3px);border-color:#3b82f680;background:linear-gradient(135deg,var(--surface),#0d1f3c)}
 .folder-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;background:var(--surface2)}
 
 /* APP HEADER */
 .app-header{background:linear-gradient(135deg,#0c1526,#0d1f3c);border-bottom:1px solid var(--border);padding:0 28px;position:sticky;top:0;z-index:50}
-.app-header-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:62px;gap:12px}
+.app-header-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:62px;gap:12px;flex-wrap:wrap}
+.app-brand{font-family:'Syne',sans-serif}
+.app-brand-sub{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#3b82f6;font-weight:700}
+.app-brand-name{font-size:15px;font-weight:800;color:var(--text)}
 .btn{border:none;border-radius:7px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;white-space:nowrap}
+.btn:hover{opacity:.85}
 .btn-ghost{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-success{background:#064e3b;color:#34d399;border:1px solid #05966950}
+.btn-danger{background:#2d0000;color:var(--danger);border:1px solid #ef444430}
+.btn-sm{padding:5px 10px;font-size:11px}
 
-/* DASHBOARD */
-.dashboard{max-width:1100px;margin:26px auto 0;padding:0 24px}
-.section-eye{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:12px}
+/* ══════════════════════════════════════
+   MODULE 1: ACTION CENTER
+══════════════════════════════════════ */
+.action-center{max-width:1200px;margin:24px auto 0;padding:0 24px}
+.ac-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:12px}
+.ac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ac-card{border-radius:12px;padding:20px 22px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s;border:1px solid}
+.ac-card:hover{transform:translateY(-2px)}
+.ac-card.stale{background:linear-gradient(135deg,#1a1000,#0c1526);border-color:#f59e0b40}
+.ac-card.stale:hover{border-color:#f59e0b80}
+.ac-card.logistics{background:linear-gradient(135deg,#001a2e,#0c1526);border-color:#3b82f640}
+.ac-card.logistics:hover{border-color:#3b82f680}
+.ac-card.action{background:linear-gradient(135deg,#1a0000,#0c1526);border-color:#ef444440}
+.ac-card.action:hover{border-color:#ef444480}
+.ac-glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.12;filter:blur(20px)}
+.ac-icon{font-size:22px;margin-bottom:10px}
+.ac-count{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1;margin-bottom:4px}
+.ac-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ac-desc{font-size:11px;color:var(--dim)}
+.ac-card.stale .ac-count{color:#f59e0b}
+.ac-card.logistics .ac-count{color:#60a5fa}
+.ac-card.action .ac-count{color:#ef4444}
+
+/* ══════════════════════════════════════
+   KPI CARDS
+══════════════════════════════════════ */
+.dashboard{max-width:1200px;margin:20px auto 0;padding:0 24px}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;position:relative;overflow:hidden;}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
 .kpi-bar{position:absolute;top:0;left:0;right:0;height:3px}
-.kpi-label{color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
-.kpi-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1;margin-bottom:5px;color:var(--text)}
+.kpi-label{color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.kpi-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;line-height:1;color:var(--text)}
 
-/* MAIN TABLE */
-.app-main{max-width:1100px;margin:0 auto;padding:0 24px 60px}
-.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px 16px;font-size:14px;outline:none;margin-bottom:14px}
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow-x:auto;}
-.table-head{display:grid;grid-template-columns:1.4fr 120px 130px 150px 130px 110px;padding:11px 20px;background:#0a1322;border-bottom:1px solid var(--border);min-width:800px}
+/* ══════════════════════════════════════
+   STAGE TRACKER (Amazon-style)
+══════════════════════════════════════ */
+.stage-tracker{display:flex;justify-content:space-between;align-items:flex-start;margin:28px 0 16px;position:relative}
+.stage-tracker::before{content:'';position:absolute;top:13px;left:8%;right:8%;height:3px;background:var(--surface2);z-index:1}
+.stage-step{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;text-align:center}
+.stage-dot{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:3px solid var(--surface);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--dim);transition:all .3s}
+.stage-label{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--dim);letter-spacing:.5px}
+.stage-step.completed .stage-dot{background:var(--accent);color:#fff;box-shadow:0 0 0 2px var(--accent)}
+.stage-step.completed .stage-label{color:var(--muted)}
+.stage-step.active .stage-dot{background:var(--success);color:#fff;box-shadow:0 0 0 3px var(--success),0 0 12px rgba(34,197,94,.4);transform:scale(1.15)}
+.stage-step.active .stage-label{color:var(--success);font-weight:800}
+
+/* ══════════════════════════════════════
+   TABLE
+══════════════════════════════════════ */
+.app-main{max-width:1200px;margin:0 auto;padding:0 24px 60px}
+.table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 16px;font-size:14px;outline:none;font-family:inherit}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow-x:auto}
+.table-head{display:grid;grid-template-columns:1.6fr 130px 120px 150px 130px 130px;padding:11px 20px;background:#0a1322;border-bottom:1px solid var(--border);min-width:860px}
 .th{color:var(--dim);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
-.table-row{display:grid;grid-template-columns:1.4fr 120px 130px 150px 130px 110px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;align-items:center;min-width:800px}
+.table-row{display:grid;grid-template-columns:1.6fr 130px 120px 150px 130px 130px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;align-items:center;min-width:860px;transition:background .1s}
+.table-row:last-child{border-bottom:none}
 .table-row:hover{background:#111d2e}
-.table-row.priority { border-left: 4px solid #3b82f6; background: linear-gradient(90deg, #0d1f3c40, transparent); }
-.amt-outstanding { color: var(--warn); font-weight: 600; }
-.badge{border-radius:4px;padding:4px 8px;font-size:10px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.table-row.priority{border-left:3px solid #3b82f6;background:linear-gradient(90deg,#0d1f3c40,transparent)}
+.badge{border-radius:4px;padding:3px 7px;font-size:10px;font-weight:700;text-transform:uppercase;white-space:nowrap;letter-spacing:.3px}
+.amt-outstanding{color:var(--warn);font-weight:600}
+.copy-btn{background:none;border:none;cursor:pointer;color:var(--dim);font-size:12px;padding:2px 5px;border-radius:4px;transition:color .15s;margin-left:5px;flex-shrink:0}
+.copy-btn:hover{color:var(--text)}
+.row-name-wrap{display:flex;align-items:center;gap:2px}
 
-/* MODAL & TABS */
+/* MODULE 2: ETA BADGES */
+.eta-badge{border-radius:4px;padding:3px 7px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid transparent}
+.eta-urgent{background:#2d0000;color:#ef4444;border-color:#ef444440;animation:blink 1.2s ease-in-out infinite}
+.eta-today{background:#052e16;color:#22c55e;border-color:#22c55e40}
+.eta-overdue{background:#1a0000;color:#dc2626;border-color:#dc262640}
+.eta-ok{background:var(--surface2);color:var(--muted);border-color:var(--border)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* MODALS */
 .overlay{position:fixed;inset:0;background:#000000ee;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);overflow-y:auto}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:700px;padding:28px;margin:auto}
-.modal-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px; margin-top:10px; overflow-x:auto }
-.modal-tab { padding: 10px 0; color: var(--dim); cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 2px solid transparent; text-transform:uppercase; transition:all 0.2s; white-space:nowrap}
-.modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-.tab-content { display: none; animation: fadeIn 0.2s ease-in-out;}
-.tab-content.active { display: block; }
-@keyframes fadeIn { from {opacity:0; transform:translateY(5px)} to {opacity:1; transform:translateY(0)} }
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:720px;padding:28px;margin:auto}
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px;margin-top:12px;overflow-x:auto}
+.modal-tab{padding:10px 18px;color:var(--dim);cursor:pointer;font-size:12px;font-weight:600;border-bottom:2px solid transparent;text-transform:uppercase;transition:all .2s;white-space:nowrap;position:relative;letter-spacing:.5px}
+.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.modal-tab:hover:not(.active){color:var(--muted)}
 
-/* FORM FIELDS */
+/* MODULE 5: TAB NOTIFICATION DOTS */
+.tab-dot{position:absolute;top:6px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--accent);display:none}
+.tab-dot.show{display:block}
+
+.tab-content{display:none;animation:fadeIn .2s ease-in-out}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .field{margin-bottom:15px}
 .field label{color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;font-weight:600}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);padding:11px 14px;font-size:14px;outline:none;font-family:inherit;color-scheme:dark;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#3b82f6}
+.field textarea{resize:vertical}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stakeholder-box{padding:14px;background:var(--surface2);border-radius:8px;margin-bottom:15px;border:1px solid var(--border)}
+.stakeholder-box h4{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;letter-spacing:1px}
 
-/* VAULT & TIMELINE */
-.file-drop{border:2px dashed var(--border2);border-radius:10px;padding:30px;text-align:center;color:var(--muted);background:var(--surface2);cursor:pointer;transition:all 0.2s}
+/* MODULE 3: LOGISTICS TAB */
+.logistics-form{background:var(--surface2);border-radius:8px;padding:16px;margin-bottom:16px;border:1px solid var(--border)}
+.logistics-form h4{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:1px}
+.logi-table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+.logi-table th{text-align:left;color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;border-bottom:1px solid var(--border);font-weight:600}
+.logi-table td{padding:10px 8px 10px 0;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.logi-table tr:last-child td{border-bottom:none}
+.shipment-bar-wrap{margin-top:5px;background:var(--surface3);border-radius:20px;height:5px;overflow:hidden}
+.shipment-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),#3b82f6);transition:width .4s}
+
+/* MODULE 3: LC STATUS PROGRESS */
+.lc-status-steps{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.lc-step{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--surface3);color:var(--dim);font-weight:600}
+.lc-step.done{background:#1d3a8a20;color:#60a5fa;border:1px solid #3b82f630}
+.lc-step.current{background:#1d4ed820;color:#60a5fa;border:1px solid #3b82f6}
+
+/* TRANSACTIONS TABLE */
+.tx-table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+.tx-table th{text-align:left;color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;border-bottom:1px solid var(--border);font-weight:600}
+.tx-table td{padding:10px 0;border-bottom:1px solid var(--border);color:var(--text)}
+.tx-table tr:last-child td{border-bottom:none}
+
+/* MODULE 4: ARTWORK LOG */
+.artwork-form{background:#1a1000;border:1px solid #f59e0b30;border-radius:8px;padding:14px;margin-bottom:16px}
+.artwork-form h4{font-size:10px;color:#f59e0b;text-transform:uppercase;margin-bottom:10px;letter-spacing:1px}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:22px;margin-top:10px}
+.timeline::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:2px;background:var(--border2)}
+.timeline-item{position:relative;margin-bottom:18px}
+.timeline-dot{position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+.timeline-dot.artwork{background:#f59e0b;border-color:var(--surface)}
+.timeline-date{font-size:11px;color:var(--dim);font-weight:600;margin-bottom:3px}
+.timeline-content{font-size:13px;color:var(--text);background:var(--surface2);padding:9px 13px;border-radius:7px;border:1px solid var(--border)}
+.timeline-content.artwork-entry{border-color:#f59e0b30;background:#1a100080}
+
+/* VAULT */
+.file-drop{border:2px dashed var(--border2);border-radius:10px;padding:28px;text-align:center;color:var(--muted);background:var(--surface2);cursor:pointer;transition:all .2s}
 .file-drop:hover{border-color:var(--accent);color:var(--text)}
-.file-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:8px;margin-top:10px;border:1px solid var(--border)}
-.timeline{position:relative;padding-left:20px;margin-top:10px}
-.timeline::before{content:'';position:absolute;left:4px;top:0;bottom:0;width:2px;background:var(--border2)}
-.timeline-item{position:relative;margin-bottom:20px}
-.timeline-dot{position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
-.timeline-date{font-size:11px;color:var(--dim);font-weight:600;margin-bottom:4px}
-.timeline-content{font-size:13px;color:var(--text);background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--border)}
+.file-item{display:flex;justify-content:space-between;align-items:center;padding:11px;background:var(--surface2);border-radius:8px;margin-top:10px;border:1px solid var(--border)}
 
 /* TOAST */
-#toast{position:fixed;bottom:24px;right:24px;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;background:#052e16;color:var(--success);border:1px solid #22c55e40;}
+#toast{position:fixed;bottom:24px;right:24px;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;background:#052e16;color:var(--success);border:1px solid #22c55e40;pointer-events:none}
 #toast.warn{background:#2d0000;color:var(--danger);border-color:#ef444440}
+#toast.info{background:#0d1f3c;color:#60a5fa;border-color:#3b82f640}
 #toast.show{opacity:1}
 
-/* STAGE TRACKER (AMAZON STYLE) */
-.stage-tracker { display: flex; justify-content: space-between; align-items: flex-start; margin: 32px 0 20px; position: relative; }
-.stage-tracker::before { content: ''; position: absolute; top: 12px; left: 10%; right: 10%; height: 3px; background: var(--surface2); z-index: 1; }
-.stage-step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; text-align: center; }
-.stage-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--surface2); border: 4px solid var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: var(--dim); transition: all 0.3s ease; }
-.stage-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--dim); letter-spacing: 0.5px; transition: all 0.3s ease; }
-/* Completed Stages */
-.stage-step.completed .stage-dot { background: var(--accent); color: #fff; border-color: var(--surface); box-shadow: 0 0 0 2px var(--accent); }
-.stage-step.completed .stage-label { color: var(--muted); }
-/* Active Stage */
-.stage-step.active .stage-dot { background: var(--success); color: #fff; border-color: var(--surface); box-shadow: 0 0 0 3px var(--success), 0 0 12px rgba(34, 197, 94, 0.4); transform: scale(1.15); }
-.stage-step.active .stage-label { color: var(--success); font-weight: 800; }
-
-/* MOBILE RESPONSIVENESS */
-@media(max-width: 768px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; } /* 2x2 grid on tablets/phones */
-  .field-row { grid-template-columns: 1fr; } /* Stack form fields */
-  .folder-header { padding: 16px 20px; }
-  .app-header-inner { padding: 10px 0; height: auto; flex-direction: column; align-items: flex-start; gap: 16px; }
-  .stage-label { font-size: 9px; } /* Shrink text slightly on mobile */
+/* RESPONSIVE */
+@media(max-width:768px){
+  .kpi-grid,.ac-grid{grid-template-columns:1fr 1fr}
+  .field-row{grid-template-columns:1fr}
+  .folder-header{padding:14px 20px}
+  .action-center,.dashboard,.app-main{padding:0 14px}
+  .app-header{padding:0 14px}
+  .stage-label{font-size:8px}
 }
-@media(max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr; } /* 1x4 list on small phones */
+@media(max-width:480px){
+  .kpi-grid,.ac-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
+<!-- AUTH -->
 <div id="auth-screen" class="screen active">
   <div class="auth-card">
-    <div style="color:#3b82f6;font-size:11px;letter-spacing:3px;font-weight:700;margin-bottom:8px">ENTERPRISE SUITE</div>
+    <div style="color:#3b82f6;font-size:10px;letter-spacing:3px;font-weight:700;text-transform:uppercase;margin-bottom:6px">Enterprise Suite</div>
     <div class="auth-title">Diamond<br>International<br>Lanka</div>
+    <div class="auth-sub">Executive CRM — Security Printing</div>
     <input id="auth-email" class="auth-input" type="email" placeholder="Work email"/>
     <input id="auth-password" class="auth-input" type="password" placeholder="Password"/>
     <button class="auth-btn" onclick="login()">Secure Login →</button>
   </div>
 </div>
 
+<!-- PORTAL -->
 <div id="portal-screen" class="screen">
   <div class="folder-header">
-    <div class="folder-brand-name">Enterprise Portal</div>
+    <div class="folder-brand">
+      <div class="folder-brand-sub">Diamond International Lanka</div>
+      <div class="folder-brand-name">Enterprise Portal</div>
+    </div>
     <button class="btn btn-ghost" onclick="logout()">Sign Out</button>
   </div>
   <div class="folder-body">
-    <h1 style="font-family:'Syne';font-size:32px;margin-bottom:8px;text-align:center">Select Module</h1>
+    <h1 style="font-family:'Syne';font-size:28px;margin-bottom:6px;text-align:center">Select Module</h1>
+    <p style="color:var(--dim);font-size:13px;text-align:center">Choose a division to continue</p>
     <div class="folder-grid">
       <div class="folder-card live" onclick="showScreen('imports-folder-screen')">
-        <div class="folder-icon">📥</div><h3>Imports Division</h3>
+        <div class="folder-icon">📥</div>
+        <h3 style="font-family:'Syne';font-size:16px;margin-bottom:4px">Imports Division</h3>
+        <p style="color:var(--dim);font-size:12px">Security Printing, Holograms</p>
       </div>
     </div>
   </div>
 </div>
 
+<!-- IMPORTS FOLDER -->
 <div id="imports-folder-screen" class="screen">
   <div class="folder-header">
+    <div class="folder-brand">
+      <div class="folder-brand-sub">Diamond International Lanka</div>
+      <div class="folder-brand-name">Imports Division</div>
+    </div>
     <button class="btn btn-ghost" onclick="showScreen('portal-screen')">← Back</button>
-    <div class="folder-brand-name">Imports Division</div>
   </div>
   <div class="folder-body">
     <div class="folder-grid">
       <div class="folder-card live" onclick="openModule()">
-        <div class="folder-icon" style="color:#3b82f6">🛡️</div><h3>Security Printing</h3>
+        <div class="folder-icon" style="color:#3b82f6">🛡️</div>
+        <h3 style="font-family:'Syne';font-size:16px;margin-bottom:4px">Security Printing</h3>
+        <p style="color:var(--dim);font-size:12px">Pipeline, Transactions, Vault</p>
       </div>
     </div>
   </div>
 </div>
 
+<!-- APP -->
 <div id="app-screen" class="screen">
   <header class="app-header">
     <div class="app-header-inner">
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="btn btn-ghost" onclick="showScreen('imports-folder-screen')">← Folders</button>
-        <span style="color:var(--dim);font-size:13px">/ <b style="color:var(--text)">Security Printing</b></span>
+      <div>
+        <div class="app-brand-sub">Diamond International Lanka — Executive Suite</div>
+        <div class="app-brand-name">Security Printing Control Tower</div>
       </div>
-      <div style="display:flex;gap:10px;width:100%;justify-content:flex-end">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
         <button class="btn btn-primary" onclick="openAddModal()">+ New Record</button>
+        <button class="btn btn-ghost" onclick="showScreen('imports-folder-screen')">← Folders</button>
       </div>
     </div>
   </header>
 
+  <!-- MODULE 1: ACTION CENTER -->
+  <div class="action-center">
+    <div class="ac-label">Executive Action Center</div>
+    <div class="ac-grid">
+      <div class="ac-card stale" onclick="filterStale()">
+        <div class="ac-glow" style="background:#f59e0b"></div>
+        <div class="ac-icon">🕐</div>
+        <div class="ac-count" id="ac-stale">—</div>
+        <div class="ac-title" style="color:#f59e0b">Stale Accounts</div>
+        <div class="ac-desc">No contact in 7+ days</div>
+      </div>
+      <div class="ac-card logistics" onclick="filterLogistics()">
+        <div class="ac-glow" style="background:#3b82f6"></div>
+        <div class="ac-icon">🚢</div>
+        <div class="ac-count" id="ac-logistics">—</div>
+        <div class="ac-title" style="color:#60a5fa">Pending Logistics</div>
+        <div class="ac-desc">Active shipments & open LCs</div>
+      </div>
+      <div class="ac-card action" onclick="filterAction()">
+        <div class="ac-glow" style="background:#ef4444"></div>
+        <div class="ac-icon">⚡</div>
+        <div class="ac-count" id="ac-action">—</div>
+        <div class="ac-title" style="color:#ef4444">Action Required</div>
+        <div class="ac-desc">Overdue or due today</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
   <div class="dashboard">
-    <div class="section-eye">Financial Revenue (Received)</div>
+    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:10px">Financial Overview — Received Payments</div>
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-bar" style="background:#3b82f6"></div>
@@ -195,7 +327,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
         <div class="kpi-label">YTD (2026)</div>
         <div class="kpi-val" id="kpi-ytd">—</div>
       </div>
-      <div class="kpi-card" style="border-color:var(--warn); background:linear-gradient(135deg, var(--surface), #291a00);">
+      <div class="kpi-card" style="border-color:var(--warn);background:linear-gradient(135deg,var(--surface),#291a00)">
         <div class="kpi-bar" style="background:var(--warn)"></div>
         <div class="kpi-label" style="color:var(--warn)">Total Outstanding</div>
         <div class="kpi-val" id="kpi-out" style="color:var(--warn)">—</div>
@@ -203,114 +335,191 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
     </div>
   </div>
 
+  <!-- TABLE -->
   <div class="app-main">
-    <input class="search-input" id="search" placeholder="Search Company or Product..." oninput="renderTable()"/>
+    <div class="table-toolbar">
+      <input class="search-input" id="search" placeholder="Search company or product..." oninput="renderTable()"/>
+      <button class="btn btn-ghost btn-sm" id="filter-clear-btn" style="display:none" onclick="clearFilter()">✕ Clear Filter</button>
+    </div>
     <div class="table-wrap">
       <div class="table-head">
-        <span class="th">Company / Product</span><span class="th">Stage</span><span class="th">Contact</span>
-        <span class="th">Next Action</span><span class="th">Outstanding</span><span class="th">Last Contact</span>
+        <span class="th">Company / Product</span>
+        <span class="th">Stage</span>
+        <span class="th">Contact</span>
+        <span class="th">Next Action</span>
+        <span class="th">Outstanding</span>
+        <span class="th">ETA / Shipment</span>
       </div>
       <div id="table-body"></div>
     </div>
   </div>
 </div>
 
+<!-- EDIT MODAL -->
 <div class="overlay" id="modal" style="display:none">
   <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
       <div>
-        <h2 id="m-name" style="font-family:'Syne';line-height:1.2"></h2>
-        <div id="m-prod-disp" style="color:var(--dim);font-size:13px;margin-top:4px"></div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:3px">Customer Record</div>
+        <h2 id="m-name" style="font-family:'Syne';font-size:22px;line-height:1.2"></h2>
+        <div id="m-prod-disp" style="color:var(--dim);font-size:13px;margin-top:3px"></div>
       </div>
-      <button class="btn btn-ghost" onclick="closeModal()">✕</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
     </div>
 
+    <!-- Stage Tracker -->
     <div id="m-stage-tracker" class="stage-tracker"></div>
 
+    <!-- Tabs -->
     <div class="modal-tabs">
-      <div class="modal-tab active" onclick="switchTab('tab-details', this)">Details</div>
-      <div class="modal-tab" onclick="switchTab('tab-transactions', this)">Transactions</div>
-      <div class="modal-tab" onclick="switchTab('tab-docs', this)">Documents</div>
-      <div class="modal-tab" onclick="switchTab('tab-history', this)">History</div>
+      <div class="modal-tab active" onclick="switchTab('tab-details',this)">Details<span class="tab-dot" id="dot-details"></span></div>
+      <div class="modal-tab" onclick="switchTab('tab-logistics',this)">Logistics<span class="tab-dot" id="dot-logistics"></span></div>
+      <div class="modal-tab" onclick="switchTab('tab-transactions',this)">Transactions<span class="tab-dot" id="dot-transactions"></span></div>
+      <div class="modal-tab" onclick="switchTab('tab-artwork',this)">Artwork Log<span class="tab-dot" id="dot-artwork"></span></div>
+      <div class="modal-tab" onclick="switchTab('tab-docs',this)">Vault<span class="tab-dot" id="dot-docs"></span></div>
+      <div class="modal-tab" onclick="switchTab('tab-history',this)">History<span class="tab-dot" id="dot-history"></span></div>
     </div>
 
+    <!-- DETAILS TAB -->
     <div id="tab-details" class="tab-content active">
       <div class="field">
         <label>Stage Gate</label>
         <select id="m-status" class="auth-input" onchange="renderTracker(this.value)">
-          <option>Inquiry</option><option>Quoted</option><option>PO Received</option><option>Artwork Approval</option><option>Production (PI)</option>
+          <option>Inquiry</option><option>Quoted</option><option>PO Received</option>
+          <option>Artwork Approval</option><option>Production (PI)</option>
         </select>
       </div>
       <div class="field-row">
         <div class="field"><label>Primary Contact</label><input id="m-contact" class="auth-input"/></div>
         <div class="field"><label>Last Contact Date</label><input id="m-lastContact" type="date" class="auth-input"/></div>
       </div>
-      
-      <div style="padding:15px;background:var(--surface2);border-radius:8px;margin-bottom:15px;border:1px solid var(--border)">
-        <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Stakeholder Mapping</h4>
+      <div class="stakeholder-box">
+        <h4>Stakeholder Mapping</h4>
         <div class="field-row">
           <div class="field"><label>Finance Contact</label><input id="m-stakeFinance" class="auth-input" style="background:var(--surface)"/></div>
           <div class="field"><label>Production Contact</label><input id="m-stakeArt" class="auth-input" style="background:var(--surface)"/></div>
         </div>
         <div class="field"><label>Supplier Ref #</label><input id="m-supRef" class="auth-input" style="background:var(--surface)"/></div>
       </div>
-
       <div class="field-row">
-        <div class="field"><label>Next Action</label><input id="m-nextAction" class="auth-input"/></div>
+        <div class="field"><label>Next Action</label><input id="m-nextAction" class="auth-input" placeholder="e.g. Follow up on PO"/></div>
         <div class="field">
           <label>Account Priority</label>
-          <select id="m-priority" class="auth-input"><option value="false">Standard</option><option value="true">Priority (Bypass Blocks)</option></select>
+          <select id="m-priority" class="auth-input">
+            <option value="false">Standard</option>
+            <option value="true">Priority (Bypass Blocks)</option>
+          </select>
         </div>
       </div>
       <div class="field"><label>Notes</label><textarea id="m-notes" class="auth-input" rows="3"></textarea></div>
       <div style="display:flex;gap:10px;margin-top:20px">
-         <button class="btn btn-danger" style="flex:1" onclick="deleteCustomer()">Delete Record</button>
-         <button class="btn btn-primary" style="flex:2" onclick="saveCustomer()">Save Changes</button>
+        <button class="btn btn-danger" style="flex:1" onclick="deleteCustomer()">Delete Record</button>
+        <button class="btn btn-primary" style="flex:2" onclick="saveCustomer()">Save Changes</button>
       </div>
     </div>
 
+    <!-- MODULE 3: LOGISTICS TAB -->
+    <div id="tab-logistics" class="tab-content">
+      <div class="logistics-form">
+        <h4>Log New Shipment</h4>
+        <div class="field-row">
+          <div class="field"><label>Product</label><input id="lg-prod" class="auth-input" style="background:var(--surface)"/></div>
+          <div class="field"><label>PI Date</label><input id="lg-pi-date" type="date" class="auth-input" style="background:var(--surface)"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Shipment Mode</label>
+            <select id="lg-mode" class="auth-input" style="background:var(--surface)">
+              <option>Air</option><option>Sea</option><option>Courier</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>LC Status</label>
+            <select id="lg-lc" class="auth-input" style="background:var(--surface)">
+              <option>Draft PI Received</option>
+              <option>LC Opened</option>
+              <option>TT Paid</option>
+              <option>In Clearing</option>
+              <option>Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>ETA</label><input id="lg-eta" type="date" class="auth-input" style="background:var(--surface)"/></div>
+        <button class="btn btn-primary" style="width:100%" onclick="addLogistic()">Log Shipment</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="logi-table">
+          <thead>
+            <tr>
+              <th>Product</th><th>Mode</th><th>PI Date</th><th>LC Status</th><th>ETA</th>
+            </tr>
+          </thead>
+          <tbody id="logi-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS TAB -->
     <div id="tab-transactions" class="tab-content">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <input id="l-date" type="date" class="auth-input" style="margin:0"/>
         <input id="l-prod" class="auth-input" placeholder="Product" style="margin:0"/>
         <input id="l-qty" type="number" class="auth-input" placeholder="Qty" style="margin:0"/>
-        <input id="l-amt" type="number" class="auth-input" placeholder="Amount" style="margin:0"/>
-        <select id="l-sup" class="auth-input" style="margin:0"><option>Holostik</option><option>Holographic Asia</option></select>
+        <input id="l-amt" type="number" class="auth-input" placeholder="Amount (Rs.)" style="margin:0"/>
+        <select id="l-sup" class="auth-input" style="margin:0"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select>
         <select id="l-status" class="auth-input" style="margin:0"><option>Outstanding</option><option>Received</option></select>
       </div>
-      <button class="btn btn-primary" style="width:100%;margin-bottom:20px" onclick="addTransaction()">Log Entry</button>
-      <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:13px;color:var(--text);min-width:500px">
-            <thead style="text-align:left;color:var(--dim);border-bottom:1px solid var(--border)"><tr><th>Date</th><th>Product</th><th>Amt</th><th>Status</th></tr></thead>
-            <tbody id="ledger-body"></tbody>
-          </table>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:20px" onclick="addTransaction()">Log Transaction</button>
+      <div style="overflow-x:auto">
+        <table class="tx-table">
+          <thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Amount</th><th>Supplier</th><th>Status</th></tr></thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
       </div>
     </div>
 
+    <!-- MODULE 4: ARTWORK LOG TAB -->
+    <div id="tab-artwork" class="tab-content">
+      <div class="artwork-form">
+        <h4>🎨 Log Artwork Event</h4>
+        <div class="field-row">
+          <div class="field"><label>Version</label><input id="aw-version" class="auth-input" style="background:var(--surface)" placeholder="e.g. Proof V1"/></div>
+          <div class="field"><label>Date</label><input id="aw-date" type="date" class="auth-input" style="background:var(--surface)"/></div>
+        </div>
+        <div class="field"><label>Description</label><input id="aw-desc" class="auth-input" style="background:var(--surface)" placeholder="e.g. Proof V1 sent to NIBM for approval"/></div>
+        <button class="btn btn-primary" style="width:100%;background:#92400e;margin-top:4px" onclick="addArtworkLog()">Log Artwork Event</button>
+      </div>
+      <div class="timeline" id="artwork-timeline"></div>
+    </div>
+
+    <!-- VAULT TAB -->
     <div id="tab-docs" class="tab-content">
       <div class="file-drop" id="file-drop-zone">
-        <div style="font-size:24px;margin-bottom:10px">📄</div>
-        <div>Click or Drag PO/Artwork to upload to Vault</div>
+        <div style="font-size:28px;margin-bottom:8px">📁</div>
+        <div style="font-weight:600;margin-bottom:4px">Click or drag files to upload</div>
+        <div style="font-size:12px;color:var(--dim)">PO, Artwork, PI Documents</div>
         <input type="file" id="file-input" style="display:none" onchange="uploadFile(event)"/>
       </div>
-      <div id="vault-list" style="margin-top:20px"></div>
+      <div id="vault-list" style="margin-top:16px"></div>
     </div>
 
+    <!-- HISTORY TAB -->
     <div id="tab-history" class="tab-content">
       <div class="timeline" id="history-timeline"></div>
     </div>
   </div>
 </div>
 
+<!-- ADD MODAL -->
 <div class="overlay" id="add-modal" style="display:none">
   <div class="modal" style="max-width:420px">
     <div style="display:flex;justify-content:space-between;margin-bottom:20px">
-      <h3 style="font-family:'Syne'">New Record</h3>
-      <button class="btn btn-ghost" onclick="closeAddModal()">✕</button>
+      <h3 style="font-family:'Syne';font-size:18px">New Record</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeAddModal()">✕</button>
     </div>
     <div class="field"><label>Company Name *</label><input id="add-name" class="auth-input"/></div>
-    <div class="field"><label>Initial Product</label><input id="add-product" class="auth-input"/></div>
-    <button class="btn btn-primary" style="width:100%" onclick="confirmAdd()">Create Record</button>
+    <div class="field"><label>Initial Product</label><input id="add-product" class="auth-input" placeholder="e.g. Holo, Cert, Sticker"/></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="confirmAdd()">Create Record</button>
   </div>
 </div>
 
@@ -321,311 +530,487 @@ const SUPABASE_URL      = "https://euppycxpozqtdwbhxcjy.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_21vgnKgrn1yRURN6Rcu-2g_x-b4J9JP";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let customers=[], currentId=null, currentCustomer=null;
+let customers=[], currentId=null, currentCustomer=null, activeFilterFn=null;
 
-// COLOR CONFIGURATION FOR STAGES
-const STAGE_COLORS = {
-  'Inquiry': { bg: '#1e293b', color: '#94a3b8', border: '#334155' }, // Gray
-  'Quoted': { bg: '#422006', color: '#f59e0b', border: '#78350f' }, // Amber
-  'PO Received': { bg: '#1e3a8a', color: '#60a5fa', border: '#1e40af' }, // Blue
-  'Artwork Approval': { bg: '#4c1d95', color: '#a78bfa', border: '#5b21b6' }, // Purple
-  'Production (PI)': { bg: '#064e3b', color: '#34d399', border: '#065f46' } // Green
+const STAGE_COLORS={
+  'Inquiry':         {bg:'#1e293b',color:'#94a3b8',border:'#334155'},
+  'Quoted':          {bg:'#422006',color:'#f59e0b',border:'#78350f'},
+  'PO Received':     {bg:'#1e3a8a',color:'#60a5fa',border:'#1e40af'},
+  'Artwork Approval':{bg:'#4c1d95',color:'#a78bfa',border:'#5b21b6'},
+  'Production (PI)': {bg:'#064e3b',color:'#34d399',border:'#065f46'},
 };
+const STAGES_ORDER=['Inquiry','Quoted','PO Received','Artwork Approval','Production (PI)'];
+const LC_ORDER=['Draft PI Received','LC Opened','TT Paid','In Clearing','Completed'];
 
-// PIPELINE STAGES (Must match dropdown exactly)
-const STAGES_ORDER = ['Inquiry', 'Quoted', 'PO Received', 'Artwork Approval', 'Production (PI)'];
-
-// ── AUTH & NAV ─────────────────────────────────────
+// ── AUTH ────────────────────────────────────────────
 async function login(){
-  const {error} = await sb.auth.signInWithPassword({email:document.getElementById('auth-email').value,password:document.getElementById('auth-password').value});
-  if(error) alert("Login Error: Check credentials."); else checkAuth();
+  const{error}=await sb.auth.signInWithPassword({
+    email:document.getElementById('auth-email').value,
+    password:document.getElementById('auth-password').value
+  });
+  if(error) alert("Login Error: "+error.message); else checkAuth();
 }
 async function checkAuth(){
-  const {data:{session}} = await sb.auth.getSession();
-  showScreen(session ? 'portal-screen' : 'auth-screen');
+  const{data:{session}}=await sb.auth.getSession();
+  showScreen(session?'portal-screen':'auth-screen');
 }
-async function logout(){ await sb.auth.signOut(); checkAuth(); }
-
-function showScreen(id){ 
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
-  const target = document.getElementById(id);
-  if(target) target.classList.add('active'); 
+async function logout(){await sb.auth.signOut();checkAuth();}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const t=document.getElementById(id); if(t) t.classList.add('active');
 }
+function openModule(){showScreen('app-screen');loadData();}
 
-function openModule(){ 
-  showScreen('app-screen'); 
-  loadData(); 
-}
-
-// ── DATA & FINANCIAL MATH ───────────────────────────
+// ── DATA ────────────────────────────────────────────
 async function loadData(){
-  try {
-    const {data, error} = await sb.from('Diamond crM').select('*, transactions(*), activity_logs(*)').order('id');
-    if (error) {
-      alert("DATABASE ERROR: " + error.message);
-      return;
-    }
-    customers = data || [];
-    renderTable(); 
+  try{
+    const{data,error}=await sb.from('Diamond crM')
+      .select('*, transactions(*), activity_logs(*), logistics(*)')
+      .order('id');
+    if(error) throw error;
+    customers=data||[];
+    renderTable();
     updateDashboard();
-  } catch(e) {
-    alert("System Error loading data.");
+    updateActionCenter();
+  }catch(e){
+    // Fallback without logistics if table doesn't exist yet
+    try{
+      const{data,error2}=await sb.from('Diamond crM')
+        .select('*, transactions(*), activity_logs(*)')
+        .order('id');
+      if(error2) throw error2;
+      customers=(data||[]).map(c=>({...c,logistics:[]}));
+      renderTable(); updateDashboard(); updateActionCenter();
+    }catch(e2){alert("DB Error: "+e2.message);}
   }
 }
 
-function updateDashboard(){
-  let out=0, monthRev=0, qRev=0, ytdRev=0;
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentQ = Math.floor(currentMonth/3);
-  const currentY = now.getFullYear();
+// ── FORMAT HELPERS ──────────────────────────────────
+function fmtM(v){return `Rs. ${(v/1000000).toFixed(2)}M`;}
+function fmtK(v){
+  if(v>=1000000) return `Rs. ${(v/1000000).toFixed(1)}M`;
+  if(v>=1000)    return `Rs. ${(v/1000).toFixed(0)}K`;
+  return `Rs. ${Math.round(v).toLocaleString()}`;
+}
+function daysDiff(dateStr){
+  if(!dateStr) return null;
+  const d=new Date(dateStr); if(isNaN(d)) return null;
+  const today=new Date(); today.setHours(0,0,0,0); d.setHours(0,0,0,0);
+  return Math.floor((d-today)/86400000);
+}
+function daysSince(dateStr){
+  if(!dateStr) return null;
+  const d=new Date(dateStr); if(isNaN(d)) return null;
+  return Math.floor((Date.now()-d.getTime())/86400000);
+}
 
-  customers.forEach(c => {
-    if(!c.transactions) return;
-    c.transactions.forEach(t => {
-      const amt = parseFloat(t.amount)||0;
-      if(t.payment_status === 'Outstanding') { out += amt; }
-      else if (t.payment_status === 'Received') {
-        const d = new Date(t.order_date);
-        if(d.getFullYear() === currentY) {
-          ytdRev += amt;
-          if(Math.floor(d.getMonth()/3) === currentQ) qRev += amt;
-          if(d.getMonth() === currentMonth) monthRev += amt;
+// ── KPI DASHBOARD ───────────────────────────────────
+function updateDashboard(){
+  let out=0,mRev=0,qRev=0,yRev=0;
+  const now=new Date(),cm=now.getMonth(),cq=Math.floor(cm/3),cy=now.getFullYear();
+  customers.forEach(c=>{
+    (c.transactions||[]).forEach(t=>{
+      const amt=parseFloat(t.amount)||0;
+      if(t.payment_status==='Outstanding') out+=amt;
+      else if(t.payment_status==='Received'){
+        const d=new Date(t.order_date);
+        if(d.getFullYear()===cy){
+          yRev+=amt;
+          if(Math.floor(d.getMonth()/3)===cq) qRev+=amt;
+          if(d.getMonth()===cm) mRev+=amt;
         }
       }
     });
   });
-
-  const fmt = (v) => `Rs. ${(v/1000000).toFixed(2)}M`;
-  document.getElementById('kpi-out').textContent = fmt(out);
-  document.getElementById('kpi-ytd').textContent = fmt(ytdRev);
-  document.getElementById('kpi-quarter').textContent = fmt(qRev);
-  document.getElementById('kpi-month').textContent = fmt(monthRev);
+  document.getElementById('kpi-out').textContent=fmtM(out);
+  document.getElementById('kpi-ytd').textContent=fmtM(yRev);
+  document.getElementById('kpi-quarter').textContent=fmtM(qRev);
+  document.getElementById('kpi-month').textContent=fmtM(mRev);
 }
 
+// ── MODULE 1: ACTION CENTER ─────────────────────────
+function updateActionCenter(){
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  // Stale: no last_contact in 7+ days
+  const stale=customers.filter(c=>{
+    const ds=daysSince(c.last_contact);
+    return ds===null||ds>=7;
+  }).length;
+  document.getElementById('ac-stale').textContent=stale;
+
+  // Pending logistics: any logistics row not completed, or ETA in future
+  const pendingLog=customers.filter(c=>{
+    const logs=c.logistics||[];
+    return logs.some(l=>l.lc_status!=='Completed'||daysDiff(l.eta)>0);
+  }).length;
+  document.getElementById('ac-logistics').textContent=pendingLog;
+
+  // Action required: next_action date is today or overdue
+  const actionReq=customers.filter(c=>{
+    if(!c.next_action) return false;
+    // Try to parse as date; if it's a date field
+    const d=new Date(c.next_action);
+    return !isNaN(d)&&d<=today;
+  }).length;
+  document.getElementById('ac-action').textContent=actionReq;
+}
+
+// Action Center filter triggers
+let acFilterMode=null;
+function filterStale(){
+  acFilterMode=acFilterMode==='stale'?null:'stale';
+  updateFilterUI();renderTable();
+}
+function filterLogistics(){
+  acFilterMode=acFilterMode==='logistics'?null:'logistics';
+  updateFilterUI();renderTable();
+}
+function filterAction(){
+  acFilterMode=acFilterMode==='action'?null:'action';
+  updateFilterUI();renderTable();
+}
+function clearFilter(){
+  acFilterMode=null;
+  document.getElementById('search').value='';
+  updateFilterUI();renderTable();
+}
+function updateFilterUI(){
+  document.getElementById('filter-clear-btn').style.display=acFilterMode?'inline-flex':'none';
+}
+
+// ── MODULE 2: ETA BADGE ─────────────────────────────
+function etaBadge(c){
+  const logs=c.logistics||[];
+  if(!logs.length) return '<span style="color:var(--dim);font-size:12px">—</span>';
+  // Find most recent active shipment
+  const active=logs.filter(l=>l.lc_status!=='Completed').sort((a,b)=>new Date(b.pi_date||0)-new Date(a.pi_date||0));
+  const row=active[0]||logs[logs.length-1];
+  if(!row||!row.eta) return '<span style="color:var(--dim);font-size:12px">—</span>';
+  const diff=daysDiff(row.eta);
+  if(diff===0) return `<span class="eta-badge eta-today">ARRIVING TODAY</span>`;
+  if(diff>0&&diff<=3) return `<span class="eta-badge eta-urgent">URGENT: ${diff}d</span>`;
+  if(diff<0) return `<span class="eta-badge eta-overdue">OVERDUE ${Math.abs(diff)}d</span>`;
+  const mode=row.shipment_mode?`${row.shipment_mode} · `:'';
+  return `<span class="eta-badge eta-ok">${mode}${diff}d</span>`;
+}
+
+// ── MODULE 2: QUICK COPY ────────────────────────────
+function copyBridge(e,c){
+  e.stopPropagation();
+  const txt=`${c.name} | ${c.product||'—'} | Next Action: ${c.next_action||'—'}`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Copied to clipboard','info'));
+}
+
+// ── TABLE ───────────────────────────────────────────
 function renderTable(){
-  const q = document.getElementById('search').value.toLowerCase();
-  const html = customers.filter(c => c.name.toLowerCase().includes(q) || (c.product||'').toLowerCase().includes(q)).map(c => {
-    const out = c.transactions ? c.transactions.filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0) : 0;
-    
-    // Grab the dynamic colors for this specific row's stage
-    const sc = STAGE_COLORS[c.status] || STAGE_COLORS['Inquiry'];
-    
-    return `<div class="table-row ${c.is_priority?'priority':''}" onclick="openModal(${c.id})">
-      <div><div style="font-weight:600">${c.name}</div><div style="font-size:11px;color:var(--dim)">${c.product}</div></div>
+  const q=document.getElementById('search').value.toLowerCase();
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  let filtered=customers.filter(c=>{
+    const matchSearch=c.name.toLowerCase().includes(q)||(c.product||'').toLowerCase().includes(q);
+    if(!matchSearch) return false;
+    if(!acFilterMode) return true;
+    if(acFilterMode==='stale'){const ds=daysSince(c.last_contact);return ds===null||ds>=7;}
+    if(acFilterMode==='logistics'){const logs=c.logistics||[];return logs.some(l=>l.lc_status!=='Completed'||daysDiff(l.eta)>0);}
+    if(acFilterMode==='action'){if(!c.next_action)return false;const d=new Date(c.next_action);return !isNaN(d)&&d<=today;}
+    return true;
+  });
+
+  if(!filtered.length){
+    document.getElementById('table-body').innerHTML='<div style="padding:40px;text-align:center;color:var(--dim)">No records found.</div>';
+    return;
+  }
+
+  document.getElementById('table-body').innerHTML=filtered.map(c=>{
+    const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    const sc=STAGE_COLORS[c.status]||STAGE_COLORS['Inquiry'];
+    const ds=daysSince(c.last_contact);
+    const staleWarn=ds!==null&&ds>=7?`style="color:#f59e0b;font-weight:600" title="${ds} days since last contact"`:'style="color:var(--muted)"';
+    return `<div class="table-row${c.is_priority?' priority':''}" onclick="openModal(${c.id})">
+      <div>
+        <div class="row-name-wrap">
+          <span style="font-weight:600">${c.name}</span>
+          <button class="copy-btn" onclick="copyBridge(event,${JSON.stringify(c).replace(/"/g,'&quot;')})" title="Copy bridge info">📋</button>
+        </div>
+        <div style="font-size:11px;color:var(--dim)">${c.product||'—'}</div>
+      </div>
       <div><span class="badge" style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.border}">${c.status}</span></div>
       <div style="font-size:13px;color:var(--muted)">${c.contact||'—'}</div>
       <div style="font-size:13px;color:var(--muted)">${c.next_action||'—'}</div>
-      <div class="${out>0?'amt-outstanding':''}">${out>0?'Rs. '+out.toLocaleString():'Clear'}</div>
-      <div style="font-size:13px;color:var(--muted)">${c.last_contact||'—'}</div>
+      <div class="${out>0?'amt-outstanding':''}" style="font-size:13px">${out>0?'Rs. '+out.toLocaleString():'<span style="color:var(--dim)">Clear</span>'}</div>
+      <div>${etaBadge(c)}</div>
     </div>`;
   }).join('');
-  document.getElementById('table-body').innerHTML = html;
 }
 
-// ── ONE-CLICK CSV EXPORT ──────────────────────────
-function exportCSV() {
-  let csv = "Company,Product,Stage,Contact,Next Action,Outstanding Balance,Last Contact Date\n";
-  customers.forEach(c => {
-    const out = c.transactions ? c.transactions.filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0) : 0;
-    csv += `"${c.name}","${c.product}","${c.status}","${c.contact}","${c.next_action}","${out}","${c.last_contact}"\n`;
+// ── CSV EXPORT ──────────────────────────────────────
+function exportCSV(){
+  let csv="Company,Product,Stage,Contact,Next Action,Outstanding,Last Contact\n";
+  customers.forEach(c=>{
+    const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    csv+=`"${c.name}","${c.product||''}","${c.status}","${c.contact||''}","${c.next_action||''}","${out}","${c.last_contact||''}"\n`;
   });
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `Diamond_Pipeline_Report_${new Date().toISOString().split('T')[0]}.csv`);
-  document.body.appendChild(link);
-  link.click(); document.body.removeChild(link);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`Diamond_Pipeline_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
-// ── MODAL & SAVING ───────────────────────────────
-function switchTab(tId, el) {
+// ── STAGE TRACKER ───────────────────────────────────
+function renderTracker(currentStatus){
+  const idx=STAGES_ORDER.indexOf(currentStatus);
+  document.getElementById('m-stage-tracker').innerHTML=STAGES_ORDER.map((s,i)=>{
+    const cls=i<idx?'completed':i===idx?'active':'';
+    const icon=i<idx?'✓':i+1;
+    const lbl=s.replace(' Approval','').replace(' (PI)','');
+    return `<div class="stage-step ${cls}"><div class="stage-dot">${icon}</div><div class="stage-label">${lbl}</div></div>`;
+  }).join('');
+}
+
+// ── MODAL OPEN/CLOSE ────────────────────────────────
+function switchTab(tId,el){
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(tId).classList.add('active');
   el.classList.add('active');
 }
 
-// Visual Amazon Progress Bar Logic
-function renderTracker(currentStatus) {
-  const currentIndex = STAGES_ORDER.indexOf(currentStatus);
-  const html = STAGES_ORDER.map((stage, index) => {
-    let statusClass = '';
-    let iconContent = index + 1; // Default to number
-
-    if (index < currentIndex) {
-      statusClass = 'completed';
-      iconContent = '✓'; // Checkmark for past stages
-    } else if (index === currentIndex) {
-      statusClass = 'active';
-    }
-
-    return `
-      <div class="stage-step ${statusClass}">
-        <div class="stage-dot">${iconContent}</div>
-        <div class="stage-label">${stage.replace(' Approval', '').replace(' (PI)', '')}</div>
-      </div>
-    `;
-  }).join('');
-  
-  document.getElementById('m-stage-tracker').innerHTML = html;
-}
-
 function openModal(id){
-  currentId = id; currentCustomer = customers.find(x=>x.id===id);
-  
-  document.getElementById('m-name').textContent = currentCustomer.name || 'Unknown';
-  document.getElementById('m-prod-disp').textContent = currentCustomer.product || '';
+  currentId=id; currentCustomer=customers.find(x=>x.id===id);
+  if(!currentCustomer) return;
 
-  ['contact','lastContact','nextAction','notes','status','priority','stakeFinance','stakeArt','supRef'].forEach(k => {
-    const el = document.getElementById('m-'+k);
-    if(el) {
-       el.value = currentCustomer[k === 'lastContact' ? 'last_contact' : k === 'nextAction' ? 'next_action' : k === 'stakeFinance' ? 'stakeholder_finance' : k === 'stakeArt' ? 'stakeholder_artwork' : k === 'supRef' ? 'supplier_ref_no' : k === 'priority' ? 'is_priority' : k] || (k==='priority'?'false':'');
-    }
+  document.getElementById('m-name').textContent=currentCustomer.name||'Unknown';
+  document.getElementById('m-prod-disp').textContent=currentCustomer.product||'';
+
+  const fieldMap={
+    contact:'contact', lastContact:'last_contact', nextAction:'next_action',
+    notes:'notes', status:'status', priority:'is_priority',
+    stakeFinance:'stakeholder_finance', stakeArt:'stakeholder_artwork', supRef:'supplier_ref_no'
+  };
+  Object.entries(fieldMap).forEach(([k,v])=>{
+    const el=document.getElementById('m-'+k);
+    if(el) el.value=currentCustomer[v]||(k==='priority'?'false':'');
   });
 
-  // Power up the visual tracker instantly
-  renderTracker(currentCustomer.status || 'Inquiry');
-  
-  document.getElementById('l-date').value = new Date().toISOString().split('T')[0];
-  switchTab('tab-details', document.querySelectorAll('.modal-tab')[0]);
-  
-  loadTransactions(); loadHistory(); loadVault();
+  renderTracker(currentCustomer.status||'Inquiry');
+  document.getElementById('l-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('aw-date').value=new Date().toISOString().split('T')[0];
+  switchTab('tab-details',document.querySelectorAll('.modal-tab')[0]);
+  loadTransactions(); loadLogistics(); loadHistory(); loadArtworkLog(); loadVault();
   document.getElementById('modal').style.display='flex';
 }
+function closeModal(){document.getElementById('modal').style.display='none'; currentId=null;}
 
-function closeModal(){ document.getElementById('modal').style.display='none'; }
+// ── MODULE 5: TAB DOTS ──────────────────────────────
+function setTabDot(id, show){
+  const el=document.getElementById('dot-'+id);
+  if(el) el.classList.toggle('show',show);
+}
 
+// ── SAVE CUSTOMER ───────────────────────────────────
 async function saveCustomer(){
-  const oldS = currentCustomer.status; const newS = document.getElementById('m-status').value;
-  const isPriority = document.getElementById('m-priority').value === "true";
-  
-  // PRIORITY LOGIC: Prevent moving to production if money is owed (unless priority is checked)
-  if(newS === 'Production (PI)' && !isPriority) {
-      const out = currentCustomer.transactions ? currentCustomer.transactions.filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0) : 0;
-      if(out > 0) {
-          showToast('⚠ Cannot move to Production: Oustanding Balance. Set Priority to override.', true);
-          return;
-      }
+  const oldS=currentCustomer.status, newS=document.getElementById('m-status').value;
+  const isPriority=document.getElementById('m-priority').value==='true';
+
+  if(newS==='Production (PI)'&&!isPriority){
+    const out=(currentCustomer.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    if(out>0){showToast('⚠ Outstanding balance blocks Production. Set Priority to override.','warn');return;}
   }
-  
-  const updates = {
-    status: newS, contact: document.getElementById('m-contact').value,
-    last_contact: document.getElementById('m-lastContact').value, next_action: document.getElementById('m-nextAction').value,
-    notes: document.getElementById('m-notes').value, is_priority: isPriority,
-    stakeholder_finance: document.getElementById('m-stakeFinance').value, stakeholder_artwork: document.getElementById('m-stakeArt').value,
-    supplier_ref_no: document.getElementById('m-supRef').value
+  const updates={
+    status:newS, contact:document.getElementById('m-contact').value,
+    last_contact:document.getElementById('m-lastContact').value,
+    next_action:document.getElementById('m-nextAction').value,
+    notes:document.getElementById('m-notes').value, is_priority:isPriority,
+    stakeholder_finance:document.getElementById('m-stakeFinance').value,
+    stakeholder_artwork:document.getElementById('m-stakeArt').value,
+    supplier_ref_no:document.getElementById('m-supRef').value,
   };
-  
-  await sb.from('Diamond crM').update(updates).eq('id', currentId);
-  if(oldS !== newS) {
-    await sb.from('activity_logs').insert([{customer_id: currentId, change_description: `Stage moved from ${oldS} to ${newS}`}]);
-  }
-  showToast('✓ Record Updated'); loadData(); closeModal();
+  await sb.from('Diamond crM').update(updates).eq('id',currentId);
+  if(oldS!==newS) await sb.from('activity_logs').insert([{customer_id:currentId,change_description:`Stage moved from ${oldS} to ${newS}`,log_type:'stage'}]);
+  showToast('✓ Record Updated');loadData();closeModal();
 }
 
+// ── DELETE ──────────────────────────────────────────
 async function deleteCustomer(){
-  if(!confirm('Delete this client? This will delete all history and transaction records as well.')) return;
-  try{ await sb.from('Diamond crM').delete().eq('id', currentId); loadData(); closeModal(); showToast('✓ Deleted'); }catch(e){}
+  if(!confirm('Delete this client and all associated records?')) return;
+  try{await sb.from('Diamond crM').delete().eq('id',currentId);loadData();closeModal();showToast('✓ Deleted');}catch(e){showToast('Delete failed','warn');}
 }
 
-// ── TRANSACTIONS ───────────────────────
+// ── TRANSACTIONS ─────────────────────────────────────
 function loadTransactions(){
-  const tx = currentCustomer.transactions || [];
-  document.getElementById('ledger-body').innerHTML = tx.sort((a,b)=>new Date(b.order_date)-new Date(a.order_date)).map(t=>`
-    <tr><td style="padding:10px 0">${t.order_date}</td><td>${t.product}</td>
-    <td style="font-weight:600">${t.amount?t.amount.toLocaleString():0}</td>
-    <td style="color:${t.payment_status==='Received'?'var(--success)':'var(--warn)'}">${t.payment_status}</td></tr>
-  `).join('');
+  const tx=currentCustomer.transactions||[];
+  setTabDot('transactions',tx.length>0);
+  document.getElementById('ledger-body').innerHTML=tx.sort((a,b)=>new Date(b.order_date)-new Date(a.order_date)).map(t=>`
+    <tr>
+      <td style="padding:9px 0">${t.order_date||'—'}</td>
+      <td>${t.product||'—'}</td>
+      <td>${t.quantity||'—'}</td>
+      <td style="font-weight:600">${t.amount?parseFloat(t.amount).toLocaleString():0}</td>
+      <td style="color:var(--dim)">${t.supplier||'—'}</td>
+      <td style="color:${t.payment_status==='Received'?'var(--success)':'var(--warn)'};font-weight:600">${t.payment_status}</td>
+    </tr>`).join('')||'<tr><td colspan="6" style="color:var(--dim);padding:20px 0;text-align:center">No transactions logged.</td></tr>';
 }
-
 async function addTransaction(){
+  const amt=parseFloat(document.getElementById('l-amt').value)||0;
+  if(!amt){showToast('Amount required','warn');return;}
   await sb.from('transactions').insert([{
-    customer_id: currentId, order_date: document.getElementById('l-date').value, product: document.getElementById('l-prod').value,
-    quantity: parseFloat(document.getElementById('l-qty').value)||null, amount: parseFloat(document.getElementById('l-amt').value)||0,
-    supplier: document.getElementById('l-sup').value, payment_status: document.getElementById('l-status').value
+    customer_id:currentId,
+    order_date:document.getElementById('l-date').value,
+    product:document.getElementById('l-prod').value,
+    quantity:parseFloat(document.getElementById('l-qty').value)||null,
+    amount:amt,
+    supplier:document.getElementById('l-sup').value,
+    payment_status:document.getElementById('l-status').value,
   }]);
-  document.getElementById('l-prod').value=''; document.getElementById('l-qty').value=''; document.getElementById('l-amt').value='';
-  showToast('✓ Logged'); loadData(); setTimeout(loadTransactions, 500); 
+  ['l-prod','l-qty','l-amt'].forEach(id=>document.getElementById(id).value='');
+  showToast('✓ Transaction logged');loadData();setTimeout(()=>{currentCustomer=customers.find(x=>x.id===currentId);loadTransactions();},600);
 }
 
-// ── HISTORY (VERTICAL TIMELINE) ───────────────────────
+// ── MODULE 3: LOGISTICS ──────────────────────────────
+function lcProgress(status){
+  const idx=LC_ORDER.indexOf(status);
+  const pct=Math.round(((idx+1)/LC_ORDER.length)*100);
+  return pct;
+}
+
+function loadLogistics(){
+  const logs=currentCustomer.logistics||[];
+  setTabDot('logistics',logs.length>0);
+  if(!logs.length){
+    document.getElementById('logi-body').innerHTML='<tr><td colspan="5" style="color:var(--dim);padding:20px 0;text-align:center">No shipments logged.</td></tr>';
+    return;
+  }
+  document.getElementById('logi-body').innerHTML=logs.sort((a,b)=>new Date(b.pi_date||0)-new Date(a.pi_date||0)).map(l=>{
+    const pct=lcProgress(l.lc_status||'Draft PI Received');
+    const diff=daysDiff(l.eta);
+    let etaTxt='—';
+    if(diff===0) etaTxt='<span style="color:#22c55e;font-weight:700">Today</span>';
+    else if(diff!==null&&diff>0) etaTxt=`<span style="color:var(--muted)">${diff}d</span>`;
+    else if(diff!==null&&diff<0) etaTxt=`<span style="color:#ef4444;font-weight:700">Overdue ${Math.abs(diff)}d</span>`;
+    const modeIcon=l.shipment_mode==='Air'?'✈️':l.shipment_mode==='Sea'?'🚢':'📦';
+    return `<tr>
+      <td>${l.product||'—'}</td>
+      <td>${modeIcon} ${l.shipment_mode||'—'}</td>
+      <td style="color:var(--muted);font-size:12px">${l.pi_date||'—'}</td>
+      <td>
+        <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:4px">${l.lc_status||'—'}</div>
+        <div class="shipment-bar-wrap"><div class="shipment-bar" style="width:${pct}%"></div></div>
+      </td>
+      <td>${etaTxt}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function addLogistic(){
+  const prod=document.getElementById('lg-prod').value;
+  if(!prod){showToast('Product required','warn');return;}
+  try{
+    await sb.from('logistics').insert([{
+      customer_id:currentId,
+      product:prod,
+      pi_date:document.getElementById('lg-pi-date').value||null,
+      shipment_mode:document.getElementById('lg-mode').value,
+      lc_status:document.getElementById('lg-lc').value,
+      eta:document.getElementById('lg-eta').value||null,
+    }]);
+    document.getElementById('lg-prod').value='';
+    document.getElementById('lg-eta').value='';
+    showToast('✓ Shipment logged');loadData();setTimeout(()=>{currentCustomer=customers.find(x=>x.id===currentId);loadLogistics();},600);
+  }catch(e){showToast('⚠ Could not log shipment. Run SQL to create logistics table.','warn');console.error(e);}
+}
+
+// ── MODULE 4: ARTWORK LOG ────────────────────────────
+function loadArtworkLog(){
+  const logs=(currentCustomer.activity_logs||[]).filter(l=>l.log_type==='artwork');
+  setTabDot('artwork',logs.length>0);
+  const el=document.getElementById('artwork-timeline');
+  if(!logs.length){el.innerHTML='<div style="color:var(--dim);font-size:13px">No artwork events logged yet.</div>';return;}
+  el.innerHTML=logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>`
+    <div class="timeline-item">
+      <div class="timeline-dot artwork"></div>
+      <div class="timeline-date" style="color:#f59e0b">🎨 ${new Date(l.created_at).toLocaleString()}</div>
+      <div class="timeline-content artwork-entry">${l.change_description}</div>
+    </div>`).join('');
+}
+async function addArtworkLog(){
+  const ver=document.getElementById('aw-version').value.trim();
+  const desc=document.getElementById('aw-desc').value.trim();
+  if(!desc){showToast('Description required','warn');return;}
+  const entry=ver?`[${ver}] ${desc}`:desc;
+  await sb.from('activity_logs').insert([{customer_id:currentId,change_description:entry,log_type:'artwork'}]);
+  document.getElementById('aw-version').value='';
+  document.getElementById('aw-desc').value='';
+  showToast('✓ Artwork event logged');
+  loadData();setTimeout(()=>{currentCustomer=customers.find(x=>x.id===currentId);loadArtworkLog();},600);
+}
+
+// ── HISTORY ──────────────────────────────────────────
 function loadHistory(){
-  const logs = currentCustomer.activity_logs || [];
-  const hl = document.getElementById('history-timeline');
-  if(logs.length === 0) { hl.innerHTML = "<div style='color:var(--dim); font-size:13px'>No history logged.</div>"; return; }
-  
-  hl.innerHTML = logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>`
+  const logs=(currentCustomer.activity_logs||[]).filter(l=>l.log_type!=='artwork');
+  setTabDot('history',logs.length>0);
+  const el=document.getElementById('history-timeline');
+  if(!logs.length){el.innerHTML='<div style="color:var(--dim);font-size:13px">No history yet.</div>';return;}
+  el.innerHTML=logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>`
     <div class="timeline-item">
       <div class="timeline-dot"></div>
       <div class="timeline-date">${new Date(l.created_at).toLocaleString()}</div>
       <div class="timeline-content">${l.change_description}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// ── DOCUMENT VAULT (PUBLIC STORAGE) ──────────────────────
-const dropZone = document.getElementById('file-drop-zone');
-if (dropZone) {
-    dropZone.addEventListener('click', () => document.getElementById('file-input').click());
+// ── VAULT ────────────────────────────────────────────
+document.getElementById('file-drop-zone').addEventListener('click',()=>document.getElementById('file-input').click());
+async function uploadFile(e){
+  const file=e.target.files[0]; if(!file) return;
+  const path=`${currentId}/${Date.now()}_${file.name}`;
+  showToast('Uploading...','info');
+  const{error}=await sb.storage.from('diamond-vault').upload(path,file);
+  if(error){showToast('Upload failed','warn');console.error(error);return;}
+  await sb.from('activity_logs').insert([{customer_id:currentId,change_description:`Uploaded: ${file.name}`,log_type:'stage'}]);
+  showToast('✓ Saved to Vault');loadVault();loadData();
 }
-
-async function uploadFile(e) {
-  const file = e.target.files[0]; if(!file) return;
-  const path = `${currentId}/${Date.now()}_${file.name}`;
-  showToast('Uploading...');
-  
-  const {error} = await sb.storage.from('diamond-vault').upload(path, file);
-  if(error) { 
-    showToast('Upload Failed.', true); 
-    console.error("Storage Error:", error); return; 
-  }
-  
-  await sb.from('activity_logs').insert([{customer_id: currentId, change_description: `Uploaded document: ${file.name}`}]);
-  showToast('✓ Saved to Vault'); loadVault(); loadData();
-}
-
-async function loadVault() {
-  const {data, error} = await sb.storage.from('diamond-vault').list(currentId.toString());
-  const list = document.getElementById('vault-list');
-  
-  if(error || !data || data.length===0) { 
-    list.innerHTML="<div style='color:var(--dim);text-align:center'>No documents in vault.</div>"; 
-    return; 
-  }
-  
-  list.innerHTML = data.map(f => {
-    const url = sb.storage.from('diamond-vault').getPublicUrl(`${currentId}/${f.name}`).data.publicUrl;
-    return `
-      <div class="file-item">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">📄 ${f.name}</div>
-        <div style="display:flex;gap:10px">
-          <a href="${url}" target="_blank" class="btn btn-ghost" style="text-decoration:none;font-size:11px;padding:4px 8px">View</a>
-          <button class="btn btn-danger" style="font-size:11px;padding:4px 8px" onclick="deleteFile('${f.name}')">Delete</button>
-        </div>
+async function loadVault(){
+  const{data,error}=await sb.storage.from('diamond-vault').list(currentId.toString());
+  const list=document.getElementById('vault-list');
+  if(error||!data||!data.length){list.innerHTML='<div style="color:var(--dim);text-align:center;padding:16px 0">Vault is empty.</div>';setTabDot('docs',false);return;}
+  setTabDot('docs',true);
+  list.innerHTML=data.map(f=>{
+    const url=sb.storage.from('diamond-vault').getPublicUrl(`${currentId}/${f.name}`).data.publicUrl;
+    return `<div class="file-item">
+      <div style="font-size:13px;font-weight:600">📄 ${f.name}</div>
+      <div style="display:flex;gap:8px">
+        <a href="${url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">View</a>
+        <button class="btn btn-danger btn-sm" onclick="deleteFile('${f.name}')">Delete</button>
       </div>
-    `;
+    </div>`;
   }).join('');
 }
-
-async function deleteFile(fileName) {
-  if(!confirm("Delete this document forever?")) return;
-  await sb.storage.from('diamond-vault').remove([`${currentId}/${fileName}`]);
-  showToast('✓ File removed'); loadVault();
+async function deleteFile(fn){
+  if(!confirm("Delete this document permanently?")) return;
+  await sb.storage.from('diamond-vault').remove([`${currentId}/${fn}`]);
+  showToast('✓ File removed');loadVault();
 }
 
-// ── UTILITIES ───────────────────────
-function openAddModal(){ document.getElementById('add-modal').style.display='flex'; }
-function closeAddModal(){ document.getElementById('add-modal').style.display='none'; }
+// ── ADD CUSTOMER ─────────────────────────────────────
+function openAddModal(){document.getElementById('add-modal').style.display='flex';setTimeout(()=>document.getElementById('add-name').focus(),100);}
+function closeAddModal(){document.getElementById('add-modal').style.display='none';}
 async function confirmAdd(){
-  const name = document.getElementById('add-name').value;
-  if(!name) return alert('Name required');
-  await sb.from('Diamond crM').insert([{ name: name, product: document.getElementById('add-product').value, status:'Inquiry' }]);
-  showToast('✓ Record added'); loadData(); closeAddModal();
+  const name=document.getElementById('add-name').value.trim();
+  if(!name){alert('Company name is required.');return;}
+  await sb.from('Diamond crM').insert([{name:name.toUpperCase(),product:document.getElementById('add-product').value,status:'Inquiry'}]);
+  showToast('✓ Record added');loadData();closeAddModal();
+  document.getElementById('add-name').value='';document.getElementById('add-product').value='';
 }
 
-function showToast(m, w=false){ const t=document.getElementById('toast'); t.textContent=m; t.className=w?'show warn':'show'; setTimeout(()=>t.className='', 2500); }
+// ── TOAST ─────────────────────────────────────────────
+let toastTimer;
+function showToast(m,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.className=type?`show ${type}`:'show';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.className='',2600);
+}
 
 // INIT
 checkAuth();
