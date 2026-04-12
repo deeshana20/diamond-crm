@@ -111,14 +111,14 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 
 /* MOBILE RESPONSIVENESS */
 @media(max-width: 768px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .field-row { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; } /* 2x2 grid on tablets/phones */
+  .field-row { grid-template-columns: 1fr; } /* Stack form fields */
   .folder-header { padding: 16px 20px; }
   .app-header-inner { padding: 10px 0; height: auto; flex-direction: column; align-items: flex-start; gap: 16px; }
   .stage-label { font-size: 9px; } /* Shrink text slightly on mobile */
 }
 @media(max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr; } /* 1x4 list on small phones */
 }
 </style>
 </head>
@@ -323,16 +323,17 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let customers=[], currentId=null, currentCustomer=null;
 
+// COLOR CONFIGURATION FOR STAGES
+const STAGE_COLORS = {
+  'Inquiry': { bg: '#1e293b', color: '#94a3b8', border: '#334155' }, // Gray
+  'Quoted': { bg: '#422006', color: '#f59e0b', border: '#78350f' }, // Amber
+  'PO Received': { bg: '#1e3a8a', color: '#60a5fa', border: '#1e40af' }, // Blue
+  'Artwork Approval': { bg: '#4c1d95', color: '#a78bfa', border: '#5b21b6' }, // Purple
+  'Production (PI)': { bg: '#064e3b', color: '#34d399', border: '#065f46' } // Green
+};
+
 // PIPELINE STAGES (Must match dropdown exactly)
 const STAGES_ORDER = ['Inquiry', 'Quoted', 'PO Received', 'Artwork Approval', 'Production (PI)'];
-
-const STAGE_COLORS = {
-  'Inquiry': { bg: '#1e293b', color: '#94a3b8', border: '#334155' },
-  'Quoted': { bg: '#422006', color: '#f59e0b', border: '#78350f' },
-  'PO Received': { bg: '#1e3a8a', color: '#60a5fa', border: '#1e40af' },
-  'Artwork Approval': { bg: '#4c1d95', color: '#a78bfa', border: '#5b21b6' },
-  'Production (PI)': { bg: '#064e3b', color: '#34d399', border: '#065f46' }
-};
 
 // ── AUTH & NAV ─────────────────────────────────────
 async function login(){
@@ -406,6 +407,8 @@ function renderTable(){
   const q = document.getElementById('search').value.toLowerCase();
   const html = customers.filter(c => c.name.toLowerCase().includes(q) || (c.product||'').toLowerCase().includes(q)).map(c => {
     const out = c.transactions ? c.transactions.filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0) : 0;
+    
+    // Grab the dynamic colors for this specific row's stage
     const sc = STAGE_COLORS[c.status] || STAGE_COLORS['Inquiry'];
     
     return `<div class="table-row ${c.is_priority?'priority':''}" onclick="openModal(${c.id})">
@@ -420,6 +423,7 @@ function renderTable(){
   document.getElementById('table-body').innerHTML = html;
 }
 
+// ── ONE-CLICK CSV EXPORT ──────────────────────────
 function exportCSV() {
   let csv = "Company,Product,Stage,Contact,Next Action,Outstanding Balance,Last Contact Date\n";
   customers.forEach(c => {
@@ -435,7 +439,7 @@ function exportCSV() {
   link.click(); document.body.removeChild(link);
 }
 
-// ── MODAL & TRACKER LOGIC ───────────────────────────────
+// ── MODAL & SAVING ───────────────────────────────
 function switchTab(tId, el) {
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
@@ -480,7 +484,7 @@ function openModal(id){
        el.value = currentCustomer[k === 'lastContact' ? 'last_contact' : k === 'nextAction' ? 'next_action' : k === 'stakeFinance' ? 'stakeholder_finance' : k === 'stakeArt' ? 'stakeholder_artwork' : k === 'supRef' ? 'supplier_ref_no' : k === 'priority' ? 'is_priority' : k] || (k==='priority'?'false':'');
     }
   });
-  
+
   // Power up the visual tracker instantly
   renderTracker(currentCustomer.status || 'Inquiry');
   
@@ -497,6 +501,7 @@ async function saveCustomer(){
   const oldS = currentCustomer.status; const newS = document.getElementById('m-status').value;
   const isPriority = document.getElementById('m-priority').value === "true";
   
+  // PRIORITY LOGIC: Prevent moving to production if money is owed (unless priority is checked)
   if(newS === 'Production (PI)' && !isPriority) {
       const out = currentCustomer.transactions ? currentCustomer.transactions.filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0) : 0;
       if(out > 0) {
@@ -545,7 +550,7 @@ async function addTransaction(){
   showToast('✓ Logged'); loadData(); setTimeout(loadTransactions, 500); 
 }
 
-// ── HISTORY ───────────────────────
+// ── HISTORY (VERTICAL TIMELINE) ───────────────────────
 function loadHistory(){
   const logs = currentCustomer.activity_logs || [];
   const hl = document.getElementById('history-timeline');
@@ -560,7 +565,7 @@ function loadHistory(){
   `).join('');
 }
 
-// ── DOCUMENT VAULT ──────────────────────
+// ── DOCUMENT VAULT (PUBLIC STORAGE) ──────────────────────
 const dropZone = document.getElementById('file-drop-zone');
 if (dropZone) {
     dropZone.addEventListener('click', () => document.getElementById('file-input').click());
@@ -572,7 +577,10 @@ async function uploadFile(e) {
   showToast('Uploading...');
   
   const {error} = await sb.storage.from('diamond-vault').upload(path, file);
-  if(error) { showToast('Upload Failed.', true); return; }
+  if(error) { 
+    showToast('Upload Failed.', true); 
+    console.error("Storage Error:", error); return; 
+  }
   
   await sb.from('activity_logs').insert([{customer_id: currentId, change_description: `Uploaded document: ${file.name}`}]);
   showToast('✓ Saved to Vault'); loadVault(); loadData();
@@ -581,16 +589,23 @@ async function uploadFile(e) {
 async function loadVault() {
   const {data, error} = await sb.storage.from('diamond-vault').list(currentId.toString());
   const list = document.getElementById('vault-list');
-  if(error || !data || data.length===0) { list.innerHTML="<div style='color:var(--dim);text-align:center'>No documents in vault.</div>"; return; }
+  
+  if(error || !data || data.length===0) { 
+    list.innerHTML="<div style='color:var(--dim);text-align:center'>No documents in vault.</div>"; 
+    return; 
+  }
   
   list.innerHTML = data.map(f => {
     const url = sb.storage.from('diamond-vault').getPublicUrl(`${currentId}/${f.name}`).data.publicUrl;
-    return `<div class="file-item">
+    return `
+      <div class="file-item">
         <div style="font-size:13px;font-weight:600;color:var(--text)">📄 ${f.name}</div>
         <div style="display:flex;gap:10px">
           <a href="${url}" target="_blank" class="btn btn-ghost" style="text-decoration:none;font-size:11px;padding:4px 8px">View</a>
           <button class="btn btn-danger" style="font-size:11px;padding:4px 8px" onclick="deleteFile('${f.name}')">Delete</button>
-        </div></div>`;
+        </div>
+      </div>
+    `;
   }).join('');
 }
 
