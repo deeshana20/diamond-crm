@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diamond ERP – Executive Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060d1a;--surface:#0c1526;--surface2:#162033;--surface3:#1c2a42;
+  --border:#1e3050;--border2:#2a3f5f;--text:#f0f4ff;--muted:#8ba0be;
+  --dim:#4a6080;--accent:#2563eb;--success:#22c55e;--danger:#ef4444;--warn:#f59e0b;
+}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+#auth-screen.active{align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 30% 50%,#0d1f3c 0%,var(--bg) 70%)}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:100%;max-width:400px}
+.auth-title{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--text);margin-bottom:28px;line-height:1.1}
+.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:13px 16px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;color-scheme:dark}
+.auth-input:focus{border-color:#3b82f6}
+.auth-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:14px;font-size:14px;font-weight:600;cursor:pointer}
+.auth-btn:hover{opacity:.85}
+.folder-header{padding:24px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.folder-brand-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text)}
+.folder-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px}
+.folder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;width:100%;max-width:800px;margin-top:30px}
+.folder-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px 24px;cursor:pointer;transition:all .2s}
+.folder-card.live:hover{transform:translateY(-3px);border-color:#3b82f680;background:linear-gradient(135deg,var(--surface),#0d1f3c)}
+.folder-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;background:var(--surface2)}
+.app-header{background:linear-gradient(135deg,#0c1526,#0d1f3c);border-bottom:1px solid var(--border);padding:0 28px;position:sticky;top:0;z-index:50}
+.app-header-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:62px;gap:12px}
+.btn{border:none;border-radius:7px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;white-space:nowrap}
+.btn:hover{opacity:.85}
+.btn-ghost{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-success{background:#064e3b;color:#34d399;border:1px solid #05966950}
+.btn-danger{background:#2d0000;color:var(--danger);border:1px solid #ef444430}
+.dashboard{max-width:1100px;margin:26px auto 0;padding:0 24px}
+.section-eye{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:12px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;position:relative;overflow:hidden}
+.kpi-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-label{color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.kpi-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1;margin-bottom:5px;color:var(--text)}
+
+/* VISUALIZATIONS */
+.viz-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.viz-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px}
+.viz-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:18px}
+
+/* BAR CHART */
+.bar-chart-outer{display:flex;align-items:flex-end;gap:5px;height:130px;padding-bottom:22px;position:relative}
+.bar-chart-outer::after{content:'';position:absolute;bottom:22px;left:0;right:0;height:1px;background:var(--border)}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;min-height:2px;position:relative;cursor:pointer;transition:opacity .15s}
+.bar-fill:hover{opacity:.8}
+.bar-fill:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1e3050;color:var(--text);font-size:11px;font-weight:600;padding:4px 8px;border-radius:5px;white-space:nowrap;pointer-events:none;border:1px solid var(--border2);z-index:10}
+.bar-lbl{font-size:9px;color:var(--dim);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:5px}
+
+/* FUNNEL */
+.funnel-rows{display:flex;flex-direction:column;gap:9px}
+.f-row{display:flex;align-items:center;gap:10px}
+.f-label{font-size:11px;color:var(--muted);width:128px;flex-shrink:0;font-weight:500}
+.f-bar-bg{flex:1;background:var(--surface2);border-radius:20px;height:26px;overflow:hidden}
+.f-bar{height:100%;border-radius:20px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:700;min-width:26px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.f-num{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;width:24px;text-align:right;flex-shrink:0}
+
+/* TOP CUSTOMERS */
+.tc-list{display:flex;flex-direction:column;gap:11px}
+.tc-row{display:flex;align-items:center;gap:10px}
+.tc-rank{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--dim);width:18px;flex-shrink:0}
+.tc-name{flex:1;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc-bar-bg{width:100px;background:var(--surface2);border-radius:20px;height:5px;overflow:hidden;flex-shrink:0}
+.tc-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#2563eb,#3b82f6)}
+.tc-amt{font-size:11px;font-weight:700;color:#22c55e;width:68px;text-align:right;flex-shrink:0}
+
+/* AGING */
+.aging-bands{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.aging-band{background:var(--surface2);border-radius:8px;padding:13px 15px;border-left:3px solid}
+.aging-period{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:5px}
+.aging-val{font-family:'Syne',sans-serif;font-size:17px;font-weight:800}
+.aging-sub{font-size:11px;color:var(--dim);margin-top:3px}
+.aging-alert{display:flex;justify-content:space-between;background:#2d000060;border:1px solid #ef444430;border-radius:6px;padding:8px 12px;font-size:12px;margin-top:5px}
+
+/* TABLE */
+.app-main{max-width:1100px;margin:0 auto;padding:0 24px 60px}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px 16px;font-size:14px;outline:none;margin-bottom:14px;font-family:inherit}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow-x:auto}
+.table-head{display:grid;grid-template-columns:1.4fr 120px 130px 150px 130px 110px;padding:11px 20px;background:#0a1322;border-bottom:1px solid var(--border);min-width:800px}
+.th{color:var(--dim);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.table-row{display:grid;grid-template-columns:1.4fr 120px 130px 150px 130px 110px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;align-items:center;min-width:800px;transition:background .1s}
+.table-row:last-child{border-bottom:none}
+.table-row:hover{background:#111d2e}
+.table-row.priority{border-left:3px solid #3b82f6;background:linear-gradient(90deg,#0d1f3c40,transparent)}
+.amt-outstanding{color:var(--warn);font-weight:600}
+.badge{border-radius:4px;padding:4px 8px;font-size:10px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:#000000ee;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);overflow-y:auto}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:700px;padding:28px;margin:auto}
+.modal-tabs{display:flex;gap:24px;border-bottom:1px solid var(--border);margin-bottom:24px;margin-top:10px;overflow-x:auto}
+.modal-tab{padding:10px 0;color:var(--dim);cursor:pointer;font-size:13px;font-weight:600;border-bottom:2px solid transparent;text-transform:uppercase;transition:all .2s;white-space:nowrap}
+.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none;animation:fadeIn .2s ease-in-out}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.field{margin-bottom:15px}
+.field label{color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;font-weight:600}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.file-drop{border:2px dashed var(--border2);border-radius:10px;padding:30px;text-align:center;color:var(--muted);background:var(--surface2);cursor:pointer;transition:all .2s}
+.file-drop:hover{border-color:var(--accent);color:var(--text)}
+.file-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:8px;margin-top:10px;border:1px solid var(--border)}
+.timeline{position:relative;padding-left:20px;margin-top:10px}
+.timeline::before{content:'';position:absolute;left:4px;top:0;bottom:0;width:2px;background:var(--border2)}
+.timeline-item{position:relative;margin-bottom:20px}
+.timeline-dot{position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+.timeline-date{font-size:11px;color:var(--dim);font-weight:600;margin-bottom:4px}
+.timeline-content{font-size:13px;color:var(--text);background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--border)}
+#toast{position:fixed;bottom:24px;right:24px;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;background:#052e16;color:var(--success);border:1px solid #22c55e40}
+#toast.warn{background:#2d0000;color:var(--danger);border-color:#ef444440}
+#toast.show{opacity:1}
+
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .viz-grid{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .aging-bands{grid-template-columns:1fr}
+  .folder-header{padding:16px 20px}
+}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="auth-screen" class="screen active">
+  <div class="auth-card">
+    <div style="color:#3b82f6;font-size:11px;letter-spacing:3px;font-weight:700;margin-bottom:8px">ENTERPRISE SUITE</div>
+    <div class="auth-title">Diamond<br>International<br>Lanka</div>
+    <input id="auth-email" class="auth-input" type="email" placeholder="Work email"/>
+    <input id="auth-password" class="auth-input" type="password" placeholder="Password"/>
+    <button class="auth-btn" onclick="login()">Secure Login →</button>
+  </div>
+</div>
+
+<div id="portal-screen" class="screen">
+  <div class="folder-header">
+    <div class="folder-brand-name">Enterprise Portal</div>
+    <button class="btn btn-ghost" onclick="logout()">Sign Out</button>
+  </div>
+  <div class="folder-body">
+    <h1 style="font-family:'Syne';font-size:32px;margin-bottom:8px;text-align:center">Select Module</h1>
+    <div class="folder-grid">
+      <div class="folder-card live" onclick="showScreen('imports-folder-screen')">
+        <div class="folder-icon">📥</div><h3>Imports Division</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="imports-folder-screen" class="screen">
+  <div class="folder-header">
+    <button class="btn btn-ghost" onclick="showScreen('portal-screen')">← Back</button>
+    <div class="folder-brand-name">Imports Division</div>
+  </div>
+  <div class="folder-body">
+    <div class="folder-grid">
+      <div class="folder-card live" onclick="openModule()">
+        <div class="folder-icon" style="color:#3b82f6">🛡️</div><h3>Security Printing</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-screen" class="screen">
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-ghost" onclick="showScreen('imports-folder-screen')">← Folders</button>
+        <span style="color:var(--dim);font-size:13px">/ <b style="color:var(--text)">Security Printing</b></span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
+        <button class="btn btn-primary" onclick="openAddModal()">+ New Record</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <div class="section-eye">Financial Revenue (Received)</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-bar" style="background:#3b82f6"></div>
+        <div class="kpi-label">This Month</div>
+        <div class="kpi-val" id="kpi-month">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-bar" style="background:#8b5cf6"></div>
+        <div class="kpi-label">This Quarter</div>
+        <div class="kpi-val" id="kpi-quarter">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-bar" style="background:#10b981"></div>
+        <div class="kpi-label">YTD (2026)</div>
+        <div class="kpi-val" id="kpi-ytd">—</div>
+      </div>
+      <div class="kpi-card" style="border-color:var(--warn);background:linear-gradient(135deg,var(--surface),#291a00)">
+        <div class="kpi-bar" style="background:var(--warn)"></div>
+        <div class="kpi-label" style="color:var(--warn)">Total Outstanding</div>
+        <div class="kpi-val" id="kpi-out" style="color:var(--warn)">—</div>
+      </div>
+    </div>
+
+    <!-- VISUALIZATIONS -->
+    <div class="viz-grid">
+
+      <!-- Monthly Revenue Chart -->
+      <div class="viz-card">
+        <div class="viz-title">Monthly Revenue — 2026</div>
+        <div class="bar-chart-outer" id="monthly-chart"></div>
+      </div>
+
+      <!-- Pipeline Funnel -->
+      <div class="viz-card">
+        <div class="viz-title">Pipeline Funnel</div>
+        <div class="funnel-rows" id="funnel-chart"></div>
+      </div>
+
+      <!-- Top 5 Customers -->
+      <div class="viz-card">
+        <div class="viz-title">Top 5 Customers by Revenue</div>
+        <div class="tc-list" id="top-customers"></div>
+      </div>
+
+      <!-- Outstanding Aging -->
+      <div class="viz-card">
+        <div class="viz-title">Outstanding Aging Report</div>
+        <div class="aging-bands" id="aging-bands"></div>
+        <div id="aging-alerts"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="app-main">
+    <input class="search-input" id="search" placeholder="Search Company or Product..." oninput="renderTable()"/>
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="th">Company / Product</span>
+        <span class="th">Stage</span>
+        <span class="th">Contact</span>
+        <span class="th">Next Action</span>
+        <span class="th">Outstanding</span>
+        <span class="th">Last Contact</span>
+      </div>
+      <div id="table-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="overlay" id="modal" style="display:none">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <h2 id="m-name" style="font-family:'Syne';line-height:1.2"></h2>
+        <div id="m-prod-disp" style="color:var(--dim);font-size:13px;margin-top:4px"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab('tab-details',this)">Details</div>
+      <div class="modal-tab" onclick="switchTab('tab-transactions',this)">Transactions</div>
+      <div class="modal-tab" onclick="switchTab('tab-docs',this)">Documents</div>
+      <div class="modal-tab" onclick="switchTab('tab-history',this)">History</div>
+    </div>
+    <div id="tab-details" class="tab-content active">
+      <div class="field">
+        <label>Stage Gate</label>
+        <select id="m-status" class="auth-input">
+          <option>Inquiry</option><option>Quoted</option><option>PO Received</option>
+          <option>Artwork Approval</option><option>Production (PI)</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Primary Contact</label><input id="m-contact" class="auth-input"/></div>
+        <div class="field"><label>Last Contact Date</label><input id="m-lastContact" type="date" class="auth-input"/></div>
+      </div>
+      <div style="padding:15px;background:var(--surface2);border-radius:8px;margin-bottom:15px;border:1px solid var(--border)">
+        <h4 style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Stakeholder Mapping</h4>
+        <div class="field-row">
+          <div class="field"><label>Finance Contact</label><input id="m-stakeFinance" class="auth-input" style="background:var(--surface)"/></div>
+          <div class="field"><label>Production Contact</label><input id="m-stakeArt" class="auth-input" style="background:var(--surface)"/></div>
+        </div>
+        <div class="field"><label>Supplier Ref #</label><input id="m-supRef" class="auth-input" style="background:var(--surface)"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Next Action</label><input id="m-nextAction" class="auth-input"/></div>
+        <div class="field">
+          <label>Account Priority</label>
+          <select id="m-priority" class="auth-input">
+            <option value="false">Standard</option>
+            <option value="true">Priority (Bypass Blocks)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="m-notes" class="auth-input" rows="3"></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-danger" style="flex:1" onclick="deleteCustomer()">Delete Record</button>
+        <button class="btn btn-primary" style="flex:2" onclick="saveCustomer()">Save Changes</button>
+      </div>
+    </div>
+    <div id="tab-transactions" class="tab-content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <input id="l-date" type="date" class="auth-input" style="margin:0"/>
+        <input id="l-prod" class="auth-input" placeholder="Product" style="margin:0"/>
+        <input id="l-qty" type="number" class="auth-input" placeholder="Qty" style="margin:0"/>
+        <input id="l-amt" type="number" class="auth-input" placeholder="Amount" style="margin:0"/>
+        <select id="l-sup" class="auth-input" style="margin:0"><option>Holostik</option><option>Holographic Asia</option></select>
+        <select id="l-status" class="auth-input" style="margin:0"><option>Outstanding</option><option>Received</option></select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:20px" onclick="addTransaction()">Log Entry</button>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;color:var(--text);min-width:480px">
+          <thead style="text-align:left;color:var(--dim);border-bottom:1px solid var(--border)">
+            <tr><th style="padding:8px 0">Date</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th></tr>
+          </thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-docs" class="tab-content">
+      <div class="file-drop" id="file-drop-zone">
+        <div style="font-size:24px;margin-bottom:10px">📄</div>
+        <div>Click or Drag PO / Artwork to upload to Vault</div>
+        <input type="file" id="file-input" style="display:none" onchange="uploadFile(event)"/>
+      </div>
+      <div id="vault-list" style="margin-top:20px"></div>
+    </div>
+    <div id="tab-history" class="tab-content">
+      <div class="timeline" id="history-timeline"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="overlay" id="add-modal" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-family:'Syne'">New Record</h3>
+      <button class="btn btn-ghost" onclick="closeAddModal()">✕</button>
+    </div>
+    <div class="field"><label>Company Name *</label><input id="add-name" class="auth-input"/></div>
+    <div class="field"><label>Initial Product</label><input id="add-product" class="auth-input"/></div>
+    <button class="btn btn-primary" style="width:100%" onclick="confirmAdd()">Create Record</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL      = "https://euppycxpozqtdwbhxcjy.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_21vgnKgrn1yRURN6Rcu-2g_x-b4J9JP";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let customers=[], currentId=null, currentCustomer=null;
+
+const STAGE_COLORS={
+  'Inquiry':         {bg:'#1e293b',color:'#94a3b8',border:'#334155'},
+  'Quoted':          {bg:'#422006',color:'#f59e0b',border:'#78350f'},
+  'PO Received':     {bg:'#1e3a8a',color:'#60a5fa',border:'#1e40af'},
+  'Artwork Approval':{bg:'#4c1d95',color:'#a78bfa',border:'#5b21b6'},
+  'Production (PI)': {bg:'#064e3b',color:'#34d399',border:'#065f46'},
+};
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// AUTH
+async function login(){
+  const{error}=await sb.auth.signInWithPassword({
+    email:document.getElementById('auth-email').value,
+    password:document.getElementById('auth-password').value
+  });
+  if(error) alert("Login Error: Check credentials."); else checkAuth();
+}
+async function checkAuth(){
+  const{data:{session}}=await sb.auth.getSession();
+  showScreen(session?'portal-screen':'auth-screen');
+}
+async function logout(){await sb.auth.signOut();checkAuth();}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const t=document.getElementById(id); if(t) t.classList.add('active');
+}
+function openModule(){showScreen('app-screen');loadData();}
+
+// DATA
+async function loadData(){
+  try{
+    const{data,error}=await sb.from('Diamond crM').select('*, transactions(*), activity_logs(*)').order('id');
+    if(error){alert("DB Error: "+error.message);return;}
+    customers=data||[];
+    renderTable(); updateDashboard(); renderVisualizations();
+  }catch(e){alert("System error loading data.");}
+}
+
+// KPIs
+function fmtM(v){return `Rs. ${(v/1000000).toFixed(2)}M`;}
+function fmtK(v){
+  if(v>=1000000) return `Rs. ${(v/1000000).toFixed(1)}M`;
+  if(v>=1000)    return `Rs. ${(v/1000).toFixed(0)}K`;
+  return `Rs. ${v.toLocaleString()}`;
+}
+
+function updateDashboard(){
+  let out=0,mRev=0,qRev=0,yRev=0;
+  const now=new Date(), cm=now.getMonth(), cq=Math.floor(cm/3), cy=now.getFullYear();
+  customers.forEach(c=>{
+    (c.transactions||[]).forEach(t=>{
+      const amt=parseFloat(t.amount)||0;
+      if(t.payment_status==='Outstanding') out+=amt;
+      else if(t.payment_status==='Received'){
+        const d=new Date(t.order_date);
+        if(d.getFullYear()===cy){
+          yRev+=amt;
+          if(Math.floor(d.getMonth()/3)===cq) qRev+=amt;
+          if(d.getMonth()===cm) mRev+=amt;
+        }
+      }
+    });
+  });
+  document.getElementById('kpi-out').textContent=fmtM(out);
+  document.getElementById('kpi-ytd').textContent=fmtM(yRev);
+  document.getElementById('kpi-quarter').textContent=fmtM(qRev);
+  document.getElementById('kpi-month').textContent=fmtM(mRev);
+}
+
+// VISUALIZATIONS
+function renderVisualizations(){
+  renderMonthlyChart();
+  renderFunnel();
+  renderTopCustomers();
+  renderAging();
+}
+
+function renderMonthlyChart(){
+  const cy=new Date().getFullYear();
+  const monthly=Array(12).fill(0);
+  customers.forEach(c=>{
+    (c.transactions||[]).forEach(t=>{
+      if(t.payment_status!=='Received') return;
+      const d=new Date(t.order_date);
+      if(d.getFullYear()===cy) monthly[d.getMonth()]+=parseFloat(t.amount)||0;
+    });
+  });
+  const max=Math.max(...monthly,1);
+  const curM=new Date().getMonth();
+  document.getElementById('monthly-chart').innerHTML=monthly.map((v,i)=>{
+    const pct=Math.max(Math.round((v/max)*100),2);
+    const isCur=i===curM;
+    return `<div class="bar-col">
+      <div class="bar-fill" style="height:${pct}%;background:${isCur?'linear-gradient(180deg,#3b82f6,#1d4ed8)':'linear-gradient(180deg,#1e3a5f,#162033)'};border:1px solid ${isCur?'#3b82f640':'#1e3050'}" data-tip="${v>0?fmtK(v):'—'}"></div>
+      <div class="bar-lbl" style="color:${isCur?'#60a5fa':'var(--dim)'}">${MONTHS[i]}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderFunnel(){
+  const stages=['Inquiry','Quoted','PO Received','Artwork Approval','Production (PI)'];
+  const counts=stages.map(s=>customers.filter(c=>c.status===s).length);
+  const max=Math.max(...counts,1);
+  document.getElementById('funnel-chart').innerHTML=stages.map((s,i)=>{
+    const sc=STAGE_COLORS[s];
+    const pct=Math.max(Math.round((counts[i]/max)*100),4);
+    return `<div class="f-row">
+      <div class="f-label" style="color:${sc.color}">${s}</div>
+      <div class="f-bar-bg">
+        <div class="f-bar" style="width:${pct}%;background:${sc.bg};border:1px solid ${sc.border};color:${sc.color}">${counts[i]>0?counts[i]:''}</div>
+      </div>
+      <div class="f-num" style="color:${sc.color}">${counts[i]}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTopCustomers(){
+  const data=customers.map(c=>({
+    name:c.name,
+    rev:(c.transactions||[]).filter(t=>t.payment_status==='Received').reduce((s,t)=>s+(parseFloat(t.amount)||0),0)
+  })).filter(c=>c.rev>0).sort((a,b)=>b.rev-a.rev).slice(0,5);
+
+  const el=document.getElementById('top-customers');
+  if(!data.length){el.innerHTML='<div style="color:var(--dim);font-size:13px;text-align:center;padding:20px 0">No received transactions yet.</div>';return;}
+  const mx=data[0].rev;
+  el.innerHTML=data.map((c,i)=>`
+    <div class="tc-row">
+      <div class="tc-rank">${i+1}</div>
+      <div class="tc-name">${c.name}</div>
+      <div class="tc-bar-bg"><div class="tc-bar" style="width:${Math.round((c.rev/mx)*100)}%"></div></div>
+      <div class="tc-amt">${fmtK(c.rev)}</div>
+    </div>`).join('');
+}
+
+function renderAging(){
+  const now=Date.now();
+  let b30=0,b60=0,b90=0,n30=0,n60=0,n90=0;
+  const over90=[];
+
+  customers.forEach(c=>{
+    (c.transactions||[]).forEach(t=>{
+      if(t.payment_status!=='Outstanding') return;
+      const amt=parseFloat(t.amount)||0; if(!amt) return;
+      const days=Math.floor((now-new Date(t.order_date).getTime())/86400000);
+      if(days>90){b90+=amt;n90++;over90.push({name:c.name,amt,days});}
+      else if(days>60){b60+=amt;n60++;}
+      else{b30+=amt;n30++;}
+    });
+  });
+
+  document.getElementById('aging-bands').innerHTML=`
+    <div class="aging-band" style="border-color:#fbbf24">
+      <div class="aging-period">0–60 days</div>
+      <div class="aging-val" style="color:#fbbf24">${fmtK(b30)}</div>
+      <div class="aging-sub">${n30} item${n30!==1?'s':''}</div>
+    </div>
+    <div class="aging-band" style="border-color:#f97316">
+      <div class="aging-period">60–90 days</div>
+      <div class="aging-val" style="color:#f97316">${fmtK(b60)}</div>
+      <div class="aging-sub">${n60} item${n60!==1?'s':''}</div>
+    </div>
+    <div class="aging-band" style="border-color:#ef4444">
+      <div class="aging-period">90+ days</div>
+      <div class="aging-val" style="color:#ef4444">${fmtK(b90)}</div>
+      <div class="aging-sub">${n90} item${n90!==1?'s':''}</div>
+    </div>`;
+
+  const el=document.getElementById('aging-alerts');
+  el.innerHTML=over90.length?
+    `<div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--danger);font-weight:600;margin-bottom:6px;margin-top:10px">⚠ Overdue 90+ days</div>`+
+    over90.map(r=>`<div class="aging-alert"><span style="color:var(--text);font-weight:600">${r.name}</span><span style="color:var(--danger);font-weight:700">${fmtK(r.amt)} · ${r.days}d overdue</span></div>`).join('')
+    :'';
+}
+
+// TABLE
+function renderTable(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const rows=customers.filter(c=>c.name.toLowerCase().includes(q)||(c.product||'').toLowerCase().includes(q)).map(c=>{
+    const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    const sc=STAGE_COLORS[c.status]||STAGE_COLORS['Inquiry'];
+    return `<div class="table-row ${c.is_priority?'priority':''}" onclick="openModal(${c.id})">
+      <div><div style="font-weight:600">${c.name}</div><div style="font-size:11px;color:var(--dim)">${c.product||'—'}</div></div>
+      <div><span class="badge" style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.border}">${c.status}</span></div>
+      <div style="font-size:13px;color:var(--muted)">${c.contact||'—'}</div>
+      <div style="font-size:13px;color:var(--muted)">${c.next_action||'—'}</div>
+      <div class="${out>0?'amt-outstanding':''}">${out>0?'Rs. '+out.toLocaleString():'Clear'}</div>
+      <div style="font-size:13px;color:var(--muted)">${c.last_contact||'—'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('table-body').innerHTML=rows||'<div style="padding:40px;text-align:center;color:var(--dim)">No records found.</div>';
+}
+
+// CSV
+function exportCSV(){
+  let csv="Company,Product,Stage,Contact,Next Action,Outstanding Balance,Last Contact Date\n";
+  customers.forEach(c=>{
+    const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    csv+=`"${c.name}","${c.product||''}","${c.status}","${c.contact||''}","${c.next_action||''}","${out}","${c.last_contact||''}"\n`;
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`Diamond_Pipeline_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// MODAL
+function switchTab(tId,el){
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tId).classList.add('active'); el.classList.add('active');
+}
+function openModal(id){
+  currentId=id; currentCustomer=customers.find(x=>x.id===id);
+  document.getElementById('m-name').textContent=currentCustomer.name||'Unknown';
+  document.getElementById('m-prod-disp').textContent=currentCustomer.product||'';
+  ['contact','lastContact','nextAction','notes','status','priority','stakeFinance','stakeArt','supRef'].forEach(k=>{
+    const el=document.getElementById('m-'+k);
+    if(el) el.value=currentCustomer[
+      k==='lastContact'?'last_contact':k==='nextAction'?'next_action':
+      k==='stakeFinance'?'stakeholder_finance':k==='stakeArt'?'stakeholder_artwork':
+      k==='supRef'?'supplier_ref_no':k==='priority'?'is_priority':k
+    ]||(k==='priority'?'false':'');
+  });
+  document.getElementById('l-date').value=new Date().toISOString().split('T')[0];
+  switchTab('tab-details',document.querySelectorAll('.modal-tab')[0]);
+  loadTransactions(); loadHistory(); loadVault();
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){document.getElementById('modal').style.display='none';}
+
+// SAVE
+async function saveCustomer(){
+  const oldS=currentCustomer.status, newS=document.getElementById('m-status').value;
+  const isPriority=document.getElementById('m-priority').value==='true';
+  if(newS==='Production (PI)'&&!isPriority){
+    const out=(currentCustomer.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    if(out>0){showToast('⚠ Cannot move to Production: Outstanding Balance. Set Priority to override.',true);return;}
+  }
+  const updates={
+    status:newS, contact:document.getElementById('m-contact').value,
+    last_contact:document.getElementById('m-lastContact').value,
+    next_action:document.getElementById('m-nextAction').value,
+    notes:document.getElementById('m-notes').value, is_priority:isPriority,
+    stakeholder_finance:document.getElementById('m-stakeFinance').value,
+    stakeholder_artwork:document.getElementById('m-stakeArt').value,
+    supplier_ref_no:document.getElementById('m-supRef').value,
+  };
+  await sb.from('Diamond crM').update(updates).eq('id',currentId);
+  if(oldS!==newS) await sb.from('activity_logs').insert([{customer_id:currentId,change_description:`Stage moved from ${oldS} to ${newS}`}]);
+  showToast('✓ Record Updated'); loadData(); closeModal();
+}
+
+// DELETE
+async function deleteCustomer(){
+  if(!confirm('Delete this client? All history and transaction records will also be deleted.')) return;
+  try{await sb.from('Diamond crM').delete().eq('id',currentId);loadData();closeModal();showToast('✓ Deleted');}catch(e){}
+}
+
+// TRANSACTIONS
+function loadTransactions(){
+  const tx=currentCustomer.transactions||[];
+  document.getElementById('ledger-body').innerHTML=tx.sort((a,b)=>new Date(b.order_date)-new Date(a.order_date)).map(t=>`
+    <tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 0">${t.order_date||'—'}</td>
+      <td>${t.product||'—'}</td>
+      <td>${t.quantity||'—'}</td>
+      <td style="font-weight:600">${t.amount?parseFloat(t.amount).toLocaleString():0}</td>
+      <td style="color:${t.payment_status==='Received'?'var(--success)':'var(--warn)'};font-weight:600">${t.payment_status}</td>
+    </tr>`).join('');
+}
+async function addTransaction(){
+  await sb.from('transactions').insert([{
+    customer_id:currentId, order_date:document.getElementById('l-date').value,
+    product:document.getElementById('l-prod').value,
+    quantity:parseFloat(document.getElementById('l-qty').value)||null,
+    amount:parseFloat(document.getElementById('l-amt').value)||0,
+    supplier:document.getElementById('l-sup').value,
+    payment_status:document.getElementById('l-status').value,
+  }]);
+  document.getElementById('l-prod').value='';
+  document.getElementById('l-qty').value='';
+  document.getElementById('l-amt').value='';
+  showToast('✓ Logged'); loadData(); setTimeout(loadTransactions,600);
+}
+
+// HISTORY
+function loadHistory(){
+  const logs=currentCustomer.activity_logs||[];
+  const hl=document.getElementById('history-timeline');
+  if(!logs.length){hl.innerHTML="<div style='color:var(--dim);font-size:13px'>No history logged.</div>";return;}
+  hl.innerHTML=logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>`
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">${new Date(l.created_at).toLocaleString()}</div>
+      <div class="timeline-content">${l.change_description}</div>
+    </div>`).join('');
+}
+
+// VAULT
+document.getElementById('file-drop-zone').addEventListener('click',()=>document.getElementById('file-input').click());
+async function uploadFile(e){
+  const file=e.target.files[0]; if(!file) return;
+  const path=`${currentId}/${Date.now()}_${file.name}`;
+  showToast('Uploading...');
+  const{error}=await sb.storage.from('diamond-vault').upload(path,file);
+  if(error){showToast('Upload Failed.',true);console.error(error);return;}
+  await sb.from('activity_logs').insert([{customer_id:currentId,change_description:`Uploaded document: ${file.name}`}]);
+  showToast('✓ Saved to Vault'); loadVault(); loadData();
+}
+async function loadVault(){
+  const{data,error}=await sb.storage.from('diamond-vault').list(currentId.toString());
+  const list=document.getElementById('vault-list');
+  if(error||!data||!data.length){list.innerHTML="<div style='color:var(--dim);text-align:center'>No documents in vault.</div>";return;}
+  list.innerHTML=data.map(f=>{
+    const url=sb.storage.from('diamond-vault').getPublicUrl(`${currentId}/${f.name}`).data.publicUrl;
+    return `<div class="file-item">
+      <div style="font-size:13px;font-weight:600">📄 ${f.name}</div>
+      <div style="display:flex;gap:8px">
+        <a href="${url}" target="_blank" class="btn btn-ghost" style="text-decoration:none;font-size:11px;padding:4px 8px">View</a>
+        <button class="btn btn-danger" style="font-size:11px;padding:4px 8px" onclick="deleteFile('${f.name}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function deleteFile(fn){
+  if(!confirm("Delete this document forever?")) return;
+  await sb.storage.from('diamond-vault').remove([`${currentId}/${fn}`]);
+  showToast('✓ File removed'); loadVault();
+}
+
+// ADD
+function openAddModal(){document.getElementById('add-modal').style.display='flex';}
+function closeAddModal(){document.getElementById('add-modal').style.display='none';}
+async function confirmAdd(){
+  const name=document.getElementById('add-name').value;
+  if(!name){alert('Name required');return;}
+  await sb.from('Diamond crM').insert([{name,product:document.getElementById('add-product').value,status:'Inquiry'}]);
+  showToast('✓ Record added'); loadData(); closeAddModal();
+}
+
+// TOAST
+function showToast(m,w=false){
+  const t=document.getElementById('toast');
+  t.textContent=m; t.className=w?'show warn':'show';
+  setTimeout(()=>t.className='',2500);
+}
+
+checkAuth();
+</script>
+</body>
+</html>
