@@ -3,1013 +3,1203 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Diamond ERP – Executive Suite</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<title>Diamond International Lanka — Enterprise Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* ═══════════════════════════
+   RESET & TOKENS
+═══════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#060d1a;--surface:#0c1526;--surface2:#162033;--surface3:#1c2a42;
-  --border:#1e3050;--border2:#2a3f5f;--text:#f0f4ff;--muted:#8ba0be;
-  --dim:#4a6080;--accent:#2563eb;--success:#22c55e;--danger:#ef4444;--warn:#f59e0b;
+  --bg:        #04080f;
+  --bg1:       #080f1c;
+  --bg2:       #0c1626;
+  --g1:        rgba(255,255,255,0.04);
+  --g2:        rgba(255,255,255,0.07);
+  --g3:        rgba(255,255,255,0.11);
+  --gb:        rgba(255,255,255,0.14);
+  --b1:        rgba(255,255,255,0.08);
+  --b2:        rgba(255,255,255,0.14);
+  --b3:        rgba(255,255,255,0.22);
+  --txt:       #dde9ff;
+  --muted:     #6b84a8;
+  --dim:       #344d6e;
+  --accent:    #3b82f6;
+  --a2:        #2563eb;
+  --green:     #22c55e;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --purple:    #a78bfa;
+  --cyan:      #22d3ee;
+  --pink:      #f472b6;
 }
-body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden}
-.screen{display:none;min-height:100vh;flex-direction:column}
-.screen.active{display:flex}
-#auth-screen.active{align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 30% 50%,#0d1f3c 0%,var(--bg) 70%)}
-.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:100%;max-width:400px}
-.auth-title{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--text);margin-bottom:6px;line-height:1.1}
-.auth-sub{color:var(--dim);font-size:13px;margin-bottom:28px;letter-spacing:.5px}
-.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:13px 16px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;color-scheme:dark;transition:border-color .2s}
-.auth-input:focus{border-color:#3b82f6}
-.auth-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
-.auth-btn:hover{opacity:.85}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  font-family:'Manrope',sans-serif;
+  color:var(--txt);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 90% 60% at 15% 5%,#1e3a8a14 0%,transparent 65%),
+    radial-gradient(ellipse 70% 50% at 85% 85%,#4c1d9512 0%,transparent 65%),
+    radial-gradient(ellipse 50% 40% at 50% 50%,#0c1f4008 0%,transparent 70%);
+}
 
-/* PORTAL & FOLDERS */
-.folder-header{padding:22px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
-.folder-brand{font-family:'Syne',sans-serif}
-.folder-brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#3b82f6;font-weight:700;margin-bottom:2px}
-.folder-brand-name{font-size:18px;font-weight:800;color:var(--text)}
-.folder-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px}
-.folder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;width:100%;max-width:800px;margin-top:30px}
-.folder-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px 24px;cursor:pointer;transition:all .2s}
-.folder-card.live:hover{transform:translateY(-3px);border-color:#3b82f680;background:linear-gradient(135deg,var(--surface),#0d1f3c)}
-.folder-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;background:var(--surface2)}
+/* ═══════════════════════════
+   SCREENS
+═══════════════════════════ */
+.scr{display:none;min-height:100vh;flex-direction:column;position:relative;z-index:1}
+.scr.on{display:flex}
 
-/* APP HEADER */
-.app-header{background:linear-gradient(135deg,#0c1526,#0d1f3c);border-bottom:1px solid var(--border);padding:0 28px;position:sticky;top:0;z-index:50}
-.app-header-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:62px;gap:12px;flex-wrap:wrap}
-.app-brand{font-family:'Syne',sans-serif}
-.app-brand-sub{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#3b82f6;font-weight:700}
-.app-brand-name{font-size:15px;font-weight:800;color:var(--text)}
-.btn{border:none;border-radius:7px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;white-space:nowrap}
-.btn:hover{opacity:.85}
-.btn-ghost{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-success{background:#064e3b;color:#34d399;border:1px solid #05966950}
-.btn-danger{background:#2d0000;color:var(--danger);border:1px solid #ef444430}
+/* ═══════════════════════════
+   AUTH
+═══════════════════════════ */
+#scr-auth.on{align-items:center;justify-content:center;padding:24px}
+.auth-wrap{
+  background:var(--g2);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1px solid var(--b2);border-radius:22px;padding:46px 42px;
+  width:100%;max-width:420px;box-shadow:0 40px 90px rgba(0,0,0,.55);
+}
+.auth-eyebrow{font-size:10px;letter-spacing:3.5px;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:6px}
+.auth-h{font-size:30px;font-weight:900;line-height:1.1;margin-bottom:3px}
+.auth-sub{font-size:12px;color:var(--muted);margin-bottom:30px}
+.fi{
+  width:100%;background:var(--g1);border:1px solid var(--b2);border-radius:10px;
+  color:var(--txt);padding:12px 15px;font-size:14px;font-family:inherit;
+  outline:none;margin-bottom:11px;color-scheme:dark;transition:border-color .2s,background .2s;
+}
+.fi:focus{border-color:var(--accent);background:var(--g2)}
+textarea.fi{resize:vertical}
+.auth-cta{
+  width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;
+  padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+  transition:all .2s;box-shadow:0 4px 24px rgba(59,130,246,.3);margin-top:4px;
+}
+.auth-cta:hover{background:var(--a2);transform:translateY(-1px);box-shadow:0 6px 28px rgba(59,130,246,.4)}
+
+/* ═══════════════════════════
+   PORTAL
+═══════════════════════════ */
+.ptop{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 36px;background:var(--g1);border-bottom:1px solid var(--b1);
+  backdrop-filter:blur(24px);
+}
+.pbrand-eye{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:2px}
+.pbrand-n{font-size:16px;font-weight:800}
+.pbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 24px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:840px;width:100%;margin-top:30px}
+.pcard{
+  background:var(--g2);border:1px solid var(--b1);border-radius:18px;padding:28px 24px;
+  cursor:pointer;transition:all .22s;backdrop-filter:blur(16px);position:relative;overflow:hidden;
+}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .2s}
+.pcard.live::before{background:linear-gradient(90deg,var(--accent),var(--cyan))}
+.pcard.live:hover{transform:translateY(-4px);border-color:var(--b2);background:var(--g3);box-shadow:0 24px 50px rgba(0,0,0,.4)}
+.pcard.live:hover::before{opacity:1}
+.pcard.soon{opacity:.38;cursor:default}
+.pi-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px;background:var(--g2);border:1px solid var(--b1)}
+.pi-n{font-size:15px;font-weight:800;margin-bottom:5px}
+.pi-d{font-size:12px;color:var(--muted);line-height:1.5}
+.soon-tag{display:inline-block;background:var(--g1);border:1px solid var(--b1);border-radius:5px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;color:var(--dim);margin-top:8px}
+
+/* ═══════════════════════════
+   APP TOPBAR
+═══════════════════════════ */
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 26px;background:var(--g1);border-bottom:1px solid var(--b1);
+  backdrop-filter:blur(28px);position:sticky;top:0;z-index:120;
+  flex-wrap:wrap;gap:10px;
+}
+.tbl{display:flex;align-items:center;gap:12px}
+.tbr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.app-eye{font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);font-weight:800}
+.app-n{font-size:13px;font-weight:800}
+
+/* BUTTONS */
+.btn{
+  border:none;border-radius:8px;padding:7px 13px;font-size:12px;
+  font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;
+}
+.btn:hover{opacity:.84;transform:translateY(-1px)}
+.btn-g{background:var(--g2);color:var(--muted);border:1px solid var(--b2)}
+.btn-g:hover{color:var(--txt);border-color:var(--b3)}
+.btn-p{background:var(--accent);color:#fff;box-shadow:0 2px 14px rgba(59,130,246,.28)}
+.btn-s{background:#064e3b;color:#34d399;border:1px solid rgba(5,150,105,.28)}
+.btn-d{background:#2d0000;color:var(--red);border:1px solid rgba(239,68,68,.22)}
+.btn-ai{background:linear-gradient(135deg,#1e0a3c,#0d2040);color:var(--purple);border:1px solid rgba(167,139,250,.3);box-shadow:0 2px 14px rgba(167,139,250,.15)}
 .btn-sm{padding:5px 10px;font-size:11px}
 
-/* ══════════════════════════════════════
-   MODULE 1: ACTION CENTER
-══════════════════════════════════════ */
-.action-center{max-width:1200px;margin:24px auto 0;padding:0 24px}
-.ac-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:12px}
-.ac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.ac-card{border-radius:12px;padding:20px 22px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s;border:1px solid}
-.ac-card:hover{transform:translateY(-2px)}
-.ac-card.stale{background:linear-gradient(135deg,#1a1000,#0c1526);border-color:#f59e0b40}
-.ac-card.stale:hover{border-color:#f59e0b80}
-.ac-card.logistics{background:linear-gradient(135deg,#001a2e,#0c1526);border-color:#3b82f640}
-.ac-card.logistics:hover{border-color:#3b82f680}
-.ac-card.action{background:linear-gradient(135deg,#1a0000,#0c1526);border-color:#ef444440}
-.ac-card.action:hover{border-color:#ef444480}
-.ac-glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.12;filter:blur(20px)}
-.ac-icon{font-size:22px;margin-bottom:10px}
-.ac-count{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1;margin-bottom:4px}
-.ac-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.ac-desc{font-size:11px;color:var(--dim)}
-.ac-card.stale .ac-count{color:#f59e0b}
-.ac-card.logistics .ac-count{color:#60a5fa}
-.ac-card.action .ac-count{color:#ef4444}
+/* ═══════════════════════════
+   INTEL BAR
+═══════════════════════════ */
+.intel{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 26px;max-width:1280px;margin:0 auto;width:100%}
+.ic{
+  background:var(--g2);border:1px solid var(--b1);border-radius:14px;
+  padding:16px 18px;backdrop-filter:blur(16px);cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.ic:hover{border-color:var(--b2);transform:translateY(-1px)}
+.ic::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.ic.stale::before{background:linear-gradient(90deg,var(--amber),#d97706)}
+.ic.ship::before{background:linear-gradient(90deg,var(--cyan),#0891b2)}
+.ic.risk::before{background:linear-gradient(90deg,var(--red),#dc2626)}
+.ic-em{font-size:20px;margin-bottom:7px}
+.ic-v{font-size:28px;font-weight:900;line-height:1;margin-bottom:2px}
+.ic-l{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin-bottom:2px}
+.ic-s{font-size:11px;color:var(--muted)}
+.ic.stale .ic-v,.ic.stale .ic-l{color:var(--amber)}
+.ic.ship .ic-v,.ic.ship .ic-l{color:var(--cyan)}
+.ic.risk .ic-v,.ic.risk .ic-l{color:var(--red)}
 
-/* ══════════════════════════════════════
-   KPI CARDS
-══════════════════════════════════════ */
-.dashboard{max-width:1200px;margin:20px auto 0;padding:0 24px}
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
-.kpi-bar{position:absolute;top:0;left:0;right:0;height:3px}
-.kpi-label{color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:6px}
-.kpi-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;line-height:1;color:var(--text)}
+/* KPI ROW */
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 26px 16px;max-width:1280px;margin:0 auto;width:100%}
+.kc{background:var(--g1);border:1px solid var(--b1);border-radius:11px;padding:14px 17px;position:relative;overflow:hidden}
+.kc-bar{position:absolute;top:0;left:0;right:0;height:2px}
+.kc-l{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:5px}
+.kc-v{font-size:19px;font-weight:900}
 
-/* ══════════════════════════════════════
-   STAGE TRACKER (Amazon-style)
-══════════════════════════════════════ */
-.stage-tracker{display:flex;justify-content:space-between;align-items:flex-start;margin:28px 0 16px;position:relative}
-.stage-tracker::before{content:'';position:absolute;top:13px;left:8%;right:8%;height:3px;background:var(--surface2);z-index:1}
-.stage-step{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;text-align:center}
-.stage-dot{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:3px solid var(--surface);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--dim);transition:all .3s}
-.stage-label{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--dim);letter-spacing:.5px}
-.stage-step.completed .stage-dot{background:var(--accent);color:#fff;box-shadow:0 0 0 2px var(--accent)}
-.stage-step.completed .stage-label{color:var(--muted)}
-.stage-step.active .stage-dot{background:var(--success);color:#fff;box-shadow:0 0 0 3px var(--success),0 0 12px rgba(34,197,94,.4);transform:scale(1.15)}
-.stage-step.active .stage-label{color:var(--success);font-weight:800}
+/* ═══════════════════════════
+   DUAL VIEW
+═══════════════════════════ */
+.vsec{max-width:1280px;margin:0 auto;padding:0 26px 80px;width:100%}
+.vtoolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.vtog{display:flex;background:var(--g1);border:1px solid var(--b1);border-radius:8px;overflow:hidden}
+.vtb{padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:inherit;transition:all .15s}
+.vtb.on{background:var(--accent);color:#fff}
+.sbar{position:relative;flex:1;min-width:200px;max-width:340px}
+.sbar input{width:100%;background:var(--g2);border:1px solid var(--b2);border-radius:8px;color:var(--txt);padding:8px 13px 8px 32px;font-size:13px;outline:none;font-family:inherit}
+.sbar::before{content:'🔍';position:absolute;left:10px;top:52%;transform:translateY(-50%);font-size:11px;pointer-events:none}
 
-/* ══════════════════════════════════════
-   TABLE
-══════════════════════════════════════ */
-.app-main{max-width:1200px;margin:0 auto;padding:0 24px 60px}
-.table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-.search-input{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 16px;font-size:14px;outline:none;font-family:inherit}
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow-x:auto}
-.table-head{display:grid;grid-template-columns:1.6fr 130px 120px 150px 130px 130px;padding:11px 20px;background:#0a1322;border-bottom:1px solid var(--border);min-width:860px}
-.th{color:var(--dim);font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
-.table-row{display:grid;grid-template-columns:1.6fr 130px 120px 150px 130px 130px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;align-items:center;min-width:860px;transition:background .1s}
-.table-row:last-child{border-bottom:none}
-.table-row:hover{background:#111d2e}
-.table-row.priority{border-left:3px solid #3b82f6;background:linear-gradient(90deg,#0d1f3c40,transparent)}
-.badge{border-radius:4px;padding:3px 7px;font-size:10px;font-weight:700;text-transform:uppercase;white-space:nowrap;letter-spacing:.3px}
-.amt-outstanding{color:var(--warn);font-weight:600}
-.copy-btn{background:none;border:none;cursor:pointer;color:var(--dim);font-size:12px;padding:2px 5px;border-radius:4px;transition:color .15s;margin-left:5px;flex-shrink:0}
-.copy-btn:hover{color:var(--text)}
-.row-name-wrap{display:flex;align-items:center;gap:2px}
+/* TABLE */
+.twrap{background:var(--g1);border:1px solid var(--b1);border-radius:14px;overflow:hidden;backdrop-filter:blur(16px)}
+.thead{display:grid;grid-template-columns:1.8fr 140px 130px 160px 130px 130px;padding:11px 18px;background:var(--g2);border-bottom:1px solid var(--b1);min-width:860px}
+.th{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:800}
+.trow{display:grid;grid-template-columns:1.8fr 140px 130px 160px 130px 130px;padding:13px 18px;border-bottom:1px solid var(--b1);cursor:pointer;align-items:center;min-width:860px;transition:background .1s}
+.trow:last-child{border-bottom:none}
+.trow:hover{background:var(--g2)}
+.trow.pri{border-left:3px solid var(--accent)}
+.rname{font-weight:800;font-size:13.5px}
+.rsub{font-size:11px;color:var(--muted);margin-top:2px}
+.rcell{font-size:12.5px;color:var(--muted);display:flex;align-items:center}
+.badge{border-radius:5px;padding:3px 8px;font-size:10px;font-weight:800;text-transform:uppercase;white-space:nowrap;border:1px solid transparent;display:inline-block;letter-spacing:.3px}
+.eta-od{background:rgba(239,68,68,.15);color:#ef4444;border-color:rgba(239,68,68,.3);animation:etapulse 2s infinite}
+.eta-td{background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.3)}
+.eta-ug{background:rgba(239,68,68,.12);color:#f87171;border-color:rgba(239,68,68,.25);animation:etablink 1.4s ease-in-out infinite}
+.eta-sn{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.25)}
+.eta-ok{background:var(--g1);color:var(--muted);border-color:var(--b1)}
+@keyframes etapulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes etablink{0%,100%{opacity:1}50%{opacity:.3}}
+.cpbtn{background:none;border:none;cursor:pointer;color:var(--dim);font-size:12px;padding:2px 6px;border-radius:4px;transition:color .15s,background .15s;margin-left:5px}
+.cpbtn:hover{color:var(--txt);background:var(--g2)}
 
-/* MODULE 2: ETA BADGES */
-.eta-badge{border-radius:4px;padding:3px 7px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid transparent}
-.eta-urgent{background:#2d0000;color:#ef4444;border-color:#ef444440;animation:blink 1.2s ease-in-out infinite}
-.eta-today{background:#052e16;color:#22c55e;border-color:#22c55e40}
-.eta-overdue{background:#1a0000;color:#dc2626;border-color:#dc262640}
-.eta-ok{background:var(--surface2);color:var(--muted);border-color:var(--border)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+/* KANBAN */
+.kboard{display:flex;gap:13px;overflow-x:auto;padding-bottom:20px;min-height:420px}
+.kcol{flex-shrink:0;width:215px;background:var(--g1);border:1px solid var(--b1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.kcol-h{padding:11px 13px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;align-items:center}
+.kcol-ht{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:7px}
+.kcol-hdot{width:7px;height:7px;border-radius:50%}
+.kcol-cnt{background:var(--g2);border:1px solid var(--b1);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:800;color:var(--muted)}
+.kcards{flex:1;padding:9px;display:flex;flex-direction:column;gap:7px;overflow-y:auto}
+.kcard{background:var(--g2);border:1px solid var(--b2);border-radius:10px;padding:11px 12px;cursor:pointer;transition:all .15s}
+.kcard:hover{border-color:var(--b3);transform:translateY(-1px);background:var(--g3)}
+.kc-n{font-size:13px;font-weight:800;margin-bottom:2px}
+.kc-p{font-size:11px;color:var(--muted);margin-bottom:8px}
+.kc-ft{display:flex;justify-content:space-between;align-items:center}
 
-/* MODALS */
-.overlay{position:fixed;inset:0;background:#000000ee;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);overflow-y:auto}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:720px;padding:28px;margin:auto}
-.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px;margin-top:12px;overflow-x:auto}
-.modal-tab{padding:10px 18px;color:var(--dim);cursor:pointer;font-size:12px;font-weight:600;border-bottom:2px solid transparent;text-transform:uppercase;transition:all .2s;white-space:nowrap;position:relative;letter-spacing:.5px}
-.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.modal-tab:hover:not(.active){color:var(--muted)}
+/* STAGE TRACKER */
+.stk{display:flex;align-items:flex-start;margin:24px 0 18px;position:relative}
+.stk-line{position:absolute;top:13px;left:8%;right:8%;height:2px;background:var(--g3);z-index:0}
+.sstep{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:1}
+.sdot{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--dim);background:var(--g2);border:2px solid var(--b2);transition:all .3s}
+.slbl{font-size:8.5px;font-weight:800;text-transform:uppercase;color:var(--dim);text-align:center;letter-spacing:.3px;line-height:1.3}
+.sstep.done .sdot{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+.sstep.done .slbl{color:var(--muted)}
+.sstep.active .sdot{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 0 0 4px rgba(34,197,94,.2),0 0 16px rgba(34,197,94,.3);transform:scale(1.14)}
+.sstep.active .slbl{color:var(--green);font-weight:900}
 
-/* MODULE 5: TAB NOTIFICATION DOTS */
-.tab-dot{position:absolute;top:6px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--accent);display:none}
-.tab-dot.show{display:block}
+/* MODAL */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);overflow-y:auto}
+.modal{background:var(--bg2);border:1px solid var(--b2);border-radius:20px;width:100%;max-width:760px;padding:28px;margin:auto;box-shadow:0 48px 100px rgba(0,0,0,.7)}
+.mhd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.mey{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.mtt{font-size:21px;font-weight:900}
+.msb{font-size:13px;color:var(--muted);margin-top:2px}
+.mtabs{display:flex;border-bottom:1px solid var(--b1);margin-bottom:20px;overflow-x:auto;gap:0}
+.mtab{padding:9px 13px;color:var(--dim);cursor:pointer;font-size:11px;font-weight:800;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.6px;transition:all .2s;white-space:nowrap}
+.mtab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.mtab:hover:not(.on){color:var(--muted)}
+.tbadge{background:var(--accent);color:#fff;font-size:9px;font-weight:800;border-radius:7px;padding:1px 5px;margin-left:4px;display:none}
+.tbadge.show{display:inline}
+.tcont{display:none;animation:fdu .2s ease}
+.tcont.on{display:block}
+@keyframes fdu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.field{margin-bottom:14px}
+.field label{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;font-weight:800}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sbox{background:var(--g1);border:1px solid var(--b1);border-radius:10px;padding:13px;margin-bottom:14px}
+.sbox h4{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:800;margin-bottom:10px}
+.mfoot{display:flex;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--b1)}
 
-.tab-content{display:none;animation:fadeIn .2s ease-in-out}
-.tab-content.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.field{margin-bottom:15px}
-.field label{color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:6px;font-weight:600}
-.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);padding:11px 14px;font-size:14px;outline:none;font-family:inherit;color-scheme:dark;transition:border-color .2s}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:#3b82f6}
-.field textarea{resize:vertical}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.stakeholder-box{padding:14px;background:var(--surface2);border-radius:8px;margin-bottom:15px;border:1px solid var(--border)}
-.stakeholder-box h4{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;letter-spacing:1px}
+/* LOGISTICS */
+.lf{background:var(--g1);border:1px solid var(--b1);border-radius:10px;padding:14px;margin-bottom:14px}
+.lf h4{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:800;margin-bottom:10px}
+.lentry{background:var(--g1);border:1px solid var(--b1);border-radius:10px;padding:13px;margin-bottom:9px}
+.leh{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.tbar-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+.tbar-bg{background:var(--g2);border-radius:20px;height:5px;overflow:hidden;margin-bottom:7px}
+.tbar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--cyan));transition:width .5s}
+.lmeta{display:flex;gap:8px;flex-wrap:wrap}
+.lpill{background:var(--g2);border:1px solid var(--b1);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--muted)}
 
-/* MODULE 3: LOGISTICS TAB */
-.logistics-form{background:var(--surface2);border-radius:8px;padding:16px;margin-bottom:16px;border:1px solid var(--border)}
-.logistics-form h4{font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:1px}
-.logi-table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
-.logi-table th{text-align:left;color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;border-bottom:1px solid var(--border);font-weight:600}
-.logi-table td{padding:10px 8px 10px 0;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
-.logi-table tr:last-child td{border-bottom:none}
-.shipment-bar-wrap{margin-top:5px;background:var(--surface3);border-radius:20px;height:5px;overflow:hidden}
-.shipment-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),#3b82f6);transition:width .4s}
+/* ARTWORK */
+.awf{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px;margin-bottom:14px}
+.awf h4{font-size:9px;text-transform:uppercase;color:var(--amber);letter-spacing:1px;font-weight:800;margin-bottom:10px}
+.awup{border:2px dashed rgba(245,158,11,.3);border-radius:8px;padding:12px;text-align:center;cursor:pointer;color:var(--muted);font-size:12px;transition:all .2s;background:var(--g1)}
+.awup:hover{border-color:rgba(245,158,11,.6);color:var(--txt)}
+.awprev{margin-top:8px;display:none}
+.awprev img{max-height:72px;border-radius:6px;border:1px solid var(--b2)}
+.awe{background:var(--g1);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:11px;margin-bottom:8px;display:flex;gap:11px;align-items:flex-start}
+.awthumb{width:50px;height:50px;flex-shrink:0;border-radius:7px;object-fit:cover;border:1px solid var(--b2)}
+.awph{width:50px;height:50px;flex-shrink:0;border-radius:7px;background:var(--g2);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:18px}
+.awebdy{flex:1;min-width:0}
+.awdt{font-size:10px;color:var(--amber);font-weight:800;margin-bottom:3px}
+.awt{font-size:13px;color:var(--txt);word-break:break-word}
+.awver{font-size:10px;color:var(--muted);margin-top:3px}
 
-/* MODULE 3: LC STATUS PROGRESS */
-.lc-status-steps{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
-.lc-step{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--surface3);color:var(--dim);font-weight:600}
-.lc-step.done{background:#1d3a8a20;color:#60a5fa;border:1px solid #3b82f630}
-.lc-step.current{background:#1d4ed820;color:#60a5fa;border:1px solid #3b82f6}
+/* AI TAB */
+.ai-panel{background:linear-gradient(135deg,rgba(30,10,60,.6),rgba(13,32,64,.6));border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:18px;margin-bottom:14px}
+.ai-panel h4{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:800;margin-bottom:10px}
+.ai-output{min-height:80px;background:var(--g1);border:1px solid var(--b1);border-radius:8px;padding:12px;font-size:13px;color:var(--txt);line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.ai-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:10px 0}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:aidot 1.4s ease-in-out infinite}
+.ai-dot:nth-child(2){animation-delay:.2s}
+.ai-dot:nth-child(3){animation-delay:.4s}
+@keyframes aidot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+.chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:var(--g2);border:1px solid var(--b2);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--muted)}
+.chip:hover{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.1)}
+.chip.sel{background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);color:var(--purple)}
 
-/* TRANSACTIONS TABLE */
-.tx-table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
-.tx-table th{text-align:left;color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 0;border-bottom:1px solid var(--border);font-weight:600}
-.tx-table td{padding:10px 0;border-bottom:1px solid var(--border);color:var(--text)}
-.tx-table tr:last-child td{border-bottom:none}
-
-/* MODULE 4: ARTWORK LOG */
-.artwork-form{background:#1a1000;border:1px solid #f59e0b30;border-radius:8px;padding:14px;margin-bottom:16px}
-.artwork-form h4{font-size:10px;color:#f59e0b;text-transform:uppercase;margin-bottom:10px;letter-spacing:1px}
-
-/* TIMELINE */
-.timeline{position:relative;padding-left:22px;margin-top:10px}
-.timeline::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:2px;background:var(--border2)}
-.timeline-item{position:relative;margin-bottom:18px}
-.timeline-dot{position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
-.timeline-dot.artwork{background:#f59e0b;border-color:var(--surface)}
-.timeline-date{font-size:11px;color:var(--dim);font-weight:600;margin-bottom:3px}
-.timeline-content{font-size:13px;color:var(--text);background:var(--surface2);padding:9px 13px;border-radius:7px;border:1px solid var(--border)}
-.timeline-content.artwork-entry{border-color:#f59e0b30;background:#1a100080}
+/* HISTORY TIMELINE */
+.tl{position:relative;padding-left:21px;margin-top:8px}
+.tl::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:2px;background:var(--g3)}
+.tli{position:relative;margin-bottom:16px}
+.tldot{position:absolute;left:-22px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg2)}
+.tldate{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:3px}
+.tlcont{font-size:13px;color:var(--txt);background:var(--g1);padding:9px 12px;border-radius:7px;border:1px solid var(--b1)}
 
 /* VAULT */
-.file-drop{border:2px dashed var(--border2);border-radius:10px;padding:28px;text-align:center;color:var(--muted);background:var(--surface2);cursor:pointer;transition:all .2s}
-.file-drop:hover{border-color:var(--accent);color:var(--text)}
-.file-item{display:flex;justify-content:space-between;align-items:center;padding:11px;background:var(--surface2);border-radius:8px;margin-top:10px;border:1px solid var(--border)}
+.vdrop{border:2px dashed var(--b2);border-radius:10px;padding:24px;text-align:center;color:var(--muted);background:var(--g1);cursor:pointer;transition:all .2s}
+.vdrop:hover{border-color:var(--accent);color:var(--txt)}
+.vitem{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--g1);border-radius:8px;margin-top:8px;border:1px solid var(--b1)}
+
+/* TX TABLE */
+.txt{width:100%;border-collapse:collapse;font-size:12px;min-width:460px}
+.txt th{text-align:left;color:var(--dim);font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 0;border-bottom:1px solid var(--b1);font-weight:800}
+.txt td{padding:9px 0;border-bottom:1px solid var(--b1);color:var(--txt)}
+.txt tr:last-child td{border-bottom:none}
 
 /* TOAST */
-#toast{position:fixed;bottom:24px;right:24px;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;background:#052e16;color:var(--success);border:1px solid #22c55e40;pointer-events:none}
-#toast.warn{background:#2d0000;color:var(--danger);border-color:#ef444440}
-#toast.info{background:#0d1f3c;color:#60a5fa;border-color:#3b82f640}
+#toast{position:fixed;bottom:80px;right:22px;border-radius:10px;padding:11px 17px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;z-index:9999;pointer-events:none;backdrop-filter:blur(14px);background:var(--g3);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+#toast.warn{color:var(--red);border-color:rgba(239,68,68,.3)}
+#toast.info{color:var(--cyan);border-color:rgba(34,211,238,.3)}
+#toast.ai{color:var(--purple);border-color:rgba(167,139,250,.3)}
 #toast.show{opacity:1}
 
-/* RESPONSIVE */
-@media(max-width:768px){
-  .kpi-grid,.ac-grid{grid-template-columns:1fr 1fr}
-  .field-row{grid-template-columns:1fr}
-  .folder-header{padding:14px 20px}
-  .action-center,.dashboard,.app-main{padding:0 14px}
-  .app-header{padding:0 14px}
-  .stage-label{font-size:8px}
+/* MOBILE BOTTOM NAV */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;height:60px;z-index:110;
+  background:var(--g2);border-top:1px solid var(--b1);backdrop-filter:blur(24px);
+  display:none;align-items:center;justify-content:space-around;padding:0 16px;
 }
-@media(max-width:480px){
-  .kpi-grid,.ac-grid{grid-template-columns:1fr}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--muted);transition:color .15s;padding:4px 12px;border-radius:8px}
+.bni.on{color:var(--accent)}
+.bni-icon{font-size:20px}
+.bni-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+
+/* RISK REPORT MODAL */
+.rr-out{background:var(--g1);border:1px solid var(--b1);border-radius:10px;padding:16px;font-size:13px;line-height:1.7;color:var(--txt);white-space:pre-wrap;min-height:100px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--g3);border-radius:10px}
+
+/* RESPONSIVE */
+@media(max-width:980px){
+  .intel{grid-template-columns:1fr 1fr}
+  .krow{grid-template-columns:1fr 1fr}
+  .pgrid{grid-template-columns:1fr}
+  .thead,.trow{grid-template-columns:1.4fr 120px}
+  .th:nth-child(n+3),.trow div:nth-child(n+3){display:none}
+  .bnav{display:flex}
+  .topbar{padding-bottom:8px}
+}
+@media(max-width:560px){
+  .intel{grid-template-columns:1fr}
+  .krow{grid-template-columns:1fr}
+  .frow{grid-template-columns:1fr}
+  .auth-wrap{padding:34px 26px}
 }
 </style>
 </head>
 <body>
 
-<!-- AUTH -->
-<div id="auth-screen" class="screen active">
-  <div class="auth-card">
-    <div style="color:#3b82f6;font-size:10px;letter-spacing:3px;font-weight:700;text-transform:uppercase;margin-bottom:6px">Enterprise Suite</div>
-    <div class="auth-title">Diamond<br>International<br>Lanka</div>
-    <div class="auth-sub">Executive CRM — Security Printing</div>
-    <input id="auth-email" class="auth-input" type="email" placeholder="Work email"/>
-    <input id="auth-password" class="auth-input" type="password" placeholder="Password"/>
-    <button class="auth-btn" onclick="login()">Secure Login →</button>
+<!-- ══════════════════════════════
+     AUTH
+══════════════════════════════ -->
+<div id="scr-auth" class="scr on">
+  <div class="auth-wrap">
+    <div class="auth-eyebrow">Diamond International Lanka</div>
+    <div class="auth-h">Enterprise Suite</div>
+    <div class="auth-sub">Secure access — authorised personnel only</div>
+    <input id="ae" class="fi" type="email" placeholder="Work email"/>
+    <input id="ap" class="fi" type="password" placeholder="Password"/>
+    <button class="auth-cta" onclick="login()">Access Portal →</button>
   </div>
 </div>
 
-<!-- PORTAL -->
-<div id="portal-screen" class="screen">
-  <div class="folder-header">
-    <div class="folder-brand">
-      <div class="folder-brand-sub">Diamond International Lanka</div>
-      <div class="folder-brand-name">Enterprise Portal</div>
-    </div>
-    <button class="btn btn-ghost" onclick="logout()">Sign Out</button>
+<!-- ══════════════════════════════
+     ENTERPRISE PORTAL
+══════════════════════════════ -->
+<div id="scr-portal" class="scr">
+  <div class="ptop">
+    <div><div class="pbrand-eye">Diamond International Lanka</div><div class="pbrand-n">Enterprise Portal</div></div>
+    <button class="btn btn-g btn-sm" onclick="logout()">Sign Out</button>
   </div>
-  <div class="folder-body">
-    <h1 style="font-family:'Syne';font-size:28px;margin-bottom:6px;text-align:center">Select Module</h1>
-    <p style="color:var(--dim);font-size:13px;text-align:center">Choose a division to continue</p>
-    <div class="folder-grid">
-      <div class="folder-card live" onclick="showScreen('imports-folder-screen')">
-        <div class="folder-icon">📥</div>
-        <h3 style="font-family:'Syne';font-size:16px;margin-bottom:4px">Imports Division</h3>
-        <p style="color:var(--dim);font-size:12px">Security Printing, Holograms</p>
+  <div class="pbody">
+    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Select Division</div>
+    <div style="font-size:26px;font-weight:900;text-align:center;line-height:1.15;margin-bottom:5px">Where are you<br>working today?</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:2px">Choose a business unit to continue</div>
+    <div class="pgrid">
+      <div class="pcard live" onclick="openModule()">
+        <div class="pi-icon">🛡️</div>
+        <div class="pi-n">Security Printing & Imports</div>
+        <div class="pi-d">Pipeline CRM, logistics tracking, artwork approvals, supplier management</div>
+      </div>
+      <div class="pcard soon">
+        <div class="pi-icon">🚢</div>
+        <div class="pi-n">General Exports Division</div>
+        <div class="pi-d">Export documentation, overseas clients, shipping manifests</div>
+        <div class="soon-tag">Coming Soon</div>
+      </div>
+      <div class="pcard soon">
+        <div class="pi-icon">🚛</div>
+        <div class="pi-n">Logistics & Distribution</div>
+        <div class="pi-d">Fleet management, last-mile delivery, warehouse operations</div>
+        <div class="soon-tag">Coming Soon</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- IMPORTS FOLDER -->
-<div id="imports-folder-screen" class="screen">
-  <div class="folder-header">
-    <div class="folder-brand">
-      <div class="folder-brand-sub">Diamond International Lanka</div>
-      <div class="folder-brand-name">Imports Division</div>
-    </div>
-    <button class="btn btn-ghost" onclick="showScreen('portal-screen')">← Back</button>
-  </div>
-  <div class="folder-body">
-    <div class="folder-grid">
-      <div class="folder-card live" onclick="openModule()">
-        <div class="folder-icon" style="color:#3b82f6">🛡️</div>
-        <h3 style="font-family:'Syne';font-size:16px;margin-bottom:4px">Security Printing</h3>
-        <p style="color:var(--dim);font-size:12px">Pipeline, Transactions, Vault</p>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ══════════════════════════════
+     APP — SECURITY PRINTING
+══════════════════════════════ -->
+<div id="scr-app" class="scr">
 
-<!-- APP -->
-<div id="app-screen" class="screen">
-  <header class="app-header">
-    <div class="app-header-inner">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tbl">
+      <button class="btn btn-g btn-sm" onclick="ss('scr-portal')">← Portal</button>
       <div>
-        <div class="app-brand-sub">Diamond International Lanka — Executive Suite</div>
-        <div class="app-brand-name">Security Printing Control Tower</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
-        <button class="btn btn-primary" onclick="openAddModal()">+ New Record</button>
-        <button class="btn btn-ghost" onclick="showScreen('imports-folder-screen')">← Folders</button>
+        <div class="app-eye">Security Printing & Imports — Command Center</div>
+        <div class="app-n">Diamond International Lanka</div>
       </div>
     </div>
-  </header>
-
-  <!-- MODULE 1: ACTION CENTER -->
-  <div class="action-center">
-    <div class="ac-label">Executive Action Center</div>
-    <div class="ac-grid">
-      <div class="ac-card stale" onclick="filterStale()">
-        <div class="ac-glow" style="background:#f59e0b"></div>
-        <div class="ac-icon">🕐</div>
-        <div class="ac-count" id="ac-stale">—</div>
-        <div class="ac-title" style="color:#f59e0b">Stale Accounts</div>
-        <div class="ac-desc">No contact in 7+ days</div>
-      </div>
-      <div class="ac-card logistics" onclick="filterLogistics()">
-        <div class="ac-glow" style="background:#3b82f6"></div>
-        <div class="ac-icon">🚢</div>
-        <div class="ac-count" id="ac-logistics">—</div>
-        <div class="ac-title" style="color:#60a5fa">Pending Logistics</div>
-        <div class="ac-desc">Active shipments & open LCs</div>
-      </div>
-      <div class="ac-card action" onclick="filterAction()">
-        <div class="ac-glow" style="background:#ef4444"></div>
-        <div class="ac-icon">⚡</div>
-        <div class="ac-count" id="ac-action">—</div>
-        <div class="ac-title" style="color:#ef4444">Action Required</div>
-        <div class="ac-desc">Overdue or due today</div>
-      </div>
+    <div class="tbr">
+      <button class="btn btn-ai btn-sm" onclick="openRiskReport()">🧠 AI Risk Report</button>
+      <button class="btn btn-s btn-sm" onclick="exportCSV()">📥 CSV</button>
+      <button class="btn btn-p btn-sm" onclick="openAdd()">+ New Record</button>
     </div>
   </div>
 
-  <!-- KPI CARDS -->
-  <div class="dashboard">
-    <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:10px">Financial Overview — Received Payments</div>
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-bar" style="background:#3b82f6"></div>
-        <div class="kpi-label">This Month</div>
-        <div class="kpi-val" id="kpi-month">—</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-bar" style="background:#8b5cf6"></div>
-        <div class="kpi-label">This Quarter</div>
-        <div class="kpi-val" id="kpi-quarter">—</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-bar" style="background:#10b981"></div>
-        <div class="kpi-label">YTD (2026)</div>
-        <div class="kpi-val" id="kpi-ytd">—</div>
-      </div>
-      <div class="kpi-card" style="border-color:var(--warn);background:linear-gradient(135deg,var(--surface),#291a00)">
-        <div class="kpi-bar" style="background:var(--warn)"></div>
-        <div class="kpi-label" style="color:var(--warn)">Total Outstanding</div>
-        <div class="kpi-val" id="kpi-out" style="color:var(--warn)">—</div>
-      </div>
+  <!-- INTEL BAR -->
+  <div class="intel">
+    <div class="ic stale" onclick="qf('stale')">
+      <div class="ic-em">🕐</div>
+      <div class="ic-v" id="ic-stale">—</div>
+      <div class="ic-l">Stale Accounts</div>
+      <div class="ic-s">No contact in 7+ days · click to filter</div>
+    </div>
+    <div class="ic ship" onclick="qf('eta')">
+      <div class="ic-em">🚢</div>
+      <div class="ic-v" id="ic-ship">—</div>
+      <div class="ic-l">Active Shipments</div>
+      <div class="ic-s">ETA within 5 days · click to filter</div>
+    </div>
+    <div class="ic risk">
+      <div class="ic-em">💰</div>
+      <div class="ic-v" id="ic-risk">—</div>
+      <div class="ic-l">Financial Exposure</div>
+      <div class="ic-s">Total outstanding balance</div>
     </div>
   </div>
 
-  <!-- TABLE -->
-  <div class="app-main">
-    <div class="table-toolbar">
-      <input class="search-input" id="search" placeholder="Search company or product..." oninput="renderTable()"/>
-      <button class="btn btn-ghost btn-sm" id="filter-clear-btn" style="display:none" onclick="clearFilter()">✕ Clear Filter</button>
-    </div>
-    <div class="table-wrap">
-      <div class="table-head">
-        <span class="th">Company / Product</span>
-        <span class="th">Stage</span>
-        <span class="th">Contact</span>
-        <span class="th">Next Action</span>
-        <span class="th">Outstanding</span>
-        <span class="th">ETA / Shipment</span>
-      </div>
-      <div id="table-body"></div>
-    </div>
+  <!-- KPI ROW -->
+  <div class="krow">
+    <div class="kc"><div class="kc-bar" style="background:#3b82f6"></div><div class="kc-l">This Month</div><div class="kc-v" id="kc-m">—</div></div>
+    <div class="kc"><div class="kc-bar" style="background:#8b5cf6"></div><div class="kc-l">This Quarter</div><div class="kc-v" id="kc-q">—</div></div>
+    <div class="kc"><div class="kc-bar" style="background:#10b981"></div><div class="kc-l">YTD 2026</div><div class="kc-v" id="kc-y">—</div></div>
+    <div class="kc" style="border-color:rgba(245,158,11,.25)"><div class="kc-bar" style="background:var(--amber)"></div><div class="kc-l" style="color:var(--amber)">Outstanding</div><div class="kc-v" style="color:var(--amber)" id="kc-o">—</div></div>
   </div>
-</div>
 
-<!-- EDIT MODAL -->
-<div class="overlay" id="modal" style="display:none">
-  <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-      <div>
-        <div style="font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:3px">Customer Record</div>
-        <h2 id="m-name" style="font-family:'Syne';font-size:22px;line-height:1.2"></h2>
-        <div id="m-prod-disp" style="color:var(--dim);font-size:13px;margin-top:3px"></div>
+  <!-- DUAL VIEW -->
+  <div class="vsec">
+    <div class="vtoolbar">
+      <div class="vtog">
+        <button class="vtb on" id="vtb-t" onclick="sv('table')">☰ Table</button>
+        <button class="vtb" id="vtb-k" onclick="sv('kanban')">⧉ Kanban</button>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+      <div class="sbar"><input id="gsearch" placeholder="Search company, product..." oninput="render()"/></div>
+      <button class="btn btn-g btn-sm" id="clrbtn" style="display:none" onclick="cf()">✕ Clear Filter</button>
     </div>
 
-    <!-- Stage Tracker -->
-    <div id="m-stage-tracker" class="stage-tracker"></div>
-
-    <!-- Tabs -->
-    <div class="modal-tabs">
-      <div class="modal-tab active" onclick="switchTab('tab-details',this)">Details<span class="tab-dot" id="dot-details"></span></div>
-      <div class="modal-tab" onclick="switchTab('tab-logistics',this)">Logistics<span class="tab-dot" id="dot-logistics"></span></div>
-      <div class="modal-tab" onclick="switchTab('tab-transactions',this)">Transactions<span class="tab-dot" id="dot-transactions"></span></div>
-      <div class="modal-tab" onclick="switchTab('tab-artwork',this)">Artwork Log<span class="tab-dot" id="dot-artwork"></span></div>
-      <div class="modal-tab" onclick="switchTab('tab-docs',this)">Vault<span class="tab-dot" id="dot-docs"></span></div>
-      <div class="modal-tab" onclick="switchTab('tab-history',this)">History<span class="tab-dot" id="dot-history"></span></div>
-    </div>
-
-    <!-- DETAILS TAB -->
-    <div id="tab-details" class="tab-content active">
-      <div class="field">
-        <label>Stage Gate</label>
-        <select id="m-status" class="auth-input" onchange="renderTracker(this.value)">
-          <option>Inquiry</option><option>Quoted</option><option>PO Received</option>
-          <option>Artwork Approval</option><option>Production (PI)</option>
-        </select>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Primary Contact</label><input id="m-contact" class="auth-input"/></div>
-        <div class="field"><label>Last Contact Date</label><input id="m-lastContact" type="date" class="auth-input"/></div>
-      </div>
-      <div class="stakeholder-box">
-        <h4>Stakeholder Mapping</h4>
-        <div class="field-row">
-          <div class="field"><label>Finance Contact</label><input id="m-stakeFinance" class="auth-input" style="background:var(--surface)"/></div>
-          <div class="field"><label>Production Contact</label><input id="m-stakeArt" class="auth-input" style="background:var(--surface)"/></div>
+    <!-- TABLE VIEW -->
+    <div id="vw-t">
+      <div class="twrap" style="overflow-x:auto">
+        <div class="thead">
+          <span class="th">Company / Product</span>
+          <span class="th">Stage</span>
+          <span class="th">Contact</span>
+          <span class="th">Next Action</span>
+          <span class="th">Outstanding</span>
+          <span class="th">ETA / Status</span>
         </div>
-        <div class="field"><label>Supplier Ref #</label><input id="m-supRef" class="auth-input" style="background:var(--surface)"/></div>
+        <div id="tbody"></div>
       </div>
-      <div class="field-row">
-        <div class="field"><label>Next Action</label><input id="m-nextAction" class="auth-input" placeholder="e.g. Follow up on PO"/></div>
-        <div class="field">
-          <label>Account Priority</label>
-          <select id="m-priority" class="auth-input">
-            <option value="false">Standard</option>
-            <option value="true">Priority (Bypass Blocks)</option>
+    </div>
+
+    <!-- KANBAN VIEW -->
+    <div id="vw-k" style="display:none">
+      <div class="kboard" id="kboard"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     EDIT MODAL
+══════════════════════════════ -->
+<div class="ovl" id="modal" style="display:none">
+<div class="modal">
+  <div class="mhd">
+    <div>
+      <div class="mey">Customer Record</div>
+      <div class="mtt" id="mn"></div>
+      <div class="msb" id="mp"></div>
+    </div>
+    <button class="btn btn-g btn-sm" onclick="closeModal()">✕</button>
+  </div>
+  <!-- Stage Tracker -->
+  <div class="stk" id="mstk"><div class="stk-line"></div></div>
+  <!-- Tabs -->
+  <div class="mtabs">
+    <div class="mtab on"  onclick="st('td',this)">Details</div>
+    <div class="mtab"     onclick="st('tl',this)">Logistics<span class="tbadge" id="tb-l">0</span></div>
+    <div class="mtab"     onclick="st('tt',this)">Transactions<span class="tbadge" id="tb-t">0</span></div>
+    <div class="mtab"     onclick="st('ta',this)">Artwork<span class="tbadge" id="tb-a">0</span></div>
+    <div class="mtab"     onclick="st('tv',this)">Vault<span class="tbadge" id="tb-v">0</span></div>
+    <div class="mtab"     onclick="st('th',this)">History<span class="tbadge" id="tb-h">0</span></div>
+    <div class="mtab"     onclick="st('tai',this)">🧠 AI</div>
+  </div>
+
+  <!-- DETAILS TAB -->
+  <div id="td" class="tcont on">
+    <div class="field">
+      <label>Stage Gate</label>
+      <select id="ms" class="fi" onchange="renderTracker(this.value)">
+        <option>Inquiry</option><option>Quoted</option><option>PO Received</option>
+        <option>Artwork Approval</option><option>Production (PI)</option>
+      </select>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Contact Person</label><input id="mc" class="fi"/></div>
+      <div class="field"><label>Last Contact Date</label><input id="mlc" type="date" class="fi"/></div>
+    </div>
+    <div class="sbox">
+      <h4>Stakeholder Mapping</h4>
+      <div class="frow">
+        <div class="field"><label>Finance Contact</label><input id="msf" class="fi"/></div>
+        <div class="field"><label>Production Contact</label><input id="msa" class="fi"/></div>
+      </div>
+      <div class="field"><label>Supplier Ref #</label><input id="msr" class="fi"/></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Next Action</label><input id="mna" class="fi"/></div>
+      <div class="field"><label>Priority</label>
+        <select id="mpri" class="fi"><option value="false">Standard</option><option value="true">Priority Account</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="mnotes" class="fi" rows="3"></textarea></div>
+    <div class="mfoot">
+      <button class="btn btn-d" onclick="delCust()" style="flex:1">Delete</button>
+      <button class="btn btn-g" onclick="closeModal()" style="flex:1">Cancel</button>
+      <button class="btn btn-p" onclick="saveCust()" style="flex:2">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- LOGISTICS TAB -->
+  <div id="tl" class="tcont">
+    <div class="lf">
+      <h4>Log New Shipment</h4>
+      <div class="frow">
+        <div class="field"><label>Product</label><input id="lp" class="fi"/></div>
+        <div class="field"><label>PI Date</label><input id="lpi" type="date" class="fi"/></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Mode</label>
+          <select id="lm" class="fi"><option>Air</option><option>Sea</option><option>Courier</option></select></div>
+        <div class="field"><label>Supplier</label>
+          <select id="lsup" class="fi"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>LC Status</label>
+          <select id="llc" class="fi">
+            <option>Draft PI Received</option><option>LC Opened</option>
+            <option>TT Paid</option><option>In Clearing</option><option>Completed</option>
           </select>
         </div>
+        <div class="field"><label>ETA</label><input id="leta" type="date" class="fi"/></div>
       </div>
-      <div class="field"><label>Notes</label><textarea id="m-notes" class="auth-input" rows="3"></textarea></div>
-      <div style="display:flex;gap:10px;margin-top:20px">
-        <button class="btn btn-danger" style="flex:1" onclick="deleteCustomer()">Delete Record</button>
-        <button class="btn btn-primary" style="flex:2" onclick="saveCustomer()">Save Changes</button>
-      </div>
+      <button class="btn btn-p" style="width:100%" onclick="addLogi()">Log Shipment</button>
     </div>
+    <div id="logilist"></div>
+  </div>
 
-    <!-- MODULE 3: LOGISTICS TAB -->
-    <div id="tab-logistics" class="tab-content">
-      <div class="logistics-form">
-        <h4>Log New Shipment</h4>
-        <div class="field-row">
-          <div class="field"><label>Product</label><input id="lg-prod" class="auth-input" style="background:var(--surface)"/></div>
-          <div class="field"><label>PI Date</label><input id="lg-pi-date" type="date" class="auth-input" style="background:var(--surface)"/></div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Shipment Mode</label>
-            <select id="lg-mode" class="auth-input" style="background:var(--surface)">
-              <option>Air</option><option>Sea</option><option>Courier</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>LC Status</label>
-            <select id="lg-lc" class="auth-input" style="background:var(--surface)">
-              <option>Draft PI Received</option>
-              <option>LC Opened</option>
-              <option>TT Paid</option>
-              <option>In Clearing</option>
-              <option>Completed</option>
-            </select>
-          </div>
-        </div>
-        <div class="field"><label>ETA</label><input id="lg-eta" type="date" class="auth-input" style="background:var(--surface)"/></div>
-        <button class="btn btn-primary" style="width:100%" onclick="addLogistic()">Log Shipment</button>
-      </div>
-      <div style="overflow-x:auto">
-        <table class="logi-table">
-          <thead>
-            <tr>
-              <th>Product</th><th>Mode</th><th>PI Date</th><th>LC Status</th><th>ETA</th>
-            </tr>
-          </thead>
-          <tbody id="logi-body"></tbody>
-        </table>
-      </div>
+  <!-- TRANSACTIONS TAB -->
+  <div id="tt" class="tcont">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <input id="txd" type="date" class="fi"/><input id="txp" class="fi" placeholder="Product"/>
+      <input id="txq" type="number" class="fi" placeholder="Qty"/>
+      <input id="txa" type="number" class="fi" placeholder="Amount (Rs.)"/>
+      <select id="txsup" class="fi"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select>
+      <select id="txst" class="fi"><option>Outstanding</option><option>Received</option></select>
     </div>
+    <button class="btn btn-p" style="width:100%;margin-bottom:16px" onclick="addTx()">Log Transaction</button>
+    <div style="overflow-x:auto"><table class="txt"><thead><tr>
+      <th>Date</th><th>Product</th><th>Qty</th><th>Amount</th><th>Supplier</th><th>Status</th>
+    </tr></thead><tbody id="txbody"></tbody></table></div>
+  </div>
 
-    <!-- TRANSACTIONS TAB -->
-    <div id="tab-transactions" class="tab-content">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <input id="l-date" type="date" class="auth-input" style="margin:0"/>
-        <input id="l-prod" class="auth-input" placeholder="Product" style="margin:0"/>
-        <input id="l-qty" type="number" class="auth-input" placeholder="Qty" style="margin:0"/>
-        <input id="l-amt" type="number" class="auth-input" placeholder="Amount (Rs.)" style="margin:0"/>
-        <select id="l-sup" class="auth-input" style="margin:0"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select>
-        <select id="l-status" class="auth-input" style="margin:0"><option>Outstanding</option><option>Received</option></select>
+  <!-- ARTWORK TAB -->
+  <div id="ta" class="tcont">
+    <div class="awf">
+      <h4>🎨 Log Artwork Event</h4>
+      <div class="frow">
+        <div class="field"><label>Version</label><input id="awv" class="fi" placeholder="e.g. Proof V1"/></div>
+        <div class="field"><label>Date</label><input id="awd" type="date" class="fi"/></div>
       </div>
-      <button class="btn btn-primary" style="width:100%;margin-bottom:20px" onclick="addTransaction()">Log Transaction</button>
-      <div style="overflow-x:auto">
-        <table class="tx-table">
-          <thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Amount</th><th>Supplier</th><th>Status</th></tr></thead>
-          <tbody id="ledger-body"></tbody>
-        </table>
+      <div class="field"><label>Description</label><input id="awdesc" class="fi" placeholder="e.g. V1 sent to NIBM for approval"/></div>
+      <div class="field">
+        <label>Attach Image / File</label>
+        <div class="awup" onclick="document.getElementById('awf-inp').click()">🖼️ Click to attach proof image</div>
+        <input type="file" id="awf-inp" accept="image/*,.pdf" style="display:none" onchange="awprev(event)"/>
+        <div class="awprev" id="awprev"></div>
       </div>
+      <button class="btn btn-amber" style="width:100%;background:rgba(180,83,9,.8);color:var(--amber);border:1px solid rgba(245,158,11,.3)" onclick="addAw()">Log Artwork Event</button>
     </div>
+    <div id="awlist"></div>
+  </div>
 
-    <!-- MODULE 4: ARTWORK LOG TAB -->
-    <div id="tab-artwork" class="tab-content">
-      <div class="artwork-form">
-        <h4>🎨 Log Artwork Event</h4>
-        <div class="field-row">
-          <div class="field"><label>Version</label><input id="aw-version" class="auth-input" style="background:var(--surface)" placeholder="e.g. Proof V1"/></div>
-          <div class="field"><label>Date</label><input id="aw-date" type="date" class="auth-input" style="background:var(--surface)"/></div>
-        </div>
-        <div class="field"><label>Description</label><input id="aw-desc" class="auth-input" style="background:var(--surface)" placeholder="e.g. Proof V1 sent to NIBM for approval"/></div>
-        <button class="btn btn-primary" style="width:100%;background:#92400e;margin-top:4px" onclick="addArtworkLog()">Log Artwork Event</button>
-      </div>
-      <div class="timeline" id="artwork-timeline"></div>
+  <!-- VAULT TAB -->
+  <div id="tv" class="tcont">
+    <div class="vdrop" onclick="document.getElementById('vfinp').click()">
+      <div style="font-size:24px;margin-bottom:6px">📁</div>
+      <div style="font-weight:700;margin-bottom:3px">Click to upload to Vault</div>
+      <div style="font-size:11px;color:var(--muted)">PO, PI, Artwork, Certs</div>
+      <input type="file" id="vfinp" style="display:none" onchange="uploadVault(event)"/>
     </div>
+    <div id="vlist" style="margin-top:12px"></div>
+  </div>
 
-    <!-- VAULT TAB -->
-    <div id="tab-docs" class="tab-content">
-      <div class="file-drop" id="file-drop-zone">
-        <div style="font-size:28px;margin-bottom:8px">📁</div>
-        <div style="font-weight:600;margin-bottom:4px">Click or drag files to upload</div>
-        <div style="font-size:12px;color:var(--dim)">PO, Artwork, PI Documents</div>
-        <input type="file" id="file-input" style="display:none" onchange="uploadFile(event)"/>
+  <!-- HISTORY TAB -->
+  <div id="th" class="tcont">
+    <div class="tl" id="htl"></div>
+  </div>
+
+  <!-- AI TAB -->
+  <div id="tai" class="tcont">
+    <div class="ai-panel">
+      <h4>🧠 Smart Email Assistant</h4>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Select a template then generate a contextual email draft.</div>
+      <div class="chip-row" id="ai-chips">
+        <div class="chip" onclick="selChip(this,'follow_up')">Follow-up</div>
+        <div class="chip" onclick="selChip(this,'po_chase')">Chase PO</div>
+        <div class="chip" onclick="selChip(this,'artwork_approval')">Artwork Approval</div>
+        <div class="chip" onclick="selChip(this,'payment_reminder')">Payment Reminder</div>
+        <div class="chip" onclick="selChip(this,'shipment_update')">Shipment Update</div>
       </div>
-      <div id="vault-list" style="margin-top:16px"></div>
-    </div>
-
-    <!-- HISTORY TAB -->
-    <div id="tab-history" class="tab-content">
-      <div class="timeline" id="history-timeline"></div>
+      <button class="btn btn-ai" style="width:100%;margin-bottom:12px" onclick="genEmail()">✨ Generate Email Draft</button>
+      <div class="ai-output" id="ai-email-out" style="color:var(--muted);font-style:italic">Select a template and click generate…</div>
     </div>
   </div>
 </div>
+</div>
 
-<!-- ADD MODAL -->
-<div class="overlay" id="add-modal" style="display:none">
-  <div class="modal" style="max-width:420px">
-    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
-      <h3 style="font-family:'Syne';font-size:18px">New Record</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeAddModal()">✕</button>
+<!-- ══════════════════════════════
+     ADD MODAL
+══════════════════════════════ -->
+<div class="ovl" id="addmod" style="display:none">
+<div class="modal" style="max-width:420px">
+  <div style="display:flex;justify-content:space-between;margin-bottom:18px">
+    <div style="font-size:18px;font-weight:900">New Record</div>
+    <button class="btn btn-g btn-sm" onclick="closeAdd()">✕</button>
+  </div>
+  <div class="field"><label>Company Name *</label><input id="an" class="fi"/></div>
+  <div class="field"><label>Product</label><input id="aprod" class="fi" placeholder="e.g. Holo, Cert, Sticker"/></div>
+  <button class="btn btn-p" style="width:100%;margin-top:4px" onclick="confirmAdd()">Create Record</button>
+</div>
+</div>
+
+<!-- ══════════════════════════════
+     AI RISK REPORT MODAL
+══════════════════════════════ -->
+<div class="ovl" id="rrmod" style="display:none">
+<div class="modal" style="max-width:600px">
+  <div style="display:flex;justify-content:space-between;margin-bottom:18px">
+    <div>
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:3px">Gemini AI</div>
+      <div style="font-size:18px;font-weight:900">Executive Risk Report</div>
     </div>
-    <div class="field"><label>Company Name *</label><input id="add-name" class="auth-input"/></div>
-    <div class="field"><label>Initial Product</label><input id="add-product" class="auth-input" placeholder="e.g. Holo, Cert, Sticker"/></div>
-    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="confirmAdd()">Create Record</button>
+    <button class="btn btn-g btn-sm" onclick="document.getElementById('rrmod').style.display='none'">✕</button>
+  </div>
+  <div id="rr-body" class="rr-out" style="color:var(--muted);font-style:italic">Generating report…</div>
+  <div style="margin-top:14px;text-align:right">
+    <button class="btn btn-ai" onclick="openRiskReport()">↺ Regenerate</button>
   </div>
 </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="bnav" id="bnav">
+  <div class="bni on" onclick="bnav_go('dash')"><div class="bni-icon">📊</div><div class="bni-lbl">Dashboard</div></div>
+  <div class="bni" onclick="bnav_go('search')"><div class="bni-icon">🔍</div><div class="bni-lbl">Search</div></div>
+  <div class="bni" onclick="openRiskReport()"><div class="bni-icon">🧠</div><div class="bni-lbl">AI</div></div>
+  <div class="bni" onclick="bnav_go('vault')"><div class="bni-icon">📁</div><div class="bni-lbl">Vault</div></div>
+</nav>
 
 <div id="toast"></div>
 
 <script>
+// ════════════════════════════════
+// SUPABASE
+// ════════════════════════════════
 const SUPABASE_URL      = "https://euppycxpozqtdwbhxcjy.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_21vgnKgrn1yRURN6Rcu-2g_x-b4J9JP";
+const GEMINI_API_KEY    = "AIzaSyDfCzCb-zy_XED_TniLHn2inoCPOqN7wJ8"; // ← paste key here
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let customers=[], currentId=null, currentCustomer=null, activeFilterFn=null;
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let custs=[], cid=null, ccust=null, vmode='table', qfilt=null, awFile=null, aiChip=null;
 
-const STAGE_COLORS={
-  'Inquiry':         {bg:'#1e293b',color:'#94a3b8',border:'#334155'},
-  'Quoted':          {bg:'#422006',color:'#f59e0b',border:'#78350f'},
-  'PO Received':     {bg:'#1e3a8a',color:'#60a5fa',border:'#1e40af'},
-  'Artwork Approval':{bg:'#4c1d95',color:'#a78bfa',border:'#5b21b6'},
-  'Production (PI)': {bg:'#064e3b',color:'#34d399',border:'#065f46'},
+const SC={
+  'Inquiry':         {bg:'rgba(100,116,139,.18)',color:'#94a3b8',border:'rgba(100,116,139,.35)'},
+  'Quoted':          {bg:'rgba(180,83,9,.18)',   color:'#f59e0b',border:'rgba(180,83,9,.35)'},
+  'PO Received':     {bg:'rgba(30,58,138,.22)',  color:'#60a5fa',border:'rgba(30,58,138,.4)'},
+  'Artwork Approval':{bg:'rgba(76,29,149,.22)',  color:'#a78bfa',border:'rgba(76,29,149,.4)'},
+  'Production (PI)': {bg:'rgba(6,78,59,.22)',    color:'#34d399',border:'rgba(6,78,59,.4)'},
 };
-const STAGES_ORDER=['Inquiry','Quoted','PO Received','Artwork Approval','Production (PI)'];
-const LC_ORDER=['Draft PI Received','LC Opened','TT Paid','In Clearing','Completed'];
+const STAGES=['Inquiry','Quoted','PO Received','Artwork Approval','Production (PI)'];
+const SLBLS =['Inquiry','Quoted','PO Recd','Artwork','Production'];
+const LC_STEPS=['Draft PI Received','LC Opened','TT Paid','In Clearing','Completed'];
+const SDOTS=['#64748b','#f59e0b','#3b82f6','#a78bfa','#22c55e'];
 
-// ── AUTH ────────────────────────────────────────────
+// ════════════════════════════════
+// AUTH
+// ════════════════════════════════
 async function login(){
-  const{error}=await sb.auth.signInWithPassword({
-    email:document.getElementById('auth-email').value,
-    password:document.getElementById('auth-password').value
-  });
-  if(error) alert("Login Error: "+error.message); else checkAuth();
+  const{error}=await sb.auth.signInWithPassword({email:$('ae').value,password:$('ap').value});
+  if(error) toast('Login failed: '+error.message,'warn');
+  else checkAuth();
 }
 async function checkAuth(){
   const{data:{session}}=await sb.auth.getSession();
-  showScreen(session?'portal-screen':'auth-screen');
+  ss(session?'scr-portal':'scr-auth');
 }
-async function logout(){await sb.auth.signOut();checkAuth();}
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const t=document.getElementById(id); if(t) t.classList.add('active');
-}
-function openModule(){showScreen('app-screen');loadData();}
+async function logout(){await sb.auth.signOut();ss('scr-auth');}
 
-// ── DATA ────────────────────────────────────────────
+function ss(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');}
+function openModule(){ss('scr-app');loadData();}
+
+// ════════════════════════════════
+// DATA
+// ════════════════════════════════
 async function loadData(){
   try{
-    const{data,error}=await sb.from('Diamond crM')
-      .select('*, transactions(*), activity_logs(*), logistics(*)')
-      .order('id');
+    const{data,error}=await sb.from('Diamond crM').select('*,transactions(*),activity_logs(*),logistics(*)').order('id');
     if(error) throw error;
-    customers=data||[];
-    renderTable();
-    updateDashboard();
-    updateActionCenter();
-  }catch(e){
-    // Fallback without logistics if table doesn't exist yet
+    custs=data||[];
+  }catch{
     try{
-      const{data,error2}=await sb.from('Diamond crM')
-        .select('*, transactions(*), activity_logs(*)')
-        .order('id');
-      if(error2) throw error2;
-      customers=(data||[]).map(c=>({...c,logistics:[]}));
-      renderTable(); updateDashboard(); updateActionCenter();
-    }catch(e2){alert("DB Error: "+e2.message);}
+      const{data}=await sb.from('Diamond crM').select('*,transactions(*),activity_logs(*)').order('id');
+      custs=(data||[]).map(c=>({...c,logistics:[]}));
+    }catch(e2){toast('DB Error: '+e2.message,'warn');return;}
   }
+  updIntel();updKPIs();render();
 }
 
-// ── FORMAT HELPERS ──────────────────────────────────
-function fmtM(v){return `Rs. ${(v/1000000).toFixed(2)}M`;}
-function fmtK(v){
-  if(v>=1000000) return `Rs. ${(v/1000000).toFixed(1)}M`;
-  if(v>=1000)    return `Rs. ${(v/1000).toFixed(0)}K`;
-  return `Rs. ${Math.round(v).toLocaleString()}`;
-}
-function daysDiff(dateStr){
-  if(!dateStr) return null;
-  const d=new Date(dateStr); if(isNaN(d)) return null;
-  const today=new Date(); today.setHours(0,0,0,0); d.setHours(0,0,0,0);
-  return Math.floor((d-today)/86400000);
-}
-function daysSince(dateStr){
-  if(!dateStr) return null;
-  const d=new Date(dateStr); if(isNaN(d)) return null;
-  return Math.floor((Date.now()-d.getTime())/86400000);
-}
-
-// ── KPI DASHBOARD ───────────────────────────────────
-function updateDashboard(){
-  let out=0,mRev=0,qRev=0,yRev=0;
-  const now=new Date(),cm=now.getMonth(),cq=Math.floor(cm/3),cy=now.getFullYear();
-  customers.forEach(c=>{
-    (c.transactions||[]).forEach(t=>{
-      const amt=parseFloat(t.amount)||0;
-      if(t.payment_status==='Outstanding') out+=amt;
-      else if(t.payment_status==='Received'){
-        const d=new Date(t.order_date);
-        if(d.getFullYear()===cy){
-          yRev+=amt;
-          if(Math.floor(d.getMonth()/3)===cq) qRev+=amt;
-          if(d.getMonth()===cm) mRev+=amt;
-        }
-      }
-    });
-  });
-  document.getElementById('kpi-out').textContent=fmtM(out);
-  document.getElementById('kpi-ytd').textContent=fmtM(yRev);
-  document.getElementById('kpi-quarter').textContent=fmtM(qRev);
-  document.getElementById('kpi-month').textContent=fmtM(mRev);
-}
-
-// ── MODULE 1: ACTION CENTER ─────────────────────────
-function updateActionCenter(){
-  const today=new Date(); today.setHours(0,0,0,0);
-
-  // Stale: no last_contact in 7+ days
-  const stale=customers.filter(c=>{
-    const ds=daysSince(c.last_contact);
-    return ds===null||ds>=7;
-  }).length;
-  document.getElementById('ac-stale').textContent=stale;
-
-  // Pending logistics: any logistics row not completed, or ETA in future
-  const pendingLog=customers.filter(c=>{
-    const logs=c.logistics||[];
-    return logs.some(l=>l.lc_status!=='Completed'||daysDiff(l.eta)>0);
-  }).length;
-  document.getElementById('ac-logistics').textContent=pendingLog;
-
-  // Action required: next_action date is today or overdue
-  const actionReq=customers.filter(c=>{
-    if(!c.next_action) return false;
-    // Try to parse as date; if it's a date field
-    const d=new Date(c.next_action);
-    return !isNaN(d)&&d<=today;
-  }).length;
-  document.getElementById('ac-action').textContent=actionReq;
-}
-
-// Action Center filter triggers
-let acFilterMode=null;
-function filterStale(){
-  acFilterMode=acFilterMode==='stale'?null:'stale';
-  updateFilterUI();renderTable();
-}
-function filterLogistics(){
-  acFilterMode=acFilterMode==='logistics'?null:'logistics';
-  updateFilterUI();renderTable();
-}
-function filterAction(){
-  acFilterMode=acFilterMode==='action'?null:'action';
-  updateFilterUI();renderTable();
-}
-function clearFilter(){
-  acFilterMode=null;
-  document.getElementById('search').value='';
-  updateFilterUI();renderTable();
-}
-function updateFilterUI(){
-  document.getElementById('filter-clear-btn').style.display=acFilterMode?'inline-flex':'none';
-}
-
-// ── MODULE 2: ETA BADGE ─────────────────────────────
+// ════════════════════════════════
+// HELPERS
+// ════════════════════════════════
+function $(id){return document.getElementById(id);}
+function fmtM(v){return `Rs.${(v/1e6).toFixed(2)}M`;}
+function fmtK(v){if(v>=1e6)return`Rs.${(v/1e6).toFixed(1)}M`;if(v>=1e3)return`Rs.${Math.round(v/1e3)}K`;return`Rs.${Math.round(v).toLocaleString()}`;}
+function ddiff(ds){if(!ds)return null;const d=new Date(ds),t=new Date();if(isNaN(d))return null;t.setHours(0,0,0,0);d.setHours(0,0,0,0);return Math.floor((d-t)/864e5);}
+function dsince(ds){if(!ds)return null;const d=new Date(ds);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5);}
+function badge(s){const c=SC[s]||SC['Inquiry'];return`<span class="badge" style="background:${c.bg};color:${c.color};border-color:${c.border}">${s}</span>`;}
 function etaBadge(c){
-  const logs=c.logistics||[];
-  if(!logs.length) return '<span style="color:var(--dim);font-size:12px">—</span>';
-  // Find most recent active shipment
-  const active=logs.filter(l=>l.lc_status!=='Completed').sort((a,b)=>new Date(b.pi_date||0)-new Date(a.pi_date||0));
-  const row=active[0]||logs[logs.length-1];
-  if(!row||!row.eta) return '<span style="color:var(--dim);font-size:12px">—</span>';
-  const diff=daysDiff(row.eta);
-  if(diff===0) return `<span class="eta-badge eta-today">ARRIVING TODAY</span>`;
-  if(diff>0&&diff<=3) return `<span class="eta-badge eta-urgent">URGENT: ${diff}d</span>`;
-  if(diff<0) return `<span class="eta-badge eta-overdue">OVERDUE ${Math.abs(diff)}d</span>`;
-  const mode=row.shipment_mode?`${row.shipment_mode} · `:'';
-  return `<span class="eta-badge eta-ok">${mode}${diff}d</span>`;
+  const logs=(c.logistics||[]).filter(l=>l.lc_status!=='Completed');
+  if(!logs.length)return'<span style="color:var(--dim);font-size:12px">—</span>';
+  const l=logs.sort((a,b)=>new Date(b.pi_date||0)-new Date(a.pi_date||0))[0];
+  if(!l.eta)return`<span class="badge eta-ok">${l.lc_status||'—'}</span>`;
+  const d=ddiff(l.eta);
+  if(d===0)return`<span class="badge eta-td">ARRIVING TODAY</span>`;
+  if(d>0&&d<=3)return`<span class="badge eta-ug">URGENT: ${d}d</span>`;
+  if(d>3&&d<=5)return`<span class="badge eta-sn">${d}d</span>`;
+  if(d<0)return`<span class="badge eta-od">OVERDUE ${Math.abs(d)}d</span>`;
+  return`<span class="badge eta-ok">${d}d</span>`;
 }
 
-// ── MODULE 2: QUICK COPY ────────────────────────────
-function copyBridge(e,c){
-  e.stopPropagation();
-  const txt=`${c.name} | ${c.product||'—'} | Next Action: ${c.next_action||'—'}`;
-  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Copied to clipboard','info'));
+// ════════════════════════════════
+// INTEL + KPIs
+// ════════════════════════════════
+function updIntel(){
+  $('ic-stale').textContent=custs.filter(c=>{const d=dsince(c.last_contact);return d===null||d>=7;}).length;
+  let sc=0;custs.forEach(c=>(c.logistics||[]).filter(l=>l.lc_status!=='Completed').forEach(l=>{const d=ddiff(l.eta);if(d!==null&&d>=0&&d<=5)sc++;}));
+  $('ic-ship').textContent=sc;
+  let out=0;custs.forEach(c=>(c.transactions||[]).forEach(t=>{if(t.payment_status==='Outstanding')out+=parseFloat(t.amount)||0;}));
+  $('ic-risk').textContent=fmtK(out);
+}
+function updKPIs(){
+  let o=0,m=0,q=0,y=0;
+  const now=new Date(),cm=now.getMonth(),cq=Math.floor(cm/3),cy=now.getFullYear();
+  custs.forEach(c=>(c.transactions||[]).forEach(t=>{
+    const a=parseFloat(t.amount)||0;
+    if(t.payment_status==='Outstanding'){o+=a;}
+    else if(t.payment_status==='Received'){
+      const d=new Date(t.order_date);
+      if(d.getFullYear()===cy){y+=a;if(Math.floor(d.getMonth()/3)===cq)q+=a;if(d.getMonth()===cm)m+=a;}
+    }
+  }));
+  $('kc-o').textContent=fmtM(o);$('kc-y').textContent=fmtM(y);$('kc-q').textContent=fmtM(q);$('kc-m').textContent=fmtM(m);
 }
 
-// ── TABLE ───────────────────────────────────────────
-function renderTable(){
-  const q=document.getElementById('search').value.toLowerCase();
-  const today=new Date(); today.setHours(0,0,0,0);
-
-  let filtered=customers.filter(c=>{
-    const matchSearch=c.name.toLowerCase().includes(q)||(c.product||'').toLowerCase().includes(q);
-    if(!matchSearch) return false;
-    if(!acFilterMode) return true;
-    if(acFilterMode==='stale'){const ds=daysSince(c.last_contact);return ds===null||ds>=7;}
-    if(acFilterMode==='logistics'){const logs=c.logistics||[];return logs.some(l=>l.lc_status!=='Completed'||daysDiff(l.eta)>0);}
-    if(acFilterMode==='action'){if(!c.next_action)return false;const d=new Date(c.next_action);return !isNaN(d)&&d<=today;}
+// ════════════════════════════════
+// FILTER + RENDER
+// ════════════════════════════════
+function qf(f){qfilt=qfilt===f?null:f;$('clrbtn').style.display=qfilt?'inline-flex':'none';render();}
+function cf(){qfilt=null;$('gsearch').value='';$('clrbtn').style.display='none';render();}
+function filt(list){
+  const q=$('gsearch').value.toLowerCase();
+  return list.filter(c=>{
+    const ms=c.name.toLowerCase().includes(q)||(c.product||'').toLowerCase().includes(q);
+    if(!ms)return false;
+    if(!qfilt)return true;
+    if(qfilt==='stale'){const d=dsince(c.last_contact);return d===null||d>=7;}
+    if(qfilt==='eta')return(c.logistics||[]).some(l=>{const d=ddiff(l.eta);return d!==null&&d>=0&&d<=5&&l.lc_status!=='Completed';});
     return true;
   });
+}
+function render(){vmode==='table'?renderTable():renderKanban();}
+function sv(v){
+  vmode=v;
+  $('vtb-t').classList.toggle('on',v==='table');$('vtb-k').classList.toggle('on',v==='kanban');
+  $('vw-t').style.display=v==='table'?'block':'none';$('vw-k').style.display=v==='kanban'?'block':'none';
+  render();
+}
 
-  if(!filtered.length){
-    document.getElementById('table-body').innerHTML='<div style="padding:40px;text-align:center;color:var(--dim)">No records found.</div>';
-    return;
-  }
-
-  document.getElementById('table-body').innerHTML=filtered.map(c=>{
+function renderTable(){
+  const list=filt(custs);
+  if(!list.length){$('tbody').innerHTML='<div style="padding:40px;text-align:center;color:var(--dim)">No records found.</div>';return;}
+  $('tbody').innerHTML=list.map(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-    const sc=STAGE_COLORS[c.status]||STAGE_COLORS['Inquiry'];
-    const ds=daysSince(c.last_contact);
-    const staleWarn=ds!==null&&ds>=7?`style="color:#f59e0b;font-weight:600" title="${ds} days since last contact"`:'style="color:var(--muted)"';
-    return `<div class="table-row${c.is_priority?' priority':''}" onclick="openModal(${c.id})">
+    return`<div class="trow${c.is_priority?' pri':''}" onclick="openModal(${c.id})">
       <div>
-        <div class="row-name-wrap">
-          <span style="font-weight:600">${c.name}</span>
-          <button class="copy-btn" onclick="copyBridge(event,${JSON.stringify(c).replace(/"/g,'&quot;')})" title="Copy bridge info">📋</button>
+        <div style="display:flex;align-items:center">
+          <span class="rname">${c.name}</span>
+          <button class="cpbtn" onclick="cpbr(event,${c.id})" title="Copy bridge info">📋</button>
         </div>
-        <div style="font-size:11px;color:var(--dim)">${c.product||'—'}</div>
+        <div class="rsub">${c.product||'—'}</div>
       </div>
-      <div><span class="badge" style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.border}">${c.status}</span></div>
-      <div style="font-size:13px;color:var(--muted)">${c.contact||'—'}</div>
-      <div style="font-size:13px;color:var(--muted)">${c.next_action||'—'}</div>
-      <div class="${out>0?'amt-outstanding':''}" style="font-size:13px">${out>0?'Rs. '+out.toLocaleString():'<span style="color:var(--dim)">Clear</span>'}</div>
-      <div>${etaBadge(c)}</div>
+      <div class="rcell">${badge(c.status)}</div>
+      <div class="rcell">${c.contact||'<span style="color:var(--dim)">—</span>'}</div>
+      <div class="rcell" style="font-size:12px">${c.next_action||'<span style="color:var(--dim)">—</span>'}</div>
+      <div class="rcell">${out>0?`<span style="color:var(--amber);font-weight:800">${fmtK(out)}</span>`:'<span style="color:var(--dim)">Clear</span>'}</div>
+      <div class="rcell">${etaBadge(c)}</div>
     </div>`;
   }).join('');
 }
 
-// ── CSV EXPORT ──────────────────────────────────────
+function renderKanban(){
+  const list=filt(custs);
+  $('kboard').innerHTML=STAGES.map((stage,si)=>{
+    const cards=list.filter(c=>c.status===stage);
+    return`<div class="kcol">
+      <div class="kcol-h">
+        <div class="kcol-ht"><div class="kcol-hdot" style="background:${SDOTS[si]}"></div>${SLBLS[si]}</div>
+        <span class="kcol-cnt">${cards.length}</span>
+      </div>
+      <div class="kcards">${cards.length?cards.map(c=>{
+        const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+        return`<div class="kcard" onclick="openModal(${c.id})">
+          <div class="kc-n">${c.name}</div>
+          <div class="kc-p">${c.product||'—'}</div>
+          <div class="kc-ft">${etaBadge(c)}<span style="font-size:10px;font-weight:800;color:${out>0?'var(--amber)':'var(--dim)'}">${out>0?fmtK(out):'Clear'}</span></div>
+        </div>`;}).join(''):'<div style="color:var(--dim);font-size:12px;text-align:center;padding:20px 0">Empty</div>'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════
+// CSV EXPORT
+// ════════════════════════════════
 function exportCSV(){
   let csv="Company,Product,Stage,Contact,Next Action,Outstanding,Last Contact\n";
-  customers.forEach(c=>{
+  custs.forEach(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
     csv+=`"${c.name}","${c.product||''}","${c.status}","${c.contact||''}","${c.next_action||''}","${out}","${c.last_contact||''}"\n`;
   });
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download=`Diamond_Pipeline_${new Date().toISOString().split('T')[0]}.csv`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`Diamond_${new Date().toISOString().split('T')[0]}.csv`;document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
-// ── STAGE TRACKER ───────────────────────────────────
-function renderTracker(currentStatus){
-  const idx=STAGES_ORDER.indexOf(currentStatus);
-  document.getElementById('m-stage-tracker').innerHTML=STAGES_ORDER.map((s,i)=>{
-    const cls=i<idx?'completed':i===idx?'active':'';
-    const icon=i<idx?'✓':i+1;
-    const lbl=s.replace(' Approval','').replace(' (PI)','');
-    return `<div class="stage-step ${cls}"><div class="stage-dot">${icon}</div><div class="stage-label">${lbl}</div></div>`;
+// ════════════════════════════════
+// COPY BRIDGE
+// ════════════════════════════════
+function cpbr(e,id){
+  e.stopPropagation();
+  const c=custs.find(x=>x.id===id);if(!c)return;
+  navigator.clipboard.writeText(`${c.name} | ${c.product||'—'} | Next Action: ${c.next_action||'—'}`).then(()=>toast('📋 Copied','info'));
+}
+
+// ════════════════════════════════
+// STAGE TRACKER
+// ════════════════════════════════
+function renderTracker(cur){
+  const idx=STAGES.indexOf(cur);
+  $('mstk').innerHTML='<div class="stk-line"></div>'+STAGES.map((s,i)=>{
+    const cls=i<idx?'done':i===idx?'active':'';
+    return`<div class="sstep ${cls}"><div class="sdot">${i<idx?'✓':i+1}</div><div class="slbl">${SLBLS[i]}</div></div>`;
   }).join('');
 }
 
-// ── MODAL OPEN/CLOSE ────────────────────────────────
-function switchTab(tId,el){
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(tId).classList.add('active');
-  el.classList.add('active');
+// ════════════════════════════════
+// MODAL
+// ════════════════════════════════
+function st(id,el){
+  document.querySelectorAll('.tcont').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('on'));
+  $(id).classList.add('on');el.classList.add('on');
 }
+function setTB(id,n){const el=$(id);if(!el)return;if(n>0){el.classList.add('show');el.textContent=n;}else el.classList.remove('show');}
 
 function openModal(id){
-  currentId=id; currentCustomer=customers.find(x=>x.id===id);
-  if(!currentCustomer) return;
-
-  document.getElementById('m-name').textContent=currentCustomer.name||'Unknown';
-  document.getElementById('m-prod-disp').textContent=currentCustomer.product||'';
-
-  const fieldMap={
-    contact:'contact', lastContact:'last_contact', nextAction:'next_action',
-    notes:'notes', status:'status', priority:'is_priority',
-    stakeFinance:'stakeholder_finance', stakeArt:'stakeholder_artwork', supRef:'supplier_ref_no'
-  };
-  Object.entries(fieldMap).forEach(([k,v])=>{
-    const el=document.getElementById('m-'+k);
-    if(el) el.value=currentCustomer[v]||(k==='priority'?'false':'');
-  });
-
-  renderTracker(currentCustomer.status||'Inquiry');
-  document.getElementById('l-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('aw-date').value=new Date().toISOString().split('T')[0];
-  switchTab('tab-details',document.querySelectorAll('.modal-tab')[0]);
-  loadTransactions(); loadLogistics(); loadHistory(); loadArtworkLog(); loadVault();
-  document.getElementById('modal').style.display='flex';
+  cid=id;ccust=custs.find(x=>x.id===id);if(!ccust)return;
+  $('mn').textContent=ccust.name||'';$('mp').textContent=ccust.product||'';
+  const fm={mc:'contact',mlc:'last_contact',mna:'next_action',mnotes:'notes',ms:'status',
+    mpri:'is_priority',msf:'stakeholder_finance',msa:'stakeholder_artwork',msr:'supplier_ref_no'};
+  Object.entries(fm).forEach(([eid,k])=>{const el=$(eid);if(el)el.value=ccust[k]||(eid==='mpri'?'false':'');});
+  renderTracker(ccust.status||'Inquiry');
+  $('txd').value=new Date().toISOString().split('T')[0];
+  $('awd').value=new Date().toISOString().split('T')[0];
+  awFile=null;$('awprev').style.display='none';$('awprev').innerHTML='';$('awf-inp').value='';
+  $('ai-email-out').style.fontStyle='italic';$('ai-email-out').style.color='var(--muted)';
+  $('ai-email-out').textContent='Select a template and click generate…';
+  aiChip=null;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+  st('td',document.querySelectorAll('.mtab')[0]);
+  loadTx();loadLogi();loadHistory();loadAw();loadVault();
+  $('modal').style.display='flex';
 }
-function closeModal(){document.getElementById('modal').style.display='none'; currentId=null;}
+function closeModal(){$('modal').style.display='none';cid=null;}
 
-// ── MODULE 5: TAB DOTS ──────────────────────────────
-function setTabDot(id, show){
-  const el=document.getElementById('dot-'+id);
-  if(el) el.classList.toggle('show',show);
-}
-
-// ── SAVE CUSTOMER ───────────────────────────────────
-async function saveCustomer(){
-  const oldS=currentCustomer.status, newS=document.getElementById('m-status').value;
-  const isPriority=document.getElementById('m-priority').value==='true';
-
-  if(newS==='Production (PI)'&&!isPriority){
-    const out=(currentCustomer.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-    if(out>0){showToast('⚠ Outstanding balance blocks Production. Set Priority to override.','warn');return;}
+// ════════════════════════════════
+// SAVE / DELETE
+// ════════════════════════════════
+async function saveCust(){
+  const ns=$('ms').value,os=ccust.status;
+  const ip=$('mpri').value==='true';
+  if(ns==='Production (PI)'&&!ip){
+    const out=(ccust.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    if(out>0){toast('⚠ Outstanding balance blocks Production. Set Priority to override.','warn');return;}
   }
-  const updates={
-    status:newS, contact:document.getElementById('m-contact').value,
-    last_contact:document.getElementById('m-lastContact').value,
-    next_action:document.getElementById('m-nextAction').value,
-    notes:document.getElementById('m-notes').value, is_priority:isPriority,
-    stakeholder_finance:document.getElementById('m-stakeFinance').value,
-    stakeholder_artwork:document.getElementById('m-stakeArt').value,
-    supplier_ref_no:document.getElementById('m-supRef').value,
-  };
-  await sb.from('Diamond crM').update(updates).eq('id',currentId);
-  if(oldS!==newS) await sb.from('activity_logs').insert([{customer_id:currentId,change_description:`Stage moved from ${oldS} to ${newS}`,log_type:'stage'}]);
-  showToast('✓ Record Updated');loadData();closeModal();
+  const u={status:ns,contact:$('mc').value,last_contact:$('mlc').value,next_action:$('mna').value,
+    notes:$('mnotes').value,is_priority:ip,stakeholder_finance:$('msf').value,
+    stakeholder_artwork:$('msa').value,supplier_ref_no:$('msr').value};
+  await sb.from('Diamond crM').update(u).eq('id',cid);
+  if(os!==ns) await sb.from('activity_logs').insert([{customer_id:cid,change_description:`Stage: ${os} → ${ns}`,log_type:'stage'}]);
+  toast('✓ Saved');loadData();closeModal();
+}
+async function delCust(){
+  if(!confirm('Delete this record and all associated data?'))return;
+  await sb.from('Diamond crM').delete().eq('id',cid);
+  toast('✓ Deleted');loadData();closeModal();
 }
 
-// ── DELETE ──────────────────────────────────────────
-async function deleteCustomer(){
-  if(!confirm('Delete this client and all associated records?')) return;
-  try{await sb.from('Diamond crM').delete().eq('id',currentId);loadData();closeModal();showToast('✓ Deleted');}catch(e){showToast('Delete failed','warn');}
+// ════════════════════════════════
+// TRANSACTIONS
+// ════════════════════════════════
+function loadTx(){
+  const tx=ccust.transactions||[];setTB('tb-t',tx.length);
+  $('txbody').innerHTML=tx.sort((a,b)=>new Date(b.order_date)-new Date(a.order_date)).map(t=>`
+    <tr><td>${t.order_date||'—'}</td><td>${t.product||'—'}</td><td>${t.quantity||'—'}</td>
+    <td style="font-weight:800">${t.amount?parseFloat(t.amount).toLocaleString():0}</td>
+    <td style="color:var(--muted)">${t.supplier||'—'}</td>
+    <td style="color:${t.payment_status==='Received'?'var(--green)':'var(--amber)'};font-weight:700">${t.payment_status}</td></tr>
+  `).join('')||'<tr><td colspan="6" style="color:var(--dim);padding:14px 0;text-align:center">No transactions.</td></tr>';
+}
+async function addTx(){
+  const a=parseFloat($('txa').value)||0;if(!a){toast('Amount required','warn');return;}
+  await sb.from('transactions').insert([{customer_id:cid,order_date:$('txd').value,product:$('txp').value,
+    quantity:parseFloat($('txq').value)||null,amount:a,supplier:$('txsup').value,payment_status:$('txst').value}]);
+  ['txp','txq','txa'].forEach(i=>$(i).value='');
+  toast('✓ Transaction logged');loadData();setTimeout(()=>{ccust=custs.find(x=>x.id===cid);loadTx();},650);
 }
 
-// ── TRANSACTIONS ─────────────────────────────────────
-function loadTransactions(){
-  const tx=currentCustomer.transactions||[];
-  setTabDot('transactions',tx.length>0);
-  document.getElementById('ledger-body').innerHTML=tx.sort((a,b)=>new Date(b.order_date)-new Date(a.order_date)).map(t=>`
-    <tr>
-      <td style="padding:9px 0">${t.order_date||'—'}</td>
-      <td>${t.product||'—'}</td>
-      <td>${t.quantity||'—'}</td>
-      <td style="font-weight:600">${t.amount?parseFloat(t.amount).toLocaleString():0}</td>
-      <td style="color:var(--dim)">${t.supplier||'—'}</td>
-      <td style="color:${t.payment_status==='Received'?'var(--success)':'var(--warn)'};font-weight:600">${t.payment_status}</td>
-    </tr>`).join('')||'<tr><td colspan="6" style="color:var(--dim);padding:20px 0;text-align:center">No transactions logged.</td></tr>';
-}
-async function addTransaction(){
-  const amt=parseFloat(document.getElementById('l-amt').value)||0;
-  if(!amt){showToast('Amount required','warn');return;}
-  await sb.from('transactions').insert([{
-    customer_id:currentId,
-    order_date:document.getElementById('l-date').value,
-    product:document.getElementById('l-prod').value,
-    quantity:parseFloat(document.getElementById('l-qty').value)||null,
-    amount:amt,
-    supplier:document.getElementById('l-sup').value,
-    payment_status:document.getElementById('l-status').value,
-  }]);
-  ['l-prod','l-qty','l-amt'].forEach(id=>document.getElementById(id).value='');
-  showToast('✓ Transaction logged');loadData();setTimeout(()=>{currentCustomer=customers.find(x=>x.id===currentId);loadTransactions();},600);
-}
-
-// ── MODULE 3: LOGISTICS ──────────────────────────────
-function lcProgress(status){
-  const idx=LC_ORDER.indexOf(status);
-  const pct=Math.round(((idx+1)/LC_ORDER.length)*100);
-  return pct;
-}
-
-function loadLogistics(){
-  const logs=currentCustomer.logistics||[];
-  setTabDot('logistics',logs.length>0);
-  if(!logs.length){
-    document.getElementById('logi-body').innerHTML='<tr><td colspan="5" style="color:var(--dim);padding:20px 0;text-align:center">No shipments logged.</td></tr>';
-    return;
-  }
-  document.getElementById('logi-body').innerHTML=logs.sort((a,b)=>new Date(b.pi_date||0)-new Date(a.pi_date||0)).map(l=>{
-    const pct=lcProgress(l.lc_status||'Draft PI Received');
-    const diff=daysDiff(l.eta);
-    let etaTxt='—';
-    if(diff===0) etaTxt='<span style="color:#22c55e;font-weight:700">Today</span>';
-    else if(diff!==null&&diff>0) etaTxt=`<span style="color:var(--muted)">${diff}d</span>`;
-    else if(diff!==null&&diff<0) etaTxt=`<span style="color:#ef4444;font-weight:700">Overdue ${Math.abs(diff)}d</span>`;
-    const modeIcon=l.shipment_mode==='Air'?'✈️':l.shipment_mode==='Sea'?'🚢':'📦';
-    return `<tr>
-      <td>${l.product||'—'}</td>
-      <td>${modeIcon} ${l.shipment_mode||'—'}</td>
-      <td style="color:var(--muted);font-size:12px">${l.pi_date||'—'}</td>
-      <td>
-        <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:4px">${l.lc_status||'—'}</div>
-        <div class="shipment-bar-wrap"><div class="shipment-bar" style="width:${pct}%"></div></div>
-      </td>
-      <td>${etaTxt}</td>
-    </tr>`;
-  }).join('');
-}
-
-async function addLogistic(){
-  const prod=document.getElementById('lg-prod').value;
-  if(!prod){showToast('Product required','warn');return;}
-  try{
-    await sb.from('logistics').insert([{
-      customer_id:currentId,
-      product:prod,
-      pi_date:document.getElementById('lg-pi-date').value||null,
-      shipment_mode:document.getElementById('lg-mode').value,
-      lc_status:document.getElementById('lg-lc').value,
-      eta:document.getElementById('lg-eta').value||null,
-    }]);
-    document.getElementById('lg-prod').value='';
-    document.getElementById('lg-eta').value='';
-    showToast('✓ Shipment logged');loadData();setTimeout(()=>{currentCustomer=customers.find(x=>x.id===currentId);loadLogistics();},600);
-  }catch(e){showToast('⚠ Could not log shipment. Run SQL to create logistics table.','warn');console.error(e);}
-}
-
-// ── MODULE 4: ARTWORK LOG ────────────────────────────
-function loadArtworkLog(){
-  const logs=(currentCustomer.activity_logs||[]).filter(l=>l.log_type==='artwork');
-  setTabDot('artwork',logs.length>0);
-  const el=document.getElementById('artwork-timeline');
-  if(!logs.length){el.innerHTML='<div style="color:var(--dim);font-size:13px">No artwork events logged yet.</div>';return;}
-  el.innerHTML=logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>`
-    <div class="timeline-item">
-      <div class="timeline-dot artwork"></div>
-      <div class="timeline-date" style="color:#f59e0b">🎨 ${new Date(l.created_at).toLocaleString()}</div>
-      <div class="timeline-content artwork-entry">${l.change_description}</div>
-    </div>`).join('');
-}
-async function addArtworkLog(){
-  const ver=document.getElementById('aw-version').value.trim();
-  const desc=document.getElementById('aw-desc').value.trim();
-  if(!desc){showToast('Description required','warn');return;}
-  const entry=ver?`[${ver}] ${desc}`:desc;
-  await sb.from('activity_logs').insert([{customer_id:currentId,change_description:entry,log_type:'artwork'}]);
-  document.getElementById('aw-version').value='';
-  document.getElementById('aw-desc').value='';
-  showToast('✓ Artwork event logged');
-  loadData();setTimeout(()=>{currentCustomer=customers.find(x=>x.id===currentId);loadArtworkLog();},600);
-}
-
-// ── HISTORY ──────────────────────────────────────────
-function loadHistory(){
-  const logs=(currentCustomer.activity_logs||[]).filter(l=>l.log_type!=='artwork');
-  setTabDot('history',logs.length>0);
-  const el=document.getElementById('history-timeline');
-  if(!logs.length){el.innerHTML='<div style="color:var(--dim);font-size:13px">No history yet.</div>';return;}
-  el.innerHTML=logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>`
-    <div class="timeline-item">
-      <div class="timeline-dot"></div>
-      <div class="timeline-date">${new Date(l.created_at).toLocaleString()}</div>
-      <div class="timeline-content">${l.change_description}</div>
-    </div>`).join('');
-}
-
-// ── VAULT ────────────────────────────────────────────
-document.getElementById('file-drop-zone').addEventListener('click',()=>document.getElementById('file-input').click());
-async function uploadFile(e){
-  const file=e.target.files[0]; if(!file) return;
-  const path=`${currentId}/${Date.now()}_${file.name}`;
-  showToast('Uploading...','info');
-  const{error}=await sb.storage.from('diamond-vault').upload(path,file);
-  if(error){showToast('Upload failed','warn');console.error(error);return;}
-  await sb.from('activity_logs').insert([{customer_id:currentId,change_description:`Uploaded: ${file.name}`,log_type:'stage'}]);
-  showToast('✓ Saved to Vault');loadVault();loadData();
-}
-async function loadVault(){
-  const{data,error}=await sb.storage.from('diamond-vault').list(currentId.toString());
-  const list=document.getElementById('vault-list');
-  if(error||!data||!data.length){list.innerHTML='<div style="color:var(--dim);text-align:center;padding:16px 0">Vault is empty.</div>';setTabDot('docs',false);return;}
-  setTabDot('docs',true);
-  list.innerHTML=data.map(f=>{
-    const url=sb.storage.from('diamond-vault').getPublicUrl(`${currentId}/${f.name}`).data.publicUrl;
-    return `<div class="file-item">
-      <div style="font-size:13px;font-weight:600">📄 ${f.name}</div>
-      <div style="display:flex;gap:8px">
-        <a href="${url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">View</a>
-        <button class="btn btn-danger btn-sm" onclick="deleteFile('${f.name}')">Delete</button>
+// ════════════════════════════════
+// LOGISTICS
+// ════════════════════════════════
+const lcPct=s=>{const i=LC_STEPS.indexOf(s);return i<0?0:Math.round(((i+1)/LC_STEPS.length)*100);};
+function loadLogi(){
+  const logs=ccust.logistics||[];setTB('tb-l',logs.length);
+  if(!logs.length){$('logilist').innerHTML='<div style="color:var(--dim);text-align:center;padding:16px">No shipments logged.</div>';return;}
+  $('logilist').innerHTML=logs.sort((a,b)=>new Date(b.pi_date||0)-new Date(a.pi_date||0)).map(l=>{
+    const pct=lcPct(l.lc_status||'Draft PI Received');
+    const d=ddiff(l.eta);
+    let etaS='—';
+    if(d===0)etaS='<span style="color:var(--green);font-weight:800">Arriving Today</span>';
+    else if(d!==null&&d>0)etaS=`<span style="color:var(--muted)">${d} days</span>`;
+    else if(d!==null&&d<0)etaS=`<span style="color:var(--red);font-weight:800">Overdue ${Math.abs(d)}d</span>`;
+    const mi=l.shipment_mode==='Air'?'✈️':l.shipment_mode==='Sea'?'🚢':'📦';
+    const pit=l.pi_date?Math.floor((Date.now()-new Date(l.pi_date).getTime())/864e5):'—';
+    return`<div class="lentry">
+      <div class="leh">
+        <div><div style="font-weight:800;font-size:14px">${l.product||'—'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${mi} ${l.shipment_mode||'—'} · PI: ${l.pi_date||'—'}</div></div>
+        <span class="badge" style="background:rgba(34,211,238,.1);color:var(--cyan);border-color:rgba(34,211,238,.25)">${l.lc_status||'—'}</span>
+      </div>
+      <div class="tbar-lbl"><span>PI Rcvd</span><span>LC</span><span>TT Paid</span><span>Clearing</span><span>Done</span></div>
+      <div class="tbar-bg"><div class="tbar-fill" style="width:${pct}%"></div></div>
+      <div class="lmeta">
+        <span class="lpill">📅 ETA: ${etaS}</span>
+        <span class="lpill">⏱ ${typeof pit==='number'?pit+'d transit':'—'}</span>
+        <span class="lpill">🏭 ${l.supplier||'—'}</span>
+        <span class="lpill">📊 ${pct}%</span>
       </div>
     </div>`;
   }).join('');
 }
-async function deleteFile(fn){
-  if(!confirm("Delete this document permanently?")) return;
-  await sb.storage.from('diamond-vault').remove([`${currentId}/${fn}`]);
-  showToast('✓ File removed');loadVault();
+async function addLogi(){
+  const p=$('lp').value.trim();if(!p){toast('Product required','warn');return;}
+  try{
+    await sb.from('logistics').insert([{customer_id:cid,product:p,pi_date:$('lpi').value||null,
+      shipment_mode:$('lm').value,supplier:$('lsup').value,lc_status:$('llc').value,eta:$('leta').value||null}]);
+    $('lp').value='';$('leta').value='';
+    toast('✓ Shipment logged');loadData();setTimeout(()=>{ccust=custs.find(x=>x.id===cid);loadLogi();},650);
+  }catch(e){toast('⚠ Create logistics table in Supabase first','warn');}
 }
 
-// ── ADD CUSTOMER ─────────────────────────────────────
-function openAddModal(){document.getElementById('add-modal').style.display='flex';setTimeout(()=>document.getElementById('add-name').focus(),100);}
-function closeAddModal(){document.getElementById('add-modal').style.display='none';}
+// ════════════════════════════════
+// ARTWORK LOG
+// ════════════════════════════════
+function awprev(e){
+  const f=e.target.files[0];if(!f)return;awFile=f;
+  const p=$('awprev');p.style.display='block';
+  if(f.type.startsWith('image/')){
+    const u=URL.createObjectURL(f);p.innerHTML=`<img src="${u}" style="max-height:72px;border-radius:6px;border:1px solid var(--b2)"/>`;
+  }else{p.innerHTML=`<div style="font-size:11px;color:var(--muted);padding:5px 0">📄 ${f.name}</div>`;}
+}
+async function addAw(){
+  const desc=$('awdesc').value.trim();if(!desc){toast('Description required','warn');return;}
+  const ver=$('awv').value.trim();const entry=ver?`[${ver}] ${desc}`:desc;
+  let furl=null;
+  if(awFile){
+    toast('Uploading artwork…','info');
+    const path=`artworks/${cid}/${Date.now()}_${awFile.name}`;
+    const{error}=await sb.storage.from('diamond-vault').upload(path,awFile);
+    if(!error) furl=sb.storage.from('diamond-vault').getPublicUrl(path).data.publicUrl;
+    else console.warn('Artwork upload failed:',error);
+  }
+  await sb.from('activity_logs').insert([{customer_id:cid,change_description:entry,log_type:'artwork',file_url:furl||null}]);
+  $('awv').value='';$('awdesc').value='';$('awprev').style.display='none';$('awprev').innerHTML='';$('awf-inp').value='';awFile=null;
+  toast('✓ Artwork event logged');loadData();setTimeout(()=>{ccust=custs.find(x=>x.id===cid);loadAw();},650);
+}
+function loadAw(){
+  const logs=(ccust.activity_logs||[]).filter(l=>l.log_type==='artwork');setTB('tb-a',logs.length);
+  if(!logs.length){$('awlist').innerHTML='<div style="color:var(--dim);padding:14px 0;text-align:center">No artwork events yet.</div>';return;}
+  $('awlist').innerHTML=logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>{
+    const isImg=l.file_url&&/\.(jpg|jpeg|png|gif|webp)/i.test(l.file_url);
+    const thumb=l.file_url?(isImg?`<img class="awthumb" src="${l.file_url}" onerror="this.style.display='none'" alt="artwork">`:`<div class="awph"><a href="${l.file_url}" target="_blank" style="color:var(--muted)">📄</a></div>`):`<div class="awph">🎨</div>`;
+    return`<div class="awe">
+      ${thumb}
+      <div class="awebdy">
+        <div class="awdt">🎨 ${new Date(l.created_at).toLocaleString()}</div>
+        <div class="awt">${l.change_description}</div>
+        ${l.file_url?`<div class="awver"><a href="${l.file_url}" target="_blank" style="color:var(--accent);font-size:11px">View file →</a></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════
+// HISTORY
+// ════════════════════════════════
+function loadHistory(){
+  const logs=(ccust.activity_logs||[]).filter(l=>l.log_type!=='artwork');setTB('tb-h',logs.length);
+  if(!logs.length){$('htl').innerHTML='<div style="color:var(--dim)">No history.</div>';return;}
+  $('htl').innerHTML=logs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(l=>`
+    <div class="tli"><div class="tldot"></div>
+    <div class="tldate">${new Date(l.created_at).toLocaleString()}</div>
+    <div class="tlcont">${l.change_description}</div></div>`).join('');
+}
+
+// ════════════════════════════════
+// VAULT
+// ════════════════════════════════
+async function uploadVault(e){
+  const f=e.target.files[0];if(!f)return;toast('Uploading…','info');
+  const{error}=await sb.storage.from('diamond-vault').upload(`${cid}/${Date.now()}_${f.name}`,f);
+  if(error){toast('Upload failed','warn');return;}
+  toast('✓ Saved to Vault');loadVault();
+}
+async function loadVault(){
+  const{data}=await sb.storage.from('diamond-vault').list(cid.toString());
+  const files=(data||[]).filter(f=>!f.name.startsWith('.'));setTB('tb-v',files.length);
+  if(!files.length){$('vlist').innerHTML='<div style="color:var(--dim);text-align:center;padding:12px">Vault is empty.</div>';return;}
+  $('vlist').innerHTML=files.map(f=>{
+    const url=sb.storage.from('diamond-vault').getPublicUrl(`${cid}/${f.name}`).data.publicUrl;
+    return`<div class="vitem">
+      <div style="font-size:13px;font-weight:700">📄 ${f.name}</div>
+      <div style="display:flex;gap:8px">
+        <a href="${url}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none">View</a>
+        <button class="btn btn-d btn-sm" onclick="delVF('${f.name}')">Del</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function delVF(fn){
+  if(!confirm('Delete permanently?'))return;
+  await sb.storage.from('diamond-vault').remove([`${cid}/${fn}`]);
+  toast('✓ Removed');loadVault();
+}
+
+// ════════════════════════════════
+// ADD RECORD
+// ════════════════════════════════
+function openAdd(){$('addmod').style.display='flex';setTimeout(()=>$('an').focus(),80);}
+function closeAdd(){$('addmod').style.display='none';}
 async function confirmAdd(){
-  const name=document.getElementById('add-name').value.trim();
-  if(!name){alert('Company name is required.');return;}
-  await sb.from('Diamond crM').insert([{name:name.toUpperCase(),product:document.getElementById('add-product').value,status:'Inquiry'}]);
-  showToast('✓ Record added');loadData();closeAddModal();
-  document.getElementById('add-name').value='';document.getElementById('add-product').value='';
+  const n=$('an').value.trim();if(!n){toast('Name required','warn');return;}
+  await sb.from('Diamond crM').insert([{name:n.toUpperCase(),product:$('aprod').value,status:'Inquiry'}]);
+  toast('✓ Record created');loadData();closeAdd();$('an').value='';$('aprod').value='';
 }
 
-// ── TOAST ─────────────────────────────────────────────
-let toastTimer;
-function showToast(m,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=m;t.className=type?`show ${type}`:'show';
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.className='',2600);
+// ════════════════════════════════
+// AI — GEMINI INTEGRATION
+// ════════════════════════════════
+async function callGemini(prompt){
+  if(!GEMINI_API_KEY||GEMINI_API_KEY==='AIzaSyCXgPnO22gg2ftPGqpHuBw8omOYG0XXY8Q'){
+    return'⚠ AI is resting — No API key configured.\n\nTo enable AI features, paste your Gemini API key into the GEMINI_API_KEY variable at the top of the script.';
+  }
+ const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json', 'x-goog-api-key': GEMINI_API_KEY},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const d=await res.json();
+  return d?.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
+}
+
+// AI Risk Report
+async function openRiskReport(){
+  $('rrmod').style.display='flex';
+  $('rr-body').style.color='var(--muted)';$('rr-body').style.fontStyle='italic';
+  $('rr-body').innerHTML='<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Analysing pipeline…</span></div>';
+  try{
+    const staleCount=custs.filter(c=>{const d=dsince(c.last_contact);return d===null||d>=7;}).length;
+    let outTotal=0;custs.forEach(c=>(c.transactions||[]).forEach(t=>{if(t.payment_status==='Outstanding')outTotal+=parseFloat(t.amount)||0;}));
+    let overdue=[];custs.forEach(c=>(c.logistics||[]).forEach(l=>{const d=ddiff(l.eta);if(d!==null&&d<0)overdue.push(`${c.name} (${Math.abs(d)}d late)`);}));
+    const inArtwork=custs.filter(c=>c.status==='Artwork Approval').length;
+    const prompt=`You are an executive analyst for Diamond International Lanka, a security printing and hologram import company in Sri Lanka. Based on this pipeline data, identify the top 3 supply chain and financial risks and provide brief actionable recommendations for each.
+
+DATA SUMMARY:
+- Total accounts: ${custs.length}
+- Stale accounts (no contact 7+ days): ${staleCount}
+- Total outstanding balance: Rs. ${Math.round(outTotal).toLocaleString()}
+- Overdue shipments: ${overdue.length} (${overdue.slice(0,5).join(', ')||'none'})
+- Accounts in Artwork Approval stage: ${inArtwork}
+- Stage distribution: ${STAGES.map(s=>s+': '+custs.filter(c=>c.status===s).length).join(', ')}
+
+Write a concise executive risk report with exactly 3 risks, each with a title, 1-sentence explanation, and 1 action. Format clearly with numbers. Keep it under 250 words. Be specific and practical.`;
+    const resp=await callGemini(prompt);
+    $('rr-body').style.color='var(--txt)';$('rr-body').style.fontStyle='normal';
+    $('rr-body').textContent=resp;
+  }catch(e){$('rr-body').style.color='var(--muted)';$('rr-body').style.fontStyle='italic';$('rr-body').textContent='⚠ AI is resting — Unable to generate report. Check your API key or try again.';}
+}
+
+// AI Email
+function selChip(el,type){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');aiChip=type;
+}
+async function genEmail(){
+  if(!aiChip){toast('Select a template first','warn');return;}
+  const out=$('ai-email-out');
+  out.style.color='var(--muted)';out.style.fontStyle='normal';
+  out.innerHTML='<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Drafting email…</span></div>';
+  try{
+    const txSum=(ccust.transactions||[]).map(t=>`${t.product||'—'} Rs.${t.amount||0} (${t.payment_status})`).join(', ')||'None';
+    const logiSum=(ccust.logistics||[]).map(l=>`${l.product||'—'} via ${l.shipment_mode||'—'}, ETA: ${l.eta||'—'}, Status: ${l.lc_status||'—'}`).join('; ')||'None';
+    const templates={
+      follow_up:'Write a professional follow-up email to re-engage this client about their pending order.',
+      po_chase:'Write a polite but firm email chasing for the purchase order that has not yet been received.',
+      artwork_approval:'Write an email requesting artwork approval, mentioning that production cannot begin until artwork is approved.',
+      payment_reminder:'Write a professional payment reminder email for the outstanding balance.',
+      shipment_update:'Write a shipment status update email based on the logistics data provided.'
+    };
+    const prompt=`You are a professional account manager at Diamond International Lanka, a security printing company. Write a professional business email.
+
+Task: ${templates[aiChip]}
+
+Client: ${ccust.name}
+Product: ${ccust.product||'—'}
+Stage: ${ccust.status}
+Contact: ${ccust.contact||'—'}
+Transactions: ${txSum}
+Logistics: ${logiSum}
+Notes: ${ccust.notes||'None'}
+
+Write the complete email (Subject line + body). Keep it professional, concise, and under 150 words. Sign off as "The Diamond International Lanka Team".`;
+    const resp=await callGemini(prompt);
+    out.style.color='var(--txt)';out.style.fontStyle='normal';out.textContent=resp;
+  }catch(e){out.style.color='var(--muted)';out.style.fontStyle='italic';out.textContent='⚠ AI is resting — Could not generate email. Check API key or try again.';}
+}
+
+// ════════════════════════════════
+// MOBILE NAV
+// ════════════════════════════════
+function bnav_go(t){
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
+  if(t==='search') $('gsearch').focus();
+  else if(t==='vault') toast('Open any record to access the Vault tab','info');
+}
+
+// ════════════════════════════════
+// TOAST
+// ════════════════════════════════
+let tt;
+function toast(m,type=''){
+  const t=$('toast');t.textContent=m;t.className=type?`show ${type}`:'show';
+  clearTimeout(tt);tt=setTimeout(()=>t.className='',2700);
 }
 
 // INIT
