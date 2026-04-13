@@ -1311,15 +1311,22 @@ const aiData = await response.json();
 // 4. Display it!
 console.log(aiData.reply); 
 // (Don't forget to update this line so it actually shows up on your HTML screen!)
-    body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-  if(!res.ok){
-    const errorText=await res.text();
-    console.error('Gemini API error', res.status, errorText);
-    throw new Error(`HTTP ${res.status}`);
-  }
-  const d=await res.json();
-  console.log('Gemini response', d);
-  return d?.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
+    // 1. Call your secure Supabase Edge Function
+const response = await fetch('https://euppycxpozqtdwbhxcjy.supabase.co/functions/v1/ai-analyst', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    prompt: prompt // assuming your variable is just called 'prompt' based on your old code
+  })
+});
+
+// 2. Get the clean answer back from Supabase
+const aiData = await response.json();
+
+// 3. Return the text to your website
+return aiData.reply;
 }
 
 // AI Risk Report
