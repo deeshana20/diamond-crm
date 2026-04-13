@@ -34,6 +34,29 @@
   --cyan:      #22d3ee;
   --pink:      #f472b6;
 }
+[data-theme="light"] {
+  --bg:        #f5f7fa;
+  --bg1:       #f0f2f5;
+  --bg2:       #eaeef3;
+  --g1:        rgba(30,41,59,0.05);
+  --g2:        rgba(30,41,59,0.08);
+  --g3:        rgba(30,41,59,0.12);
+  --gb:        rgba(30,41,59,0.14);
+  --b1:        rgba(30,41,59,0.08);
+  --b2:        rgba(30,41,59,0.14);
+  --b3:        rgba(30,41,59,0.22);
+  --txt:       #1a202c;
+  --muted:     #64748b;
+  --dim:       #94a3b8;
+  --accent:    #3b82f6;
+  --a2:        #2563eb;
+  --green:     #22c55e;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --purple:    #a78bfa;
+  --cyan:      #22d3ee;
+  --pink:      #f472b6;
+}
 html{scroll-behavior:smooth}
 body{
   background:var(--bg);
@@ -180,9 +203,9 @@ textarea.fi{resize:vertical}
 
 /* TABLE */
 .twrap{background:var(--g1);border:1px solid var(--b1);border-radius:14px;overflow:hidden;backdrop-filter:blur(16px)}
-.thead{display:grid;grid-template-columns:1.8fr 140px 130px 160px 130px 130px;padding:11px 18px;background:var(--g2);border-bottom:1px solid var(--b1);min-width:860px}
+.thead{display:grid;grid-template-columns:40px 1.8fr 140px 130px 160px 130px 130px;padding:11px 18px;background:var(--g2);border-bottom:1px solid var(--b1);min-width:900px}
 .th{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:800}
-.trow{display:grid;grid-template-columns:1.8fr 140px 130px 160px 130px 130px;padding:13px 18px;border-bottom:1px solid var(--b1);cursor:pointer;align-items:center;min-width:860px;transition:background .1s}
+.trow{display:grid;grid-template-columns:40px 1.8fr 140px 130px 160px 130px 130px;padding:13px 18px;border-bottom:1px solid var(--b1);cursor:pointer;align-items:center;min-width:900px;transition:background .1s}
 .trow:last-child{border-bottom:none}
 .trow:hover{background:var(--g2)}
 .trow.pri{border-left:3px solid var(--accent)}
@@ -203,6 +226,16 @@ textarea.fi{resize:vertical}
 /* KANBAN */
 .kboard{display:flex;gap:13px;overflow-x:auto;padding-bottom:20px;min-height:420px}
 .kcol{flex-shrink:0;width:215px;background:var(--g1);border:1px solid var(--b1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.kcol.active{
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 
+              inset 0 0 20px rgba(59, 130, 246, 0.1);
+  animation: kcol-glow 2s ease-in-out infinite;
+}
+@keyframes kcol-glow{
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), inset 0 0 20px rgba(59, 130, 246, 0.1); }
+  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 25px rgba(59, 130, 246, 0.15); }
+}
 .kcol-h{padding:11px 13px;border-bottom:1px solid var(--b1);display:flex;justify-content:space-between;align-items:center}
 .kcol-ht{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:7px}
 .kcol-hdot{width:7px;height:7px;border-radius:50%}
@@ -226,8 +259,11 @@ textarea.fi{resize:vertical}
 .sstep.active .slbl{color:var(--green);font-weight:900}
 
 /* MODAL */
-.ovl{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);overflow-y:auto}
-.modal{background:var(--bg2);border:1px solid var(--b2);border-radius:20px;width:100%;max-width:760px;padding:28px;margin:auto;box-shadow:0 48px 100px rgba(0,0,0,.7)}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;display:flex;align-items:flex-start;justify-content:flex-end;padding:0;backdrop-filter:blur(10px);overflow:hidden}
+.modal{background:var(--bg2);border:1px solid var(--b2);width:38%;max-width:none;height:100vh;padding:28px;border-radius:0;border-left:1px solid var(--b2);box-shadow:none;animation:modal-slide 0.3s ease-out;overflow-y:auto}
+@keyframes modal-slide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.ovl.closing .modal{animation:modal-slide-out 0.3s ease-in}
+@keyframes modal-slide-out{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
 .mhd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .mey{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 .mtt{font-size:21px;font-weight:900}
@@ -333,6 +369,21 @@ textarea.fi{resize:vertical}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--g3);border-radius:10px}
 
+/* SEARCH HIGHLIGHT */
+mark{background:rgba(59,130,246,.4);color:var(--txt);border-radius:3px;padding:0 2px}
+
+/* SKELETON LOADING */
+.skeleton {
+  background: linear-gradient(90deg, var(--g1) 25%, var(--g2) 50%, var(--g1) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-load 2s infinite;
+}
+@keyframes skeleton-load {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.kskel { height: 200px; border-radius: 14px; margin: 13px 0; }
+
 /* RESPONSIVE */
 @media(max-width:980px){
   .intel{grid-template-columns:1fr 1fr}
@@ -416,6 +467,7 @@ textarea.fi{resize:vertical}
       </div>
     </div>
     <div class="tbr">
+      <button class="btn btn-g btn-sm" id="theme-toggle" onclick="toggleTheme()">🌙</button>
       <button class="btn btn-ai btn-sm" onclick="openRiskReport()">🧠 AI Risk Report</button>
       <button class="btn btn-s btn-sm" onclick="exportCSV()">📥 CSV</button>
       <button class="btn btn-p btn-sm" onclick="openAdd()">+ New Record</button>
@@ -444,6 +496,16 @@ textarea.fi{resize:vertical}
     </div>
   </div>
 
+  <!-- KPI DATE FILTER -->
+  <div style="display:flex;gap:8px;padding:0 26px 12px;max-width:1280px;margin:0 auto;width:100%;align-items:center">
+    <span style="font-size:11px;color:var(--muted);font-weight:700">Filter KPIs:</span>
+    <input id="kpi-from" type="date" class="fi" style="width:120px;font-size:11px"/>
+    <span style="font-size:11px;color:var(--muted)">to</span>
+    <input id="kpi-to" type="date" class="fi" style="width:120px;font-size:11px"/>
+    <button class="btn btn-g btn-sm" onclick="applyKPIDateFilter()">Apply</button>
+    <button class="btn btn-g btn-sm" onclick="clearKPIDateFilter()">Clear</button>
+  </div>
+
   <!-- KPI ROW -->
   <div class="krow">
     <div class="kc"><div class="kc-bar" style="background:#3b82f6"></div><div class="kc-l">This Month</div><div class="kc-v" id="kc-m">—</div></div>
@@ -454,6 +516,18 @@ textarea.fi{resize:vertical}
 
   <!-- DUAL VIEW -->
   <div class="vsec">
+    <!-- BULK ACTIONS -->
+    <div id="bulk-toolbar" style="display:none;padding:12px 26px;background:var(--g1);border:1px solid var(--b1);border-radius:8px;margin-bottom:12px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <span style="font-size:12px;color:var(--muted)">Selected: <strong id="bulk-count">0</strong></span>
+        <select id="bulk-status" class="fi" style="width:140px;font-size:12px">
+          <option>Inquiry</option><option>Quoted</option><option>PO Received</option>
+          <option>Artwork Approval</option><option>Production (PI)</option>
+        </select>
+        <button class="btn btn-p btn-sm" onclick="bulkUpdateStatus()">Update Status</button>
+        <button class="btn btn-g btn-sm" onclick="clearBulkSelection()">Clear</button>
+      </div>
+    </div>
     <div class="vtoolbar">
       <div class="vtog">
         <button class="vtb on" id="vtb-t" onclick="sv('table')">☰ Table</button>
@@ -467,6 +541,7 @@ textarea.fi{resize:vertical}
     <div id="vw-t">
       <div class="twrap" style="overflow-x:auto">
         <div class="thead">
+          <span class="th"><input type="checkbox" onclick="toggleAllBulk(this.checked)"/></span>
           <span class="th">Company / Product</span>
           <span class="th">Stage</span>
           <span class="th">Contact</span>
@@ -700,7 +775,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ════════════════════════════════
 // STATE
 // ════════════════════════════════
-let custs=[], cid=null, ccust=null, vmode='table', qfilt=null, awFile=null, aiChip=null;
+let custs=[], cid=null, ccust=null, vmode='table', qfilt=null, awFile=null, aiChip=null, kpiDateFilter=null, bulkSelected=new Set();
 
 const SC={
   'Inquiry':         {bg:'rgba(100,116,139,.18)',color:'#94a3b8',border:'rgba(100,116,139,.35)'},
@@ -728,6 +803,14 @@ async function checkAuth(){
 }
 async function logout(){await sb.auth.signOut();ss('scr-auth');}
 
+function toggleTheme(){
+  const curr = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = curr === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  $('theme-toggle').textContent = next === 'light' ? '☀️' : '🌙';
+}
+
 function ss(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');}
 function openModule(){ss('scr-app');loadData();}
 
@@ -735,6 +818,10 @@ function openModule(){ss('scr-app');loadData();}
 // DATA
 // ════════════════════════════════
 async function loadData(){
+  // Show skeleton loading
+  $('tbody').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Loading records...</div>';
+  $('kboard').innerHTML = '<div class="kskel skeleton"></div><div class="kskel skeleton"></div><div class="kskel skeleton"></div><div class="kskel skeleton"></div><div class="kskel skeleton"></div>';
+  
   try{
     const{data,error}=await sb.from('Diamond crM').select('*,transactions(*),activity_logs(*),logistics(*)').order('id');
     if(error) throw error;
@@ -769,6 +856,11 @@ function etaBadge(c){
   if(d<0)return`<span class="badge eta-od">OVERDUE ${Math.abs(d)}d</span>`;
   return`<span class="badge eta-ok">${d}d</span>`;
 }
+function highlightMatches(text, query){
+  if(!query)return text;
+  const regex=new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi');
+  return text.replace(regex,'<mark>$1</mark>');
+}
 
 // ════════════════════════════════
 // INTEL + KPIs
@@ -780,11 +872,15 @@ function updIntel(){
   let out=0;custs.forEach(c=>(c.transactions||[]).forEach(t=>{if(t.payment_status==='Outstanding')out+=parseFloat(t.amount)||0;}));
   $('ic-risk').textContent=fmtK(out);
 }
-function updKPIs(){
+function updKPIs(dateFilter=null){
   let o=0,m=0,q=0,y=0;
   const now=new Date(),cm=now.getMonth(),cq=Math.floor(cm/3),cy=now.getFullYear();
   custs.forEach(c=>(c.transactions||[]).forEach(t=>{
     const a=parseFloat(t.amount)||0;
+    if(dateFilter){
+      const td=new Date(t.order_date);
+      if(td<dateFilter.from||td>dateFilter.to)return;
+    }
     if(t.payment_status==='Outstanding'){o+=a;}
     else if(t.payment_status==='Received'){
       const d=new Date(t.order_date);
@@ -792,6 +888,21 @@ function updKPIs(){
     }
   }));
   $('kc-o').textContent=fmtM(o);$('kc-y').textContent=fmtM(y);$('kc-q').textContent=fmtM(q);$('kc-m').textContent=fmtM(m);
+}
+function applyKPIDateFilter(){
+  const from=$('kpi-from').value,to=$('kpi-to').value;
+  if(!from||!to){toast('Select both dates','warn');return;}
+  const fromD=new Date(from),toD=new Date(to);
+  if(fromD>toD){toast('From date must be before To date','warn');return;}
+  kpiDateFilter={from:fromD,to:toD};
+  updKPIs(kpiDateFilter);
+  toast('KPI filter applied','info');
+}
+function clearKPIDateFilter(){
+  kpiDateFilter=null;
+  $('kpi-from').value='';$('kpi-to').value='';
+  updKPIs();
+  toast('KPI filter cleared','info');
 }
 
 // ════════════════════════════════
@@ -818,18 +929,70 @@ function sv(v){
   render();
 }
 
+// ════════════════════════════════
+// BULK OPERATIONS
+// ════════════════════════════════
+function toggleBulkCheckbox(id){
+  if(bulkSelected.has(id))bulkSelected.delete(id);else bulkSelected.add(id);
+  updateBulkUI();
+}
+function toggleAllBulk(checked){
+  const list=filt(custs);
+  list.forEach(c=>{if(checked)bulkSelected.add(c.id);else bulkSelected.delete(c.id);});
+  render();
+}
+function updateBulkUI(){
+  const count=bulkSelected.size;
+  $('bulk-count').textContent=count;
+  $('bulk-toolbar').style.display=count>0?'block':'none';
+}
+function clearBulkSelection(){
+  bulkSelected.clear();
+  updateBulkUI();
+  render();
+}
+async function bulkUpdateStatus(){
+  const newStatus=$('bulk-status').value;
+  if(!newStatus||bulkSelected.size===0)return;
+  const updates=Array.from(bulkSelected).map(id=>({id,status:newStatus}));
+  try{
+    await Promise.all(updates.map(u=>sb.from('Diamond crM').update({status:u.status}, {eq:{id:u.id}})));
+    // Log changes
+    const logs=Array.from(bulkSelected).map(id=>({customer_id:id,change_description:`Bulk status update: → ${newStatus}`,log_type:'bulk_stage_change'}));
+    await sb.from('activity_logs').insert(logs);
+    toast(`Updated ${bulkSelected.size} records`,'info');
+    clearBulkSelection();
+    loadData();
+  }catch(e){toast('Bulk update failed','warn');}
+}
+
+function toggleCardNotes(id){
+  const el=$('notes-'+id);
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+async function quickNoteAdd(id,text){
+  if(!text.trim())return;
+  try{
+    await sb.from('activity_logs').insert([{customer_id:id,change_description:text,log_type:'quicknote'}]);
+    toast('Note added','info');
+    loadData(); // Refresh to show notes
+  }catch(e){toast('Failed to add note','warn');}
+}
+
 function renderTable(){
   const list=filt(custs);
+  const q=$('gsearch').value;
   if(!list.length){$('tbody').innerHTML='<div style="padding:40px;text-align:center;color:var(--dim)">No records found.</div>';return;}
   $('tbody').innerHTML=list.map(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
     return`<div class="trow${c.is_priority?' pri':''}" onclick="openModal(${c.id})">
+      <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''}/>
       <div>
         <div style="display:flex;align-items:center">
-          <span class="rname">${c.name}</span>
+          <span class="rname">${highlightMatches(c.name,q)}</span>
           <button class="cpbtn" onclick="cpbr(event,${c.id})" title="Copy bridge info">📋</button>
         </div>
-        <div class="rsub">${c.product||'—'}</div>
+        <div class="rsub">${highlightMatches(c.product||'—',q)}</div>
       </div>
       <div class="rcell">${badge(c.status)}</div>
       <div class="rcell">${c.contact||'<span style="color:var(--dim)">—</span>'}</div>
@@ -842,19 +1005,27 @@ function renderTable(){
 
 function renderKanban(){
   const list=filt(custs);
+  const q=$('gsearch').value;
   $('kboard').innerHTML=STAGES.map((stage,si)=>{
     const cards=list.filter(c=>c.status===stage);
-    return`<div class="kcol">
+    return`<div class="kcol${cards.length ? ' active' : ''}">
       <div class="kcol-h">
         <div class="kcol-ht"><div class="kcol-hdot" style="background:${SDOTS[si]}"></div>${SLBLS[si]}</div>
         <span class="kcol-cnt">${cards.length}</span>
       </div>
       <div class="kcards">${cards.length?cards.map(c=>{
         const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+        const notes=(c.activity_logs||[]).filter(l=>l.log_type==='quicknote').slice(-1)[0]; // Latest note
         return`<div class="kcard" onclick="openModal(${c.id})">
-          <div class="kc-n">${c.name}</div>
-          <div class="kc-p">${c.product||'—'}</div>
+          <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} style="position:absolute;top:8px;left:8px"/>
+          <div class="kc-n">${highlightMatches(c.name,q)}</div>
+          <div class="kc-p">${highlightMatches(c.product||'—',q)}</div>
           <div class="kc-ft">${etaBadge(c)}<span style="font-size:10px;font-weight:800;color:${out>0?'var(--amber)':'var(--dim)'}">${out>0?fmtK(out):'Clear'}</span></div>
+          ${notes?`<div class="kc-note" style="font-size:10px;color:var(--muted);margin-top:4px">${notes.change_description}</div>`:''}
+          <div class="kc-notes" id="notes-${c.id}" style="display:none;margin-top:8px">
+            <input class="fi" style="font-size:11px;padding:4px 6px" placeholder="Quick note..." onblur="quickNoteAdd(${c.id},this.value)" onkeypress="if(event.key==='Enter')this.blur()"/>
+          </div>
+          <button class="btn btn-g btn-sm" style="position:absolute;bottom:8px;right:8px;padding:2px 4px;font-size:10px" onclick="event.stopPropagation();toggleCardNotes(${c.id})">📝</button>
         </div>`;}).join(''):'<div style="color:var(--dim);font-size:12px;text-align:center;padding:20px 0">Empty</div>'}</div>
     </div>`;
   }).join('');
@@ -921,7 +1092,15 @@ function openModal(id){
   loadTx();loadLogi();loadHistory();loadAw();loadVault();
   $('modal').style.display='flex';
 }
-function closeModal(){$('modal').style.display='none';cid=null;}
+function closeModal(){
+  const modal = $('modal');
+  modal.parentElement.classList.add('closing');
+  setTimeout(() => {
+    modal.style.display='none';
+    modal.parentElement.classList.remove('closing');
+    cid=null;
+  }, 300);
+}
 
 // ════════════════════════════════
 // SAVE / DELETE
@@ -1108,14 +1287,38 @@ async function confirmAdd(){
 // AI — GEMINI INTEGRATION
 // ════════════════════════════════
 async function callGemini(prompt){
-  if(!GEMINI_API_KEY||GEMINI_API_KEY==='AIzaSyCXgPnO22gg2ftPGqpHuBw8omOYG0XXY8Q'){
+  if(!GEMINI_API_KEY||GEMINI_API_KEY==='AIzaSyB5YexS9PA5f8-3cEsIMSQeSgbekYAUNDg'){
     return'⚠ AI is resting — No API key configured.\n\nTo enable AI features, paste your Gemini API key into the GEMINI_API_KEY variable at the top of the script.';
   }
- const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json', 'x-goog-api-key': GEMINI_API_KEY},
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateMessage?key=${GEMINI_API_KEY}`;
+  // 1. Prepare the data to send to your Edge Function
+const myPrompt = "You are an executive analyst. Review this data and give me a 3-bullet strategy: " + JSON.stringify(yourCustomerData);
+
+// 2. Call your secure Supabase Edge Function
+const response = await fetch('https://euppycxpozqtdwbhxcjy.supabase.co/functions/v1/ai-analyst', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    prompt: myPrompt
+  })
+});
+
+// 3. Get the answer back
+const aiData = await response.json();
+
+// 4. Display it!
+console.log(aiData.reply); 
+// (Don't forget to update this line so it actually shows up on your HTML screen!)
     body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  if(!res.ok){
+    const errorText=await res.text();
+    console.error('Gemini API error', res.status, errorText);
+    throw new Error(`HTTP ${res.status}`);
+  }
   const d=await res.json();
+  console.log('Gemini response', d);
   return d?.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
 }
 
@@ -1203,6 +1406,9 @@ function toast(m,type=''){
 }
 
 // INIT
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+$('theme-toggle').textContent = savedTheme === 'light' ? '☀️' : '🌙';
 checkAuth();
 </script>
 </body>
