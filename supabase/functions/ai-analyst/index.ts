@@ -27,7 +27,22 @@ Deno.serve(async (req) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
+          contents: [
+  {
+    parts: [
+      {
+        text: `SYSTEM INSTRUCTIONS: 
+        You are the Diamond CRM Security Analyst. 
+        Focus: Security printing, tamper-evident seals, and fraud prevention.
+        Task: Analyze data or draft professional emails using the names provided.
+        Tone: Professional and precise.`
+      },
+      { 
+        text: `USER REQUEST: ${prompt}` 
+      }
+    ]
+  }
+]
         })
       }
     )

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Diamond AI | Market Prospector</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 40px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .search-area { background: #0056b3; padding: 30px; border-radius: 12px; color: white; margin-bottom: 30px; }
+        input { width: 70%; padding: 12px; border-radius: 6px; border: none; }
+        button { padding: 12px 25px; border-radius: 6px; border: none; background: #ffcc00; color: #333; font-weight: bold; cursor: pointer; }
+        .lead-card { border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .lead-info h3 { margin: 0 0 5px 0; color: #0056b3; }
+        .email-btn { background: #28a745; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="search-area">
+        <h2>🚀 Market Prospector</h2>
+        <p>Target new sectors (e.g., "Find new universities in Sri Lanka for exam security")</p>
+        <input type="text" id="prospectQuery" placeholder="Who are we hunting for today?">
+        <button onclick="huntLeads()">Find Leads</button>
+    </div>
+
+    <div id="resultsArea">
+        <p style="text-align: center; color: #999;">Your new prospects will appear here.</p>
+    </div>
+</div>
+
+<script>
+    async function huntLeads() {
+        const query = document.getElementById('prospectQuery').value;
+        const resultsArea = document.getElementById('resultsArea');
+        resultsArea.innerHTML = "<p>✨ Diamond is scouting the market...</p>";
+
+        // The AI Prompt for external lead generation
+        const prompt = `Act as a B2B Sales Scout for a Security Printing company. 
+        Industry: Security Printing (Checkbooks, Certificates, Secure Labels).
+        User Query: ${query}. 
+        Location: Sri Lanka.
+        Provide a list of 5 REAL potential organizations. For each, give:
+        1. Name
+        2. Why they need security printing
+        3. A professional email subject line
+        4. A short 2-sentence pitch.
+        Format as JSON array of objects: [{name, reason, subject, pitch}]`;
+
+        try {
+            // Replace 'callGemini' with your actual API function name
+            const response = await callGemini(prompt); 
+            const leads = JSON.parse(response); 
+            
+            resultsArea.innerHTML = ""; // Clear loading
+            leads.forEach(lead => {
+                resultsArea.innerHTML += `
+                    <div class="lead-card">
+                        <div class="lead-info">
+                            <h3>${lead.name}</h3>
+                            <p style="font-size: 13px; color: #666;">${lead.reason}</p>
+                        </div>
+                        <a href="mailto:?subject=${encodeURIComponent(lead.subject)}&body=${encodeURIComponent(lead.pitch)}" class="email-btn">📧 Draft Email</a>
+                    </div>
+                `;
+            });
+        } catch (e) {
+            resultsArea.innerHTML = "<p>Error finding leads. Make sure the AI is connected.</p>";
+        }
+    }
+</script>
+</body>
+</html>
