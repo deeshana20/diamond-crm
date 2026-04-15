@@ -6,6 +6,7 @@
 <title>Diamond International Lanka | Command Center</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script>
 tailwind.config={theme:{extend:{colors:{
@@ -181,6 +182,73 @@ textarea.mfi{resize:vertical}
 
 .pulse-dot { animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.exec-dash-content{
+  overflow:hidden;
+  max-height:2400px;
+  opacity:1;
+  transform:translateY(0);
+  transition:max-height .35s ease,opacity .25s ease,transform .25s ease;
+}
+.exec-dash-content.collapsed{
+  max-height:0;
+  opacity:0;
+  transform:translateY(-8px);
+}
+.exec-dash-chevron{transition:transform .25s ease,color .2s ease}
+.exec-dash-chevron.rotated{transform:rotate(-90deg)}
+
+.pdf-export-shell{
+  width:1280px;
+  padding:28px;
+  background:var(--navy);
+  color:#e2e8f0;
+  border:1px solid rgba(212,175,55,.28);
+  border-radius:14px;
+  position:fixed;
+  left:-100000px;
+  top:0;
+  z-index:-1;
+}
+.pdf-export-shell .pdf-export-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:16px;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(212,175,55,.28);
+}
+.pdf-export-shell .pdf-export-title{
+  font-size:24px;
+  font-weight:700;
+  color:var(--gold-light);
+}
+.pdf-export-shell .pdf-export-subtitle{
+  font-size:12px;
+  color:#94a3b8;
+}
+.pdf-export-shell .pdf-confidential-footer{
+  margin-top:16px;
+  padding-top:10px;
+  border-top:1px solid rgba(148,163,184,.25);
+  text-align:right;
+  font-size:11px;
+  letter-spacing:.4px;
+  color:#fbbf24;
+  font-weight:600;
+}
+.pdf-export-shell .pdf-watermark{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) rotate(-24deg);
+  font-size:52px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:rgba(212,175,55,.07);
+  pointer-events:none;
+  white-space:nowrap;
+}
 </style>
 </head>
 <body class="min-h-screen text-slate-300">
@@ -388,7 +456,7 @@ textarea.mfi{resize:vertical}
     </div>
 
       <!-- Sales & Operations Analytics Component -->
-  <div class="bg-navy-light rounded-xl border border-opacity-20 border-gold p-6 max-w-6xl mx-auto">
+  <div id="executive-overview" class="bg-navy-light rounded-xl border border-opacity-20 border-gold p-6 max-w-6xl mx-auto">
     
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
@@ -396,12 +464,23 @@ textarea.mfi{resize:vertical}
         <h2 class="text-2xl font-bold text-gold-light">Sales & Operations Analytics</h2>
         <p class="text-slate-400 text-sm mt-1">Security printing pipeline and financial overview</p>
       </div>
-      <div class="flex items-center gap-2 bg-navy-lighter px-3 py-1.5 rounded-full">
-        <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
-        <span class="text-emerald-400 text-xs font-medium">Live Data</span>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 bg-navy-lighter px-3 py-1.5 rounded-full border border-slate-700/50">
+          <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
+          <span class="text-emerald-400 text-xs font-medium">Live Data</span>
+        </div>
+        <button id="executive-report-btn" onclick="generateExecutiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded border border-gold-400 hover:bg-gold-400 transition-colors whitespace-nowrap">
+          Generate Executive Report
+        </button>
+        <button id="executive-dashboard-toggle" onclick="toggleExecutiveDashboard()" aria-expanded="true" class="w-8 h-8 flex items-center justify-center rounded border border-slate-600 bg-navy-lighter text-gold hover:text-gold-light hover:border-gold-500/60 transition-colors" title="Collapse dashboard charts">
+          <svg id="executive-dashboard-chevron" class="exec-dash-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
       </div>
     </div>
     
+    <div id="executive-dashboard-content" class="exec-dash-content">
     <!-- Charts Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
@@ -607,7 +686,10 @@ textarea.mfi{resize:vertical}
         <div class="text-gold-light text-2xl font-bold">26.7%</div>
         <div class="text-slate-400 text-xs mt-1">Pipeline Conversion</div>
       </div>
-      </div> </div> <div class="flex items-center justify-between mb-4 flex-wrap gap-3"></div>
+      </div>
+    </div>
+    </div>
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3"></div>
 
     <!-- VIEW TOGGLE & SEARCH -->
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
@@ -1036,6 +1118,96 @@ function filt(list){
   });
 }
 function render(){vmode==='table'?renderTable():renderKanban();syncDashboard();}
+function setExecutiveDashboardCollapsed(collapsed){
+  const content=$('executive-dashboard-content');
+  const chevron=$('executive-dashboard-chevron');
+  const toggleBtn=$('executive-dashboard-toggle');
+  if(!content||!chevron||!toggleBtn)return;
+  if(collapsed){
+    content.classList.add('collapsed');
+    chevron.classList.add('rotated');
+    toggleBtn.setAttribute('aria-expanded','false');
+    toggleBtn.title='Expand dashboard charts';
+  }else{
+    content.classList.remove('collapsed');
+    chevron.classList.remove('rotated');
+    toggleBtn.setAttribute('aria-expanded','true');
+    toggleBtn.title='Collapse dashboard charts';
+  }
+}
+function toggleExecutiveDashboard(){
+  const content=$('executive-dashboard-content');
+  if(!content)return;
+  const collapsed=!content.classList.contains('collapsed');
+  setExecutiveDashboardCollapsed(collapsed);
+  localStorage.setItem('crmExecutiveDashboardCollapsed',collapsed?'1':'0');
+}
+function initExecutiveDashboardCollapse(){
+  const saved=localStorage.getItem('crmExecutiveDashboardCollapsed');
+  setExecutiveDashboardCollapsed(saved==='1');
+}
+async function generateExecutiveReport(){
+  const source=$('executive-overview');
+  if(!source){toast('Executive Overview not found','warn');return;}
+  if(typeof window.html2pdf!=='function'){toast('PDF library not loaded','warn');return;}
+  const btn=$('executive-report-btn');
+  const oldLabel=btn?btn.textContent:'';
+  try{
+    if(btn){btn.disabled=true;btn.textContent='Generating...';btn.classList.add('opacity-60','cursor-not-allowed');}
+    const shell=document.createElement('div');
+    shell.className='pdf-export-shell';
+
+    const wm=document.createElement('div');
+    wm.className='pdf-watermark';
+    wm.textContent='CONFIDENTIAL';
+
+    const hdr=document.createElement('div');
+    hdr.className='pdf-export-header';
+    hdr.innerHTML=`<div><div class="pdf-export-title">Executive Overview</div><div class="pdf-export-subtitle">Diamond International Lanka - Security Printing Division</div></div><div class="pdf-export-subtitle">${new Date().toLocaleString()}</div>`;
+
+    const clone=source.cloneNode(true);
+    clone.id='executive-overview-export';
+    clone.classList.remove('max-w-6xl','mx-auto');
+    clone.style.maxWidth='none';
+    clone.style.margin='0';
+    clone.querySelectorAll('#executive-dashboard-toggle,#executive-report-btn').forEach(el=>el.remove());
+    const c=clone.querySelector('#executive-dashboard-content');
+    if(c)c.classList.remove('collapsed');
+    clone.querySelectorAll('.bg-navy,.bg-navy-light,.bg-navy-lighter').forEach(el=>{el.style.breakInside='avoid';el.style.pageBreakInside='avoid';});
+
+    const footer=document.createElement('div');
+    footer.className='pdf-confidential-footer';
+    footer.textContent='Confidential - Security Printing Division';
+
+    shell.appendChild(wm);
+    shell.appendChild(hdr);
+    shell.appendChild(clone);
+    shell.appendChild(footer);
+    document.body.appendChild(shell);
+
+    const fname=`Executive_Overview_${new Date().toISOString().slice(0,10)}.pdf`;
+    await window.html2pdf().set({
+      margin:[8,8,10,8],
+      filename:fname,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#0a192f'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'landscape'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(shell).save();
+
+    shell.remove();
+    toast('Executive report downloaded','info');
+  }catch(e){
+    toast('Failed to generate report','warn');
+  }finally{
+    document.querySelectorAll('.pdf-export-shell').forEach(n=>n.remove());
+    if(btn){
+      btn.disabled=false;
+      btn.textContent=oldLabel||'Generate Executive Report';
+      btn.classList.remove('opacity-60','cursor-not-allowed');
+    }
+  }
+}
 function sv(v){
   vmode=v;
   $('vtb-t').className=v==='table'?'px-4 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded flex items-center gap-1.5':'px-4 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors flex items-center gap-1.5';
@@ -1470,6 +1642,7 @@ async function huntLeads(){
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
+initExecutiveDashboardCollapse();
 checkAuth();
 // ════════════════════════════════════════
 // DASHBOARD SYNC
