@@ -6,6 +6,8 @@
 <title>Diamond International Lanka | Command Center</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script>
 tailwind.config={theme:{extend:{colors:{
@@ -181,6 +183,123 @@ textarea.mfi{resize:vertical}
 
 .pulse-dot { animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.exec-dash-content{
+  overflow:hidden;
+  max-height:2400px;
+  opacity:1;
+  transform:translateY(0);
+  transition:max-height .35s ease,opacity .25s ease,transform .25s ease;
+}
+.exec-dash-content.collapsed{
+  max-height:0;
+  opacity:0;
+  transform:translateY(-8px);
+}
+.exec-dash-chevron{transition:transform .25s ease,color .2s ease}
+.exec-dash-chevron.rotated{transform:rotate(-90deg)}
+
+.pdf-export-shell{
+  width:1280px;
+  padding:28px;
+  background:var(--navy);
+  color:#e2e8f0;
+  border:1px solid rgba(212,175,55,.28);
+  border-radius:14px;
+  position:fixed;
+  left:-100000px;
+  top:0;
+  z-index:-1;
+}
+.pdf-export-shell .pdf-export-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:16px;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(212,175,55,.28);
+}
+.pdf-export-shell .pdf-export-title{
+  font-size:24px;
+  font-weight:700;
+  color:var(--gold-light);
+}
+.pdf-export-shell .pdf-export-subtitle{
+  font-size:12px;
+  color:#94a3b8;
+}
+.pdf-export-shell .pdf-confidential-footer{
+  margin-top:16px;
+  padding-top:10px;
+  border-top:1px solid rgba(148,163,184,.25);
+  text-align:right;
+  font-size:11px;
+  letter-spacing:.4px;
+  color:#fbbf24;
+  font-weight:600;
+}
+.pdf-export-shell .pdf-watermark{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) rotate(-24deg);
+  font-size:52px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:rgba(212,175,55,.07);
+  pointer-events:none;
+  white-space:nowrap;
+}
+
+.ai-response-bubble{
+  background:rgba(17,34,64,.92);
+  border:1px solid rgba(255,255,255,.08);
+  border-left:3px solid rgba(212,175,55,.75);
+  border-radius:10px;
+  padding:12px;
+  color:#cbd5e1;
+  line-height:1.65;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+.ai-typing{
+  animation:aiTypingIn .32s ease-out;
+}
+@keyframes aiTypingIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.ai-md h1,.ai-md h2,.ai-md h3{
+  color:#f0d77a;
+  font-weight:700;
+  margin:.1rem 0 .4rem;
+}
+.ai-md strong{color:#f8fafc;font-weight:700}
+.ai-md ul,.ai-md ol{padding-left:1rem;margin:.35rem 0}
+.ai-md li{margin:.2rem 0}
+.ai-md p{margin:.3rem 0}
+.ai-md code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  background:rgba(10,25,47,.9);
+  color:#f8fafc;
+  border:1px solid rgba(148,163,184,.25);
+  border-radius:5px;
+  padding:1px 4px;
+  font-size:11px;
+}
+.ai-md pre{
+  background:rgba(10,25,47,.95);
+  border:1px solid rgba(212,175,55,.22);
+  border-radius:8px;
+  padding:10px;
+  overflow:auto;
+  margin:.45rem 0;
+}
+.ai-md pre code{
+  border:none;
+  background:transparent;
+  padding:0;
+  color:#e2e8f0;
+}
 </style>
 </head>
 <body class="min-h-screen text-slate-300">
@@ -297,7 +416,7 @@ textarea.mfi{resize:vertical}
     </div>
 
     <!-- REVENUE KPIs -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
       <div class="bg-navy-800 border border-slate-700 rounded-lg p-4">
         <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">This Month</p>
         <p id="kc-m" class="text-2xl font-bold text-white mt-1">—</p>
@@ -313,6 +432,12 @@ textarea.mfi{resize:vertical}
       <div class="bg-navy-800 border border-rose-700/30 rounded-lg p-4">
         <p class="text-[10px] font-semibold tracking-wider text-rose-400 uppercase">Outstanding</p>
         <p id="kc-o" class="text-2xl font-bold text-rose-400 mt-1">—</p>
+      </div>
+      <div class="bg-navy-800 border border-gold-500/30 rounded-lg p-4">
+        <p class="text-[10px] font-semibold tracking-wider text-gold-400 uppercase">Year-End Forecast</p>
+        <p id="kc-fcst" class="text-2xl font-bold text-gold-light mt-1">—</p>
+        <div id="kc-ftrend" class="mt-2 text-xs font-semibold text-emerald-400 flex items-center gap-1">—</div>
+        <p id="kc-fconf" class="text-[10px] text-slate-500 mt-1">Confidence: —</p>
       </div>
     </div>
 
@@ -350,7 +475,7 @@ textarea.mfi{resize:vertical}
               </div>
               <button onclick="runAIDiscovery()" class="px-3 py-2 text-xs font-semibold bg-emerald-900/40 text-emerald-400 border border-emerald-700/40 rounded hover:bg-emerald-900/60 transition-colors">Scan</button>
             </div>
-            <p id="aiSearchStatus" class="text-[10px] text-slate-500 mt-2">Ready to scan your database…</p>
+            <div id="aiSearchStatus" class="text-[10px] text-slate-500 mt-2">Ready to scan your database…</div>
           </div>
           <!-- Market Prospector -->
           <div>
@@ -366,7 +491,7 @@ textarea.mfi{resize:vertical}
               </div>
               <button onclick="huntLeads()" class="px-3 py-2 text-xs font-semibold bg-sky-900/40 text-sky-400 border border-sky-700/40 rounded hover:bg-sky-900/60 transition-colors">Hunt</button>
             </div>
-            <div id="prospectResults" class="mt-3 p-3 bg-navy-900/60 border border-slate-700 rounded min-h-[50px] text-[11px] text-slate-400">
+            <div id="prospectResults" class="mt-3 min-h-[50px] text-[11px]">
               Enter a query to discover market opportunities…
             </div>
           </div>
@@ -388,7 +513,7 @@ textarea.mfi{resize:vertical}
     </div>
 
       <!-- Sales & Operations Analytics Component -->
-  <div class="bg-navy-light rounded-xl border border-opacity-20 border-gold p-6 max-w-6xl mx-auto">
+  <div id="executive-overview" class="bg-navy-light rounded-xl border border-opacity-20 border-gold p-6 max-w-6xl mx-auto">
     
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
@@ -396,12 +521,23 @@ textarea.mfi{resize:vertical}
         <h2 class="text-2xl font-bold text-gold-light">Sales & Operations Analytics</h2>
         <p class="text-slate-400 text-sm mt-1">Security printing pipeline and financial overview</p>
       </div>
-      <div class="flex items-center gap-2 bg-navy-lighter px-3 py-1.5 rounded-full">
-        <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
-        <span class="text-emerald-400 text-xs font-medium">Live Data</span>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 bg-navy-lighter px-3 py-1.5 rounded-full border border-slate-700/50">
+          <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
+          <span class="text-emerald-400 text-xs font-medium">Live Data</span>
+        </div>
+        <button id="executive-report-btn" onclick="generateExecutiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded border border-gold-400 hover:bg-gold-400 transition-colors whitespace-nowrap">
+          Generate Executive Report
+        </button>
+        <button id="executive-dashboard-toggle" onclick="toggleExecutiveDashboard()" aria-expanded="true" class="w-8 h-8 flex items-center justify-center rounded border border-slate-600 bg-navy-lighter text-gold hover:text-gold-light hover:border-gold-500/60 transition-colors" title="Collapse dashboard charts">
+          <svg id="executive-dashboard-chevron" class="exec-dash-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
       </div>
     </div>
     
+    <div id="executive-dashboard-content" class="exec-dash-content">
     <!-- Charts Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
@@ -607,7 +743,10 @@ textarea.mfi{resize:vertical}
         <div class="text-gold-light text-2xl font-bold">26.7%</div>
         <div class="text-slate-400 text-xs mt-1">Pipeline Conversion</div>
       </div>
-      </div> </div> <div class="flex items-center justify-between mb-4 flex-wrap gap-3"></div>
+      </div>
+    </div>
+    </div>
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3"></div>
 
     <!-- VIEW TOGGLE & SEARCH -->
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
@@ -619,6 +758,10 @@ textarea.mfi{resize:vertical}
         <div class="relative">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input id="gsearch" type="text" placeholder="Search company, product..." oninput="updateClearButton();render()" class="w-72 pl-10 pr-4 py-2 text-sm bg-navy-800 border border-slate-600 rounded text-white placeholder-slate-500 focus:border-gold-500 focus:outline-none"/>
+        </div>
+        <div class="flex items-center gap-1 bg-navy-800 p-1 rounded border border-slate-700">
+          <button id="density-compact" onclick="setTableDensity('compact')" class="px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors">Compact</button>
+          <button id="density-relaxed" onclick="setTableDensity('relaxed')" class="px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors">Relaxed</button>
         </div>
         <select id="product-filter" onchange="onProductFilterChange()" class="px-3 py-2 text-sm bg-navy-800 border border-slate-600 rounded text-white focus:border-gold-500 focus:outline-none">
           <option value="all">All Products</option>
@@ -633,20 +776,31 @@ textarea.mfi{resize:vertical}
     <!-- TABLE VIEW -->
     <div id="vw-t">
       <div class="bg-navy-800 border border-slate-700 rounded-lg overflow-hidden overflow-x-auto">
-        <table class="w-full text-sm min-w-[800px]">
+        <table class="w-full text-sm min-w-[980px] border-separate border-spacing-y-2">
           <thead>
-            <tr class="border-b border-slate-700 bg-navy-900/50">
+            <tr class="bg-navy-900/30">
               <th class="w-10 px-4 py-3 text-left"><input type="checkbox" onclick="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-slate-600 bg-navy-800"/></th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Company / Product</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Stage</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Contact</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Next Action</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Outstanding</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">ETA / Status</th>
+              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">ETA / Logistics</th>
+              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Action</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
+      </div>
+      <div id="table-empty-state" style="display:none" class="bg-navy-800 border border-slate-700 rounded-lg mt-0 p-10 text-center">
+        <div class="w-14 h-14 rounded-full bg-gold-500/10 border border-gold-500/30 mx-auto flex items-center justify-center mb-4">
+          <svg class="w-7 h-7 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.2-5.2M10.8 18a7.2 7.2 0 100-14.4 7.2 7.2 0 000 14.4z"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-semibold text-lg">No Records Found</h3>
+        <p id="table-empty-text" class="text-slate-400 text-sm mt-2">No customers match your current filters.</p>
+        <button onclick="clearTableEmptyState()" class="mt-5 px-4 py-2 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors">Clear Filters</button>
       </div>
     </div>
 
@@ -751,10 +905,16 @@ textarea.mfi{resize:vertical}
       <input id="txd" type="date" class="mfi"/><input id="txp" class="mfi" placeholder="Product"/>
       <input id="txq" type="number" class="mfi" placeholder="Qty"/>
       <input id="txa" type="number" class="mfi" placeholder="Amount (Rs.)"/>
+      <input id="txsn-start" type="number" class="mfi" placeholder="Start S/N" oninput="updateSerialQtyLabel()"/>
+      <input id="txsn-end" type="number" class="mfi" placeholder="End S/N" oninput="updateSerialQtyLabel()"/>
       <select id="txsup" class="mfi"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select>
       <select id="txst" class="mfi"><option>Outstanding</option><option>Received</option></select>
     </div>
-    <button onclick="addTx()" class="w-full py-2 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors mb-4">Log Transaction</button>
+    <p id="txsn-info" class="text-[10px] text-gold-400 mb-2">S/N quantity: —</p>
+    <div class="flex gap-2 mb-4">
+      <button id="tx-save-btn" onclick="addTx()" class="flex-1 py-2 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors">Log Transaction</button>
+      <button id="tx-cancel-edit-btn" onclick="resetTxForm()" style="display:none" class="px-3 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">Cancel Edit</button>
+    </div>
     <div class="overflow-x-auto"><table class="txt"><thead><tr>
       <th>Date</th><th>Product</th><th>Qty</th><th>Amount</th><th>Supplier</th><th>Status</th>
     </tr></thead><tbody id="txbody"></tbody></table></div>
@@ -782,11 +942,42 @@ textarea.mfi{resize:vertical}
 
   <!-- VAULT -->
   <div id="tv" class="tcont">
+    <div class="rounded-xl p-4 mb-4" style="background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(17,34,64,.7));border:1px solid rgba(212,175,55,.28)">
+      <p class="text-[9px] font-bold tracking-wider text-gold-400 uppercase mb-3">Security Design Vault</p>
+      <div class="rounded-xl p-3 mb-3" style="background:rgba(10,25,47,.75);border:1px solid rgba(212,175,55,.2)">
+        <div id="vault-preview" class="relative rounded-lg overflow-hidden h-40 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(17,34,64,.95),rgba(10,25,47,.95));border:1px solid rgba(255,255,255,.08)">
+          <div id="vault-no-image" class="text-center text-slate-500">
+            <svg class="w-9 h-9 mx-auto mb-2 text-gold-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.5-4.5a2 2 0 012.8 0L16 16m-2-2l1.5-1.5a2 2 0 012.8 0L20 14m-9-9h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="text-xs font-semibold">No Image</p>
+          </div>
+          <img id="vault-preview-img" style="display:none;width:100%;height:100%;object-fit:cover" alt="Vault Artwork Preview"/>
+          <div id="vault-seal" style="display:none" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div class="px-4 py-2 rounded border-2 text-xs font-bold tracking-widest" style="color:#FFD700;border-color:rgba(255,215,0,.85);background:rgba(10,25,47,.65);transform:rotate(-14deg)">SEAL OF APPROVAL</div>
+          </div>
+        </div>
+      </div>
+      <div class="mfrow">
+        <div class="mfield">
+          <label>Approval Status</label>
+          <select id="vault-status" class="mfi" onchange="onVaultStatusChange()">
+            <option>Drafting</option>
+            <option>Awaiting Client Approval</option>
+            <option>Final Verified</option>
+          </select>
+        </div>
+        <div class="mfield">
+          <label>Verification Timestamp</label>
+          <input id="vault-ts" class="mfi" readonly placeholder="Not verified yet"/>
+        </div>
+      </div>
+    </div>
     <div onclick="document.getElementById('vfinp').click()" class="border-2 border-dashed border-slate-600 rounded-xl p-6 text-center cursor-pointer hover:border-gold-500/50 hover:text-gold-400 transition-colors text-slate-500 mb-3">
-      <div class="text-2xl mb-2">📁</div>
-      <p class="font-semibold text-sm mb-1">Click to upload to Vault</p>
+      <div class="text-2xl mb-2">🔐</div>
+      <p class="font-semibold text-sm mb-1">Upload Secured Vault File</p>
       <p class="text-xs">PO, PI, Artwork, Certificates</p>
-      <input type="file" id="vfinp" style="display:none" onchange="uploadVault(event)"/>
+      <input type="file" id="vfinp" accept="image/*,.pdf,.ai,.eps,.psd" style="display:none" onchange="uploadVault(event)"/>
     </div>
     <div id="vlist"></div>
   </div>
@@ -819,7 +1010,7 @@ textarea.mfi{resize:vertical}
         <textarea id="customInstructions" class="mfi" rows="2" placeholder="e.g. Mention 10% discount, deadline is Friday"></textarea>
       </div>
       <button onclick="genEmail()" class="w-full py-2 text-xs font-semibold bg-gold-500/20 text-gold-400 border border-gold-500/30 rounded hover:bg-gold-500/30 transition-colors">✨ Generate with Diamond AI</button>
-      <div id="ai-email-out" class="mt-3 p-3 rounded-lg text-xs text-slate-400 italic min-h-[60px]" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);white-space:pre-wrap">Select tone and click generate…</div>
+      <div id="ai-email-out" class="mt-3 text-xs text-slate-400 italic min-h-[60px]">Select tone and click generate…</div>
       <button id="copy-btn" onclick="copyEmail()" style="display:none" class="w-full mt-2 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">📋 Copy Email</button>
     </div>
   </div>
@@ -870,7 +1061,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════
-let custs=[], cid=null, ccust=null, vmode='table', qfilt=null, productFilter='all', awFile=null, kpiDateFilter=null, bulkSelected=new Set(), emailTone='formal';
+let custs=[], cid=null, ccust=null, vmode='table', qfilt=null, productFilter='all', tableDensity='relaxed', awFile=null, kpiDateFilter=null, bulkSelected=new Set(), emailTone='formal', txEditId=null;
 
 const SC={
   'Inquiry':         {bg:'rgba(100,116,139,.2)', color:'#94a3b8',border:'rgba(100,116,139,.4)'},
@@ -914,6 +1105,12 @@ let tt;
 function toast(m,type=''){
   const t=$('toast');t.textContent=m;t.className=type?`show ${type}`:'show';
   clearTimeout(tt);tt=setTimeout(()=>t.className='',2700);
+}
+function renderAIResponse(el,markdown,withTyping=true){
+  if(!el)return;
+  const safe=typeof marked!=='undefined'?marked.parse(markdown||''):(markdown||'');
+  el.className=`ai-response-bubble ai-md${withTyping?' ai-typing':''}`;
+  el.innerHTML=safe;
 }
 
 // ════════════════════════════════════════
@@ -967,16 +1164,42 @@ function updIntel(){
 function updKPIs(df=null){
   let o=0,m=0,q=0,y=0;
   const now=new Date(),cm=now.getMonth(),cq=Math.floor(cm/3),cy=now.getFullYear();
+  const monthRevenue=Array(12).fill(0);
+  let txCount=0;
   custs.forEach(c=>(c.transactions||[]).forEach(t=>{
     const a=parseFloat(t.amount)||0;
-    if(df){const td=new Date(t.order_date);if(td<df.from||td>df.to)return;}
+    const td=new Date(t.order_date);
+    if(df){if(td<df.from||td>df.to)return;}
+    if(!isNaN(td))txCount++;
     if(t.payment_status==='Outstanding'){o+=a;}
     else if(t.payment_status==='Received'){
-      const d=new Date(t.order_date);
-      if(d.getFullYear()===cy){y+=a;if(Math.floor(d.getMonth()/3)===cq)q+=a;if(d.getMonth()===cm)m+=a;}
+      if(!isNaN(td)&&td.getFullYear()===cy){
+        y+=a;
+        monthRevenue[td.getMonth()]+=a;
+        if(Math.floor(td.getMonth()/3)===cq)q+=a;
+        if(td.getMonth()===cm)m+=a;
+      }
     }
   }));
   $('kc-o').textContent=fmtM(o);$('kc-y').textContent=fmtM(y);$('kc-q').textContent=fmtM(q);$('kc-m').textContent=fmtM(m);
+
+  const monthsElapsed=Math.max(cm+1,1);
+  const avgMonthly=y/monthsElapsed;
+  const yearEndForecast=avgMonthly*12;
+  const lastMonthRevenue=cm>0?monthRevenue[cm-1]:0;
+  const forecastMonthly=yearEndForecast/12;
+  const upward=forecastMonthly>=lastMonthRevenue;
+
+  const trendEl=$('kc-ftrend');
+  const trendIcon=upward?'▲':'⚠';
+  const trendLabel=upward?'Upward Trend':'Below Last Month';
+  trendEl.className=`mt-2 text-xs font-semibold flex items-center gap-1 ${upward?'text-emerald-400':'text-rose-400'}`;
+  trendEl.textContent=`${trendIcon} ${trendLabel}`;
+
+  const confidence=Math.min(100,Math.round((txCount/50)*100));
+  const confidenceBand=confidence>=75?'High':confidence>=40?'Medium':'Low';
+  $('kc-fcst').textContent=fmtM(yearEndForecast);
+  $('kc-fconf').textContent=`Confidence: ${confidence}% (${confidenceBand}) · ${txCount} tx`;
 }
 function applyKPIDateFilter(){
   const from=$('kpi-from').value,to=$('kpi-to').value;
@@ -1035,7 +1258,132 @@ function filt(list){
     return true;
   });
 }
-function render(){vmode==='table'?renderTable():renderKanban();syncDashboard();}
+function clearTableEmptyState(){
+  cf();
+}
+function render(){
+  if(vmode==='table'){
+    const filtered=filt(custs);
+    const empty=!custs.length||!filtered.length;
+    $('table-empty-state').style.display=empty?'block':'none';
+    document.querySelector('#vw-t .overflow-x-auto').style.display=empty?'none':'block';
+    if(empty){
+      $('table-empty-text').textContent=custs.length?'No customers match your current filters.':'No customer records available yet.';
+      $('tbody').innerHTML='';
+    }else{
+      renderTable();
+    }
+  }else{
+    renderKanban();
+  }
+  syncDashboard();
+}
+function setExecutiveDashboardCollapsed(collapsed){
+  const content=$('executive-dashboard-content');
+  const chevron=$('executive-dashboard-chevron');
+  const toggleBtn=$('executive-dashboard-toggle');
+  if(!content||!chevron||!toggleBtn)return;
+  if(collapsed){
+    content.classList.add('collapsed');
+    chevron.classList.add('rotated');
+    toggleBtn.setAttribute('aria-expanded','false');
+    toggleBtn.title='Expand dashboard charts';
+  }else{
+    content.classList.remove('collapsed');
+    chevron.classList.remove('rotated');
+    toggleBtn.setAttribute('aria-expanded','true');
+    toggleBtn.title='Collapse dashboard charts';
+  }
+}
+function toggleExecutiveDashboard(){
+  const content=$('executive-dashboard-content');
+  if(!content)return;
+  const collapsed=!content.classList.contains('collapsed');
+  setExecutiveDashboardCollapsed(collapsed);
+  localStorage.setItem('crmExecutiveDashboardCollapsed',collapsed?'1':'0');
+}
+function initExecutiveDashboardCollapse(){
+  const saved=localStorage.getItem('crmExecutiveDashboardCollapsed');
+  setExecutiveDashboardCollapsed(saved==='1');
+}
+function updateDensityButtons(){
+  const compactOn=tableDensity==='compact';
+  $('density-compact').className=compactOn?'px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded transition-colors':'px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors';
+  $('density-relaxed').className=!compactOn?'px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded transition-colors':'px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors';
+}
+function setTableDensity(mode){
+  tableDensity=mode==='compact'?'compact':'relaxed';
+  localStorage.setItem('crmTableDensity',tableDensity);
+  updateDensityButtons();
+  render();
+}
+function initTableDensity(){
+  const saved=localStorage.getItem('crmTableDensity');
+  tableDensity=saved==='compact'?'compact':'relaxed';
+  updateDensityButtons();
+}
+async function generateExecutiveReport(){
+  const source=$('executive-overview');
+  if(!source){toast('Executive Overview not found','warn');return;}
+  if(typeof window.html2pdf!=='function'){toast('PDF library not loaded','warn');return;}
+  const btn=$('executive-report-btn');
+  const oldLabel=btn?btn.textContent:'';
+  try{
+    if(btn){btn.disabled=true;btn.textContent='Generating...';btn.classList.add('opacity-60','cursor-not-allowed');}
+    const shell=document.createElement('div');
+    shell.className='pdf-export-shell';
+
+    const wm=document.createElement('div');
+    wm.className='pdf-watermark';
+    wm.textContent='CONFIDENTIAL';
+
+    const hdr=document.createElement('div');
+    hdr.className='pdf-export-header';
+    hdr.innerHTML=`<div><div class="pdf-export-title">Executive Overview</div><div class="pdf-export-subtitle">Diamond International Lanka - Security Printing Division</div></div><div class="pdf-export-subtitle">${new Date().toLocaleString()}</div>`;
+
+    const clone=source.cloneNode(true);
+    clone.id='executive-overview-export';
+    clone.classList.remove('max-w-6xl','mx-auto');
+    clone.style.maxWidth='none';
+    clone.style.margin='0';
+    clone.querySelectorAll('#executive-dashboard-toggle,#executive-report-btn').forEach(el=>el.remove());
+    const c=clone.querySelector('#executive-dashboard-content');
+    if(c)c.classList.remove('collapsed');
+    clone.querySelectorAll('.bg-navy,.bg-navy-light,.bg-navy-lighter').forEach(el=>{el.style.breakInside='avoid';el.style.pageBreakInside='avoid';});
+
+    const footer=document.createElement('div');
+    footer.className='pdf-confidential-footer';
+    footer.textContent='Confidential - Security Printing Division';
+
+    shell.appendChild(wm);
+    shell.appendChild(hdr);
+    shell.appendChild(clone);
+    shell.appendChild(footer);
+    document.body.appendChild(shell);
+
+    const fname=`Executive_Overview_${new Date().toISOString().slice(0,10)}.pdf`;
+    await window.html2pdf().set({
+      margin:[8,8,10,8],
+      filename:fname,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#0a192f'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'landscape'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(shell).save();
+
+    shell.remove();
+    toast('Executive report downloaded','info');
+  }catch(e){
+    toast('Failed to generate report','warn');
+  }finally{
+    document.querySelectorAll('.pdf-export-shell').forEach(n=>n.remove());
+    if(btn){
+      btn.disabled=false;
+      btn.textContent=oldLabel||'Generate Executive Report';
+      btn.classList.remove('opacity-60','cursor-not-allowed');
+    }
+  }
+}
 function sv(v){
   vmode=v;
   $('vtb-t').className=v==='table'?'px-4 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded flex items-center gap-1.5':'px-4 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors flex items-center gap-1.5';
@@ -1068,23 +1416,43 @@ async function bulkUpdateStatus(){
 // ════════════════════════════════════════
 function renderTable(){
   const list=filt(custs);const q=$('gsearch').value;
-  if(!list.length){$('tbody').innerHTML='<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">No records found.</td></tr>';return;}
+  const compact=tableDensity==='compact';
+  const rowPad=compact?'px-3 py-2':'px-4 py-3';
+  const nameClass=compact?'font-bold text-white text-[13px] leading-tight':'font-bold text-white text-sm leading-tight';
+  const cityClass=compact?'text-[10px] text-slate-500 mt-0.5':'text-[11px] text-slate-500 mt-1';
+  const productClass=compact?'text-[10px] text-slate-400 mt-0.5':'text-[11px] text-slate-400 mt-0.5';
+  const contactText=compact?'text-xs text-slate-300':'text-sm text-slate-300';
+  const nextActionText=compact?'text-[11px] text-slate-300':'text-xs text-slate-300';
   $('tbody').innerHTML=list.map(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-    return`<tr class="table-row-hover border-b border-slate-700/50${c.is_priority?' border-l-2 border-l-gold-500':''}" data-id="${c.id}" onclick="openModal(${c.id})">
-      <td class="px-4 py-3"><input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-slate-600 bg-navy-800"/></td>
-      <td class="px-4 py-3">
-        <div class="flex items-center gap-1.5">
-          <span class="font-semibold text-white text-sm">${hl(c.name,q)}</span>
-          <button onclick="cpbr(event,${c.id})" class="text-slate-600 hover:text-gold-400 text-xs px-1 transition-colors" title="Copy bridge">📋</button>
-        </div>
-        <p class="text-xs text-slate-500 mt-0.5">${hl(c.product||'—',q)}</p>
+    const city=c.city||c.location||c.address_city||c.region||'—';
+    const s=SC[c.status]||SC['Inquiry'];
+    return`<tr class="group transition-colors duration-200 hover:bg-navy-700/50" data-id="${c.id}" onclick="openModal(${c.id})">
+      <td class="${rowPad} bg-navy-900/45 rounded-l-xl">
+        <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-slate-600 bg-navy-800"/>
       </td>
-      <td class="px-4 py-3">${badge(c.status)}</td>
-      <td class="px-4 py-3 text-sm text-slate-400">${c.contact||'<span class="text-slate-600">—</span>'}</td>
-      <td class="px-4 py-3 text-xs text-slate-300">${c.next_action||'<span class="text-slate-600">—</span>'}</td>
-      <td class="px-4 py-3">${out>0?`<span class="text-rose-400 font-semibold text-sm">${fmtK(out)}</span>`:'<span class="text-slate-600">Clear</span>'}</td>
-      <td class="px-4 py-3">${etaBadge(c)}</td>
+      <td class="${rowPad} bg-navy-900/45">
+        <p class="${nameClass}">${hl(c.name,q)}</p>
+        <p class="${cityClass}">${hl(city,q)}</p>
+        <p class="${productClass}">${hl(c.product||'—',q)}</p>
+      </td>
+      <td class="${rowPad} bg-navy-900/45">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${s.color};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
+      </td>
+      <td class="${rowPad} bg-navy-900/45 ${contactText}">${c.contact||'<span class="text-slate-600">—</span>'}</td>
+      <td class="${rowPad} bg-navy-900/45 ${nextActionText}">${c.next_action||'<span class="text-slate-600">—</span>'}</td>
+      <td class="${rowPad} bg-navy-900/45">${out>0?`<span class="text-rose-400 font-semibold ${compact?'text-xs':'text-sm'}">${fmtK(out)}</span>`:'<span class="text-slate-600">Clear</span>'}</td>
+      <td class="${rowPad} bg-navy-900/45">${etaBadge(c)}</td>
+      <td class="${rowPad} bg-navy-900/45 rounded-r-xl">
+        <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
+          <button onclick="openModal(${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-300 hover:bg-navy-700/70 transition-colors" title="View details">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z"/></svg>
+          </button>
+          <button onclick="cpbr(event,${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-300 hover:bg-navy-700/70 transition-colors" title="Copy bridge">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M8 16h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          </button>
+        </div>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1160,11 +1528,27 @@ function openModal(id){
   Object.entries(fm).forEach(([eid,k])=>{const el=$(eid);if(el)el.value=ccust[k]||(eid==='mpri'?'false':'');});
   renderTracker(ccust.status||'Inquiry');
   $('txd').value=new Date().toISOString().split('T')[0];
+  const txWithEnd=(ccust.transactions||[])
+    .filter(t=>t.end_serial_no!==null&&t.end_serial_no!==undefined&&t.end_serial_no!=='')
+    .sort((a,b)=>new Date(b.order_date||b.created_at||0)-new Date(a.order_date||a.created_at||0))[0];
+  const nextStart=txWithEnd?parseInt(txWithEnd.end_serial_no,10):NaN;
+  $('txsn-start').value=Number.isFinite(nextStart)?(nextStart+1):'';
+  $('txsn-end').value='';
+  txEditId=null;
+  $('tx-save-btn').textContent='Log Transaction';
+  $('tx-cancel-edit-btn').style.display='none';
+  updateSerialQtyLabel();
   $('awd').value=new Date().toISOString().split('T')[0];
   awFile=null;$('awprev').style.display='none';$('awprev').innerHTML='';$('awf-inp').value='';
   $('ai-email-out').style.fontStyle='italic';$('ai-email-out').style.color='#475569';
+  $('ai-email-out').className='mt-3 text-xs text-slate-400 italic min-h-[60px]';
   $('ai-email-out').textContent='Select tone and click generate…';
   $('copy-btn').style.display='none';
+  $('vault-status').value=ccust.vault_approval_status||'Drafting';
+  $('vault-ts').value=ccust.vault_verified_at?new Date(ccust.vault_verified_at).toLocaleString():'';
+  $('vault-ts').dataset.iso=ccust.vault_verified_at||'';
+  updateVaultSeal();
+  updateVaultPreview(ccust.vault_preview_url||null);
   st('td',document.querySelectorAll('.mtab')[0]);
   loadTx();loadLogi();loadHistory();loadAw();loadVault();
   $('modal').style.display='flex';
@@ -1183,7 +1567,10 @@ async function saveCust(){
   }
   const u={status:ns,contact:$('mc').value,last_contact:$('mlc').value,next_action:$('mna').value,
     notes:$('mnotes').value,is_priority:ip,stakeholder_finance:$('msf').value,
-    stakeholder_artwork:$('msa').value,supplier_ref_no:$('msr').value};
+    stakeholder_artwork:$('msa').value,supplier_ref_no:$('msr').value,
+    vault_approval_status:$('vault-status').value,
+    vault_verified_at:$('vault-status').value==='Final Verified'?($('vault-ts').dataset.iso||new Date().toISOString()):null,
+    vault_preview_url:$('vault-preview-img').style.display!=='none'?$('vault-preview-img').src:null};
   await sb.from('Diamond crM').update(u).eq('id',cid);
   if(os!==ns) await sb.from('activity_logs').insert([{customer_id:cid,change_description:`Stage: ${os} → ${ns}`,log_type:'stage'}]);
   toast('✓ Saved');loadData();closeModal();
@@ -1197,15 +1584,70 @@ async function delCust(){
 // ════════════════════════════════════════
 // TRANSACTIONS
 // ════════════════════════════════════════
+function updateSerialQtyLabel(){
+  const s=parseInt($('txsn-start').value,10),e=parseInt($('txsn-end').value,10);
+  const info=$('txsn-info');
+  if(Number.isFinite(s)&&Number.isFinite(e)){
+    const qty=(e-s)+1;
+    if(qty>0){
+      info.textContent=`S/N quantity: ${qty.toLocaleString()} units`;
+      info.className='text-[10px] text-gold-400 mb-2';
+    }else{
+      info.textContent='S/N quantity: invalid range';
+      info.className='text-[10px] text-rose-400 mb-2';
+    }
+    return;
+  }
+  info.textContent='S/N quantity: —';
+  info.className='text-[10px] text-gold-400 mb-2';
+}
+async function refreshTxForModal(){
+  const {data}=await sb.from('transactions').select('*').eq('customer_id',cid).order('order_date',{ascending:false});
+  if(ccust)ccust.transactions=data||[];
+  loadTx();
+}
+function resetTxForm(){
+  txEditId=null;
+  $('tx-save-btn').textContent='Log Transaction';
+  $('tx-cancel-edit-btn').style.display='none';
+  const txWithEnd=((ccust?.transactions)||[])
+    .filter(t=>t.end_serial_no!==null&&t.end_serial_no!==undefined&&t.end_serial_no!=='')
+    .sort((a,b)=>new Date(b.order_date||b.created_at||0)-new Date(a.order_date||a.created_at||0))[0];
+  const nextStart=txWithEnd?parseInt(txWithEnd.end_serial_no,10):NaN;
+  $('txd').value=new Date().toISOString().split('T')[0];
+  $('txp').value='';$('txq').value='';$('txa').value='';
+  $('txsup').value='Holostik';$('txst').value='Outstanding';
+  $('txsn-start').value=Number.isFinite(nextStart)?(nextStart+1):'';
+  $('txsn-end').value='';
+  updateSerialQtyLabel();
+}
+function editTx(txId){
+  const tx=(ccust?.transactions||[]).find(t=>String(t.id)===String(txId));if(!tx)return;
+  txEditId=tx.id;
+  $('tx-save-btn').textContent='Update Transaction';
+  $('tx-cancel-edit-btn').style.display='inline-block';
+  $('txd').value=tx.order_date||new Date().toISOString().split('T')[0];
+  $('txp').value=tx.product||'';
+  $('txq').value=tx.quantity||'';
+  $('txa').value=tx.amount||'';
+  $('txsup').value=tx.supplier||'Holostik';
+  $('txst').value=tx.payment_status||'Outstanding';
+  $('txsn-start').value=(tx.start_serial_no??'');
+  $('txsn-end').value=(tx.end_serial_no??'');
+  updateSerialQtyLabel();
+}
 function loadTx(){
   const tx=ccust.transactions||[];setTB('tb-t',tx.length);
   $('txbody').innerHTML=tx.sort((a,b)=>new Date(b.order_date)-new Date(a.order_date)).map(t=>`
-    <tr><td>${t.order_date||'—'}</td><td>${t.product||'—'}</td><td>${t.quantity||'—'}</td>
+    <tr><td>${t.order_date||'—'}</td><td>${t.product||'—'}${(t.start_serial_no!==null&&t.start_serial_no!==undefined&&t.end_serial_no!==null&&t.end_serial_no!==undefined)?`<div style="font-size:10px;color:#94a3b8;margin-top:2px">S/N: ${t.start_serial_no} - ${t.end_serial_no}</div>`:''}</td><td>${t.quantity||'—'}</td>
     <td style="font-weight:700">${t.amount?parseFloat(t.amount).toLocaleString():0}</td>
     <td style="color:#475569">${t.supplier||'—'}</td>
     <td style="display:flex;justify-content:space-between;align-items:center;color:${t.payment_status==='Received'?'#34d399':'#f59e0b'};font-weight:600">
       ${t.payment_status}
-      <button onclick="delTx('${t.id}')" class="text-rose-400 hover:text-rose-300 px-2 py-0.5 bg-rose-900/30 rounded border border-rose-700/50 text-[10px] transition-colors ml-2" title="Delete Transaction">✕</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button onclick="editTx('${t.id}')" class="text-gold-400 hover:text-gold-300 px-2 py-0.5 bg-gold-900/20 rounded border border-gold-700/40 text-[10px] transition-colors" title="Edit Transaction">✎</button>
+        <button onclick="delTx('${t.id}')" class="text-rose-400 hover:text-rose-300 px-2 py-0.5 bg-rose-900/30 rounded border border-rose-700/50 text-[10px] transition-colors" title="Delete Transaction">✕</button>
+      </div>
     </td></tr>
   `).join('')||'<tr><td colspan="6" style="color:#334155;padding:14px 0;text-align:center">No transactions.</td></tr>';
 }
@@ -1214,15 +1656,30 @@ async function delTx(txId){
   if(!confirm('Delete this transaction permanently?'))return;
   await sb.from('transactions').delete().eq('id',txId);
   toast('✓ Transaction deleted');
+  if(String(txEditId)===String(txId))resetTxForm();
+  await refreshTxForModal();
   loadData();
-  setTimeout(()=>{ccust=custs.find(x=>x.id===cid);loadTx();},650);
 }
 async function addTx(){
   const a=parseFloat($('txa').value)||0;if(!a){toast('Amount required','warn');return;}
-  await sb.from('transactions').insert([{customer_id:cid,order_date:$('txd').value,product:$('txp').value,
-    quantity:parseFloat($('txq').value)||null,amount:a,supplier:$('txsup').value,payment_status:$('txst').value}]);
-  ['txp','txq','txa'].forEach(i=>$(i).value='');
-  toast('✓ Transaction logged');loadData();setTimeout(()=>{ccust=custs.find(x=>x.id===cid);loadTx();},650);
+  const s=$('txsn-start').value.trim()===''?null:parseInt($('txsn-start').value,10);
+  const e=$('txsn-end').value.trim()===''?null:parseInt($('txsn-end').value,10);
+  if((s!==null&&e===null)||(s===null&&e!==null)){toast('Enter both Start S/N and End S/N','warn');return;}
+  if(s!==null&&e!==null&&e<s){toast('End S/N cannot be lower than Start S/N','warn');return;}
+  const serialQty=(s!==null&&e!==null)?((e-s)+1):null;
+  const qtyVal=serialQty!==null?serialQty:(parseFloat($('txq').value)||null);
+  const payload={customer_id:cid,order_date:$('txd').value,product:$('txp').value,
+    quantity:qtyVal,amount:a,supplier:$('txsup').value,payment_status:$('txst').value,start_serial_no:s,end_serial_no:e};
+  if(txEditId){
+    await sb.from('transactions').update(payload).eq('id',txEditId);
+    toast('✓ Transaction updated','info');
+  }else{
+    await sb.from('transactions').insert([payload]);
+    toast('✓ Transaction logged');
+  }
+  await refreshTxForModal();
+  loadData();
+  resetTxForm();
 }
 
 // ════════════════════════════════════════
@@ -1324,15 +1781,52 @@ function loadHistory(){
 // ════════════════════════════════════════
 // VAULT
 // ════════════════════════════════════════
+function updateVaultPreview(url){
+  const img=$('vault-preview-img'),ph=$('vault-no-image');
+  if(url){
+    img.src=url;img.style.display='block';ph.style.display='none';
+  }else{
+    img.src='';img.style.display='none';ph.style.display='block';
+  }
+}
+function updateVaultSeal(){
+  const verified=$('vault-status').value==='Final Verified';
+  $('vault-seal').style.display=verified?'flex':'none';
+}
+function onVaultStatusChange(){
+  if($('vault-status').value==='Final Verified'&&!$('vault-ts').value){
+    const nowIso=new Date().toISOString();
+    $('vault-ts').value=new Date(nowIso).toLocaleString();
+    $('vault-ts').dataset.iso=nowIso;
+  }
+  if($('vault-status').value!=='Final Verified'){
+    $('vault-ts').value='';
+    $('vault-ts').dataset.iso='';
+  }
+  updateVaultSeal();
+}
 async function uploadVault(e){
   const f=e.target.files[0];if(!f)return;toast('Uploading…','info');
-  const{error}=await sb.storage.from('diamond-vault').upload(`${cid}/${Date.now()}_${f.name}`,f);
+  const path=`${cid}/${Date.now()}_${f.name}`;
+  const{error}=await sb.storage.from('diamond-vault').upload(path,f);
   if(error){toast('Upload failed','warn');return;}
+  const publicUrl=sb.storage.from('diamond-vault').getPublicUrl(path).data.publicUrl;
+  updateVaultPreview(publicUrl);
+  if(ccust)ccust.vault_preview_url=publicUrl;
   toast('✓ Saved to Vault');loadVault();
 }
 async function loadVault(){
   const{data}=await sb.storage.from('diamond-vault').list(cid.toString());
   const files=(data||[]).filter(f=>!f.name.startsWith('.'));setTB('tb-v',files.length);
+  const imgFiles=files.filter(f=>/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(f.name)).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+  if(imgFiles.length){
+    const purl=sb.storage.from('diamond-vault').getPublicUrl(`${cid}/${imgFiles[0].name}`).data.publicUrl;
+    updateVaultPreview(purl);
+    if(ccust)ccust.vault_preview_url=purl;
+  }else{
+    updateVaultPreview(ccust?.vault_preview_url||null);
+  }
+  updateVaultSeal();
   if(!files.length){$('vlist').innerHTML='<div style="color:#334155;text-align:center;padding:12px;font-size:12px">Vault is empty.</div>';return;}
   $('vlist').innerHTML=files.map(f=>{
     const url=sb.storage.from('diamond-vault').getPublicUrl(`${cid}/${f.name}`).data.publicUrl;
@@ -1411,7 +1905,7 @@ async function genEmail(){
   const from=$('senderName').value,to=$('recipientName').value,extra=$('customInstructions').value;
   const out=$('ai-email-out');
   if(!from||!to){toast('Enter From and To names','warn');return;}
-  out.style.fontStyle='normal';out.style.color='#475569';
+  out.className='mt-3 text-xs text-slate-400 min-h-[60px]';
   out.innerHTML='<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Drafting…</span></div>';
   const prompt=`You are a Senior Security Printing Consultant. Draft a professional email.
 SENDER: ${from}
@@ -1425,9 +1919,12 @@ NOTES: ${ccust?.notes||'None'}
 Include Subject Line at top. Under 150 words. Sign: "The Diamond International Lanka Team"`;
   try{
     const resp=await callGemini(prompt);
-    out.style.color='#e2e8f0';out.style.fontStyle='normal';out.textContent=resp;
+    renderAIResponse(out,resp,true);
     $('copy-btn').style.display='block';
-  }catch{out.style.color='#475569';out.style.fontStyle='italic';out.textContent='⚠ AI is resting.';}
+  }catch{
+    out.className='mt-3 text-xs text-slate-400 italic min-h-[60px]';
+    out.textContent='⚠ AI is resting.';
+  }
 }
 function copyEmail(){navigator.clipboard.writeText($('ai-email-out').textContent).then(()=>toast('📋 Email copied','info'));}
 
@@ -1437,14 +1934,24 @@ function copyEmail(){navigator.clipboard.writeText($('ai-email-out').textContent
 async function runAIDiscovery(){
   const query=$('aiSearchInput').value.trim();const status=$('aiSearchStatus');
   if(!query){toast('Enter a search query','warn');return;}
+  status.className='mt-2 text-[10px] text-slate-500';
   status.textContent='✨ Scanning database…';
   const summary=custs.map(c=>({id:String(c.id),name:c.name,status:c.status,product:c.product||''}));
   const prompt=`You are a Database Analyst. USER QUERY: "${query}". DATABASE: ${JSON.stringify(summary)}. Return ONLY a comma-separated list of matching customer IDs (numbers only). If no match, return NONE.`;
   try{
     const result=await callGemini(prompt);
-    if(result.includes('NONE')||!result.trim()){status.textContent='No customers matched.';applyAIFilter([]);}
-    else{const ids=result.split(',').map(x=>x.trim()).filter(Boolean);applyAIFilter(ids);status.textContent=`Found ${ids.length} match${ids.length!==1?'es':''}!`;}
-  }catch{status.textContent='AI search failed.';}
+    if(result.includes('NONE')||!result.trim()){
+      applyAIFilter([]);
+      renderAIResponse(status,'**No customers matched** your search query.',true);
+    }else{
+      const ids=result.split(',').map(x=>x.trim()).filter(Boolean);
+      applyAIFilter(ids);
+      renderAIResponse(status,`### Scan Complete\n- Found **${ids.length}** match${ids.length!==1?'es':''}.\n- Results are now highlighted in the table.`,true);
+    }
+  }catch{
+    status.className='mt-2 text-[10px] text-rose-400';
+    status.textContent='AI search failed.';
+  }
 }
 function applyAIFilter(ids){
   document.querySelectorAll('#tbody tr').forEach(row=>{
@@ -1459,17 +1966,23 @@ function applyAIFilter(ids){
 async function huntLeads(){
   const query=$('prospectQuery').value.trim();const results=$('prospectResults');
   if(!query){toast('Enter a search term','warn');return;}
-  results.innerHTML='<span style="color:#475569;font-size:11px">✨ Scouting market opportunities…</span>';
+  results.className='mt-3 text-[11px] text-slate-500';
+  results.innerHTML='<div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Scouting market opportunities…</span></div>';
   const prompt=`Act as a B2B Sales Scout for a Security Printing company in Sri Lanka. Find 3 REAL potential client organisations for: "${query}". For each: 1. Name, 2. Why they need security printing, 3. One-sentence pitch. Format as HTML list items (<li>) only.`;
   try{
     const resp=await callGemini(prompt);
-    results.innerHTML=`<ul style="padding-left:14px;margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.7">${resp}</ul>`;
-  }catch{results.innerHTML='<span style="color:#ef4444;font-size:11px">Connection error.</span>';}
+    renderAIResponse(results,resp,true);
+  }catch{
+    results.className='mt-3 text-[11px] text-rose-400';
+    results.textContent='Connection error.';
+  }
 }
 
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
+initExecutiveDashboardCollapse();
+initTableDensity();
 checkAuth();
 // ════════════════════════════════════════
 // DASHBOARD SYNC
