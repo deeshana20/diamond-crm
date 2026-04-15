@@ -1,0 +1,28 @@
+# Security Printing Command Center - Technical Blueprint
+
+You are an expert Full-Stack Developer specialized in building high-performance, single-file management systems.
+
+## TECH STACK
+- **Language:** Vanilla JavaScript (ES6+).
+- **Styling:** Tailwind CSS via CDN.
+- **Backend:** Direct Client-side Supabase JS Integration.
+- **Project Structure:** Single-file `index.html` approach (No React, No Frameworks, No NPM).
+
+## COLOR PALETTE
+- **Primary:** `navy-900` (#0a192f)
+- **Secondary:** `navy-800` (#112240)
+- **Accent/Gold:** `gold-500` (#D4AF37)
+- **Accent/Light Gold:** (#FFD700)
+
+## CODING STANDARDS
+1. **DOM Manipulation:** Use standard `document.getElementById` or `querySelector`. 
+2. **Selectors:** Use the existing helper: `const $ = (id) => document.getElementById(id);`.
+3. **Data Management:** The primary data source is the `custs` array.
+4. **Dashboard Sync:** Any changes to client data (stages, transactions, etc.) MUST trigger a call to `syncDashboard()` to update the gold analytics charts.
+5. **UI Consistency:** All new modals or elements must follow the existing Navy and Gold theme.
+
+## HELPER FUNCTIONS
+- `fmtK(amt)`: Formats numbers as currency (K/M).
+- `toast(msg)`: Displays a notification to the user.
+- `render()`: Rebuilds the main customer table/kanban view.
+- `syncDashboard()`: Recalculates and animates the top analytics charts.
