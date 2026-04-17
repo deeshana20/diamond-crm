@@ -10,11 +10,21 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script>
-tailwind.config={theme:{extend:{colors:{
-  navy:{'900':'#0a192f','800':'#112240','700':'#1d3461','600':'#264573'},
-  gold:{'500':'#d4af37','400':'#e5c158','300':'#f0d77a'},
-  emerald:{'500':'#10b981','400':'#34d399'}
-},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}
+tailwind.config={
+  darkMode: 'class',
+  theme:{
+    extend:{
+      colors:{
+        navy:{'900':'#0a192f','800':'#112240','700':'#1d3461','600':'#264573'},
+        gold:{'500':'#d4af37','400':'#e5c158','300':'#f0d77a'},
+        emerald:{'500':'#10b981','400':'#34d399'},
+        charcoal:{'900':'#121212','800':'#1a1a1a'},
+        bronze:{'500':'#cd7f32','400':'#d9a066'}
+      },
+      fontFamily:{sans:['Inter','system-ui','sans-serif']}
+    }
+  }
+}
 </script>
 <style>
 body{font-family:'Inter',system-ui,sans-serif;background-color:#0a192f}
@@ -75,7 +85,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.7)}
 @keyframes fdu{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
 /* FORM FIELDS IN MODAL */
-.mfi{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#e2e8f0;padding:9px 12px;font-size:13px;outline:none;font-family:inherit;color-scheme:dark;transition:border-color .2s;margin-bottom:0}
+.mfi{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#e2e8f0;padding:9px 12px;font-size:16px;outline:none;font-family:inherit;color-scheme:dark;transition:border-color .2s;margin-bottom:0}
+.dark .mfi { background: rgba(0,0,0,.2); border-color: rgba(255,255,255,.05); color: #f4f4f5; }
 .mfi:focus{border-color:#d4af37}
 textarea.mfi{resize:vertical}
 .mfield{margin-bottom:13px}
@@ -371,7 +382,17 @@ textarea.mfi{resize:vertical}
   }
 </style>
 </head>
-<body class="min-h-screen text-slate-300">
+<body class="min-h-screen text-slate-700 dark:text-zinc-100 bg-slate-50 dark:bg-charcoal-900 transition-colors duration-300">
+
+<script>
+  // Immediate theme application to prevent flash
+  (function() {
+    const theme = localStorage.getItem('crmTheme') || 'light';
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+</script>
 
 <!-- ══════════════════════ AUTH ══════════════════════ -->
 <div id="scr-auth" class="scr">
@@ -476,92 +497,99 @@ textarea.mfi{resize:vertical}
   </aside>
 
   <!-- MAIN CONTENT WRAPPER -->
-  <div class="main-content flex-1 min-h-screen flex flex-col bg-navy-900 overflow-x-hidden" id="main-content">
+  <div class="main-content flex-1 min-h-screen flex flex-col bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 overflow-x-hidden" id="main-content">
     <!-- TOP BAR -->
-    <header class="border-b border-slate-700/50 bg-navy-800/80 backdrop-blur-sm sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+    <header class="border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-charcoal-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <button onclick="toggleMobileSidebar()" class="p-2 text-slate-400 md:hidden">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-charcoal-800 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
         </button>
-        <button onclick="ss('scr-portal')" class="px-3 py-1.5 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">← Portal</button>
-        <div>
-          <p class="text-[10px] font-semibold tracking-widest text-slate-500 uppercase">Security Printing & Imports — Command Center</p>
-          <h1 class="text-base font-semibold text-white">Diamond International Lanka</h1>
+        <button onclick="ss('scr-portal')" class="hidden sm:flex px-3 py-1.5 text-xs font-medium text-slate-500 dark:text-zinc-400 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-slate-100 dark:hover:bg-charcoal-800 transition-colors">← Portal</button>
+        <div class="hidden xs:block">
+          <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">SecureHub Command Center</p>
+          <h1 class="text-sm font-bold text-slate-900 dark:text-zinc-100">Diamond Intl Lanka</h1>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <button id="theme-toggle" onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center rounded border border-slate-600 text-slate-400 hover:bg-slate-700/50 text-sm">🌙</button>
-        <button onclick="openRiskReport()" class="px-3 py-1.5 text-xs font-medium bg-rose-900/50 text-rose-300 border border-rose-700/50 rounded hover:bg-rose-900/70 transition-colors flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></span>AI Risk Report
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" onclick="toggleTheme()" class="hidden md:flex w-10 h-10 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-charcoal-800 transition-colors">🌙</button>
+        <button onclick="openRiskReport()" class="px-3 py-1.5 text-xs font-bold bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-lg hover:shadow-sm transition-all flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span><span class="hidden sm:inline">AI Risk</span>
         </button>
-        <button onclick="exportCSV()" class="px-3 py-1.5 text-xs font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-700/50 rounded hover:bg-emerald-900/50 transition-colors">📥 CSV</button>
-        <button onclick="openAdd()" class="px-4 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors">+ New Record</button>
+        <button onclick="exportCSV()" class="hidden sm:flex px-3 py-1.5 text-xs font-bold bg-slate-50 dark:bg-charcoal-800 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-white/10 rounded-lg hover:shadow-sm transition-all">📥 Export</button>
+        <button onclick="openAdd()" class="px-4 py-1.5 text-xs font-bold bg-gold-500 dark:bg-bronze-500 text-white dark:text-zinc-950 rounded-lg hover:shadow-lg transition-all active:scale-95">+ New</button>
       </div>
     </header>
 
     <main class="p-6">
       <section id="dashboard-view">
         <!-- INTEL ALERT CARDS -->
-        <div class="grid grid-cols-3 gap-4 mb-6">
-          <div onclick="qf('stale')" class="kpi-alert border-t-amber-500 rounded-lg p-4 cursor-pointer hover:opacity-90 transition-opacity">
-            <div class="w-8 h-8 rounded bg-amber-500/10 flex items-center justify-center mb-3">
-              <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div onclick="qf('stale')" class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer border-t-4 border-t-amber-500">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </div>
+              <span class="text-[10px] font-bold text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-md uppercase tracking-widest">Alert</span>
             </div>
-            <p id="ic-stale" class="text-3xl font-bold text-amber-500">—</p>
-            <p class="text-[10px] font-semibold tracking-wider text-amber-500/80 uppercase mt-1">Stale Accounts</p>
-            <p class="text-xs text-slate-500 mt-1">No contact in 7+ days · click to filter</p>
+            <p id="ic-stale" class="text-3xl font-bold text-slate-900 dark:text-zinc-100">—</p>
+            <p class="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-1">Stale Accounts</p>
+            <p class="text-[10px] text-slate-400 mt-1">No contact in 7+ days</p>
           </div>
-          <div onclick="qf('eta')" class="kpi-alert border-t-sky-500 rounded-lg p-4 cursor-pointer hover:opacity-90 transition-opacity">
-            <div class="w-8 h-8 rounded bg-sky-500/10 flex items-center justify-center mb-3">
-              <svg class="w-4 h-4 text-sky-400" fill="currentColor" viewBox="0 0 20 20"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h3.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-4a1 1 0 00-.293-.707l-3-3A1 1 0 0016 5h-2V4a1 1 0 00-1-1H3zm11 3h1.586l2 2H14V7z"/></svg>
+          <div onclick="qf('eta')" class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer border-t-4 border-t-sky-500">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <span class="text-[10px] font-bold text-sky-500 bg-sky-50 dark:bg-sky-950/30 px-2 py-1 rounded-md uppercase tracking-widest">Tracking</span>
             </div>
-            <p id="ic-ship" class="text-3xl font-bold text-sky-400">—</p>
-            <p class="text-[10px] font-semibold tracking-wider text-sky-400/80 uppercase mt-1">Active Shipments</p>
-            <p class="text-xs text-slate-500 mt-1">ETA within 5 days · click to filter</p>
+            <p id="ic-ship" class="text-3xl font-bold text-slate-900 dark:text-zinc-100">—</p>
+            <p class="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-1">Active Shipments</p>
+            <p class="text-[10px] text-slate-400 mt-1">ETA within 5 days</p>
           </div>
-          <div class="kpi-alert border-t-rose-500 rounded-lg p-4">
-            <div class="w-8 h-8 rounded bg-rose-500/10 flex items-center justify-center mb-3">
-              <svg class="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/></svg>
+          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm border-t-4 border-t-rose-500 sm:col-span-2 lg:col-span-1">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <span class="text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/30 px-2 py-1 rounded-md uppercase tracking-widest">Financial</span>
             </div>
-            <p id="ic-risk" class="text-3xl font-bold text-rose-500">—</p>
-            <p class="text-[10px] font-semibold tracking-wider text-rose-500/80 uppercase mt-1">Financial Exposure</p>
-            <p class="text-xs text-slate-500 mt-1">Total outstanding balance</p>
+            <p id="ic-risk" class="text-3xl font-bold text-slate-900 dark:text-zinc-100">—</p>
+            <p class="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-1">Total Outstanding</p>
+            <p class="text-[10px] text-slate-400 mt-1">Across all active accounts</p>
           </div>
         </div>
 
         <!-- KPI DATE FILTER -->
         <div class="flex items-center gap-3 mb-5 flex-wrap">
-          <span class="text-xs text-slate-500">Filter KPIs:</span>
-          <input id="kpi-from" type="date" class="px-3 py-1.5 text-xs bg-navy-800 border border-slate-600 rounded text-slate-300 focus:border-gold-500 focus:outline-none"/>
-          <span class="text-xs text-slate-500">to</span>
-          <input id="kpi-to" type="date" class="px-3 py-1.5 text-xs bg-navy-800 border border-slate-600 rounded text-slate-300 focus:border-gold-500 focus:outline-none"/>
-          <button onclick="applyKPIDateFilter()" class="px-3 py-1.5 text-xs font-medium bg-slate-700 text-slate-300 rounded hover:bg-slate-600 transition-colors">Apply</button>
-          <button onclick="clearKPIDateFilter()" class="px-3 py-1.5 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">Clear</button>
+          <span class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Filter KPIs:</span>
+          <input id="kpi-from" type="date" class="px-3 py-1.5 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 focus:border-gold-500 focus:outline-none transition-colors shadow-sm"/>
+          <span class="text-xs text-slate-500 dark:text-zinc-400 font-medium">to</span>
+          <input id="kpi-to" type="date" class="px-3 py-1.5 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 focus:border-gold-500 focus:outline-none transition-colors shadow-sm"/>
+          <button onclick="applyKPIDateFilter()" class="px-4 py-2 text-xs font-bold bg-slate-100 dark:bg-charcoal-700 text-slate-600 dark:text-zinc-300 rounded-lg hover:shadow-sm transition-all active:scale-95">Apply</button>
+          <button onclick="clearKPIDateFilter()" class="px-4 py-2 text-xs font-bold text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 transition-colors">Clear</button>
         </div>
 
         <!-- REVENUE KPIs -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
-          <div class="bg-navy-800 border border-slate-700 rounded-lg p-4">
-            <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">This Month</p>
-            <p id="kc-m" class="text-2xl font-bold text-white mt-1">—</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
+            <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">This Month</p>
+            <p id="kc-m" class="text-xl font-bold text-slate-900 dark:text-zinc-100 mt-1">—</p>
           </div>
-          <div class="bg-navy-800 border border-slate-700 rounded-lg p-4">
-            <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">This Quarter</p>
-            <p id="kc-q" class="text-2xl font-bold text-white mt-1">—</p>
+          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
+            <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">This Quarter</p>
+            <p id="kc-q" class="text-xl font-bold text-slate-900 dark:text-zinc-100 mt-1">—</p>
           </div>
-          <div class="bg-navy-800 border border-slate-700 rounded-lg p-4">
-            <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">YTD 2026</p>
-            <p id="kc-y" class="text-2xl font-bold text-white mt-1">—</p>
+          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
+            <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">YTD 2026</p>
+            <p id="kc-y" class="text-xl font-bold text-slate-900 dark:text-zinc-100 mt-1">—</p>
           </div>
-          <div class="bg-navy-800 border border-rose-700/30 rounded-lg p-4">
-            <p class="text-[10px] font-semibold tracking-wider text-rose-400 uppercase">Outstanding</p>
-            <p id="kc-o" class="text-2xl font-bold text-rose-400 mt-1">—</p>
+          <div class="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-xl p-4 shadow-sm">
+            <p class="text-[9px] font-bold tracking-widest text-rose-400 dark:text-rose-500 uppercase">Outstanding</p>
+            <p id="kc-o" class="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">—</p>
           </div>
-          <div class="bg-navy-800 border border-gold-500/30 rounded-lg p-4">
-            <p class="text-[10px] font-semibold tracking-wider text-gold-400 uppercase">Year-End Forecast</p>
-            <p id="kc-fcst" class="text-2xl font-bold text-gold-light mt-1">—</p>
-            <div id="kc-ftrend" class="mt-2 text-xs font-semibold text-emerald-400 flex items-center gap-1">—</div>
-            <p id="kc-fconf" class="text-[10px] text-slate-500 mt-1">Confidence: —</p>
+          <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-4 shadow-sm">
+            <p class="text-[9px] font-bold tracking-widest text-emerald-400 dark:text-emerald-500 uppercase">Paid Total</p>
+            <p id="kc-p" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">—</p>
           </div>
         </div>
 
@@ -859,15 +887,15 @@ textarea.mfi{resize:vertical}
     </div>
 
     <!-- BULK TOOLBAR -->
-    <div id="bulk-toolbar" class="bg-navy-800 border border-slate-700 rounded-lg px-4 py-3 mb-4">
+    <div id="bulk-toolbar" class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 mb-4 shadow-sm">
       <div class="flex items-center gap-3 flex-wrap">
-        <span class="text-xs text-slate-400">Selected: <strong id="bulk-count" class="text-white">0</strong></span>
-        <select id="bulk-status" class="px-3 py-1.5 text-xs bg-navy-900 border border-slate-600 rounded text-slate-300 focus:border-gold-500 focus:outline-none">
+        <span class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Selected: <strong id="bulk-count" class="text-slate-900 dark:text-zinc-100 font-bold">0</strong></span>
+        <select id="bulk-status" class="px-3 py-1.5 text-sm bg-slate-50 dark:bg-charcoal-900 border border-slate-200 dark:border-white/5 rounded-lg text-slate-700 dark:text-zinc-100 focus:border-gold-500 focus:outline-none transition-colors">
           <option>Inquiry</option><option>Quoted</option><option>PO Received</option>
           <option>Artwork Approval</option><option>Production (PI)</option>
         </select>
-        <button onclick="bulkUpdateStatus()" class="px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors">Update Status</button>
-        <button onclick="clearBulkSelection()" class="px-3 py-1.5 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">Clear</button>
+        <button onclick="bulkUpdateStatus()" class="px-4 py-2 text-xs font-bold bg-gold-500 dark:bg-bronze-500 text-white dark:text-zinc-950 rounded-lg hover:shadow-md transition-all active:scale-95">Update Status</button>
+        <button onclick="clearBulkSelection()" class="px-4 py-2 text-xs font-bold text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 transition-colors">Clear</button>
       </div>
     </div>
 
@@ -880,13 +908,13 @@ textarea.mfi{resize:vertical}
       <div class="flex items-center gap-2">
         <div class="relative">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input id="gsearch" type="text" placeholder="Search company, product..." oninput="updateClearButton();render()" class="w-72 pl-10 pr-4 py-2 text-sm bg-navy-800 border border-slate-600 rounded text-white placeholder-slate-500 focus:border-gold-500 focus:outline-none"/>
+          <input id="gsearch" type="text" placeholder="Search company, product..." oninput="updateClearButton();render()" class="w-72 pl-10 pr-4 py-2 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:border-gold-500 focus:outline-none transition-colors shadow-sm"/>
         </div>
-        <div class="flex items-center gap-1 bg-navy-800 p-1 rounded border border-slate-700">
-          <button id="density-compact" onclick="setTableDensity('compact')" class="px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors">Compact</button>
-          <button id="density-relaxed" onclick="setTableDensity('relaxed')" class="px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors">Relaxed</button>
+        <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-charcoal-800 p-1 rounded-lg border border-slate-200 dark:border-white/10">
+          <button id="density-compact" onclick="setTableDensity('compact')" class="px-3 py-1.5 text-xs font-medium text-slate-500 rounded hover:bg-white dark:hover:bg-charcoal-700 transition-colors">Compact</button>
+          <button id="density-relaxed" onclick="setTableDensity('relaxed')" class="px-3 py-1.5 text-xs font-medium text-slate-500 rounded hover:bg-white dark:hover:bg-charcoal-700 transition-colors">Relaxed</button>
         </div>
-        <select id="product-filter" onchange="onProductFilterChange()" class="px-3 py-2 text-sm bg-navy-800 border border-slate-600 rounded text-white focus:border-gold-500 focus:outline-none">
+        <select id="product-filter" onchange="onProductFilterChange()" class="px-3 py-2 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 focus:border-gold-500 focus:outline-none transition-colors shadow-sm">
           <option value="all">All Products</option>
           <option value="holograms">Holograms</option>
           <option value="certificates">Certificates</option>
@@ -898,11 +926,11 @@ textarea.mfi{resize:vertical}
 
     <!-- TABLE VIEW -->
     <div id="vw-t">
-      <div class="bg-navy-800 border border-slate-700 rounded-lg overflow-hidden overflow-x-auto">
+      <div class="hidden md:block bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
         <table class="w-full text-sm min-w-[980px] border-separate border-spacing-y-2">
           <thead>
-            <tr class="bg-navy-900/30">
-              <th class="w-10 px-4 py-3 text-left"><input type="checkbox" onclick="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-slate-600 bg-navy-800"/></th>
+            <tr class="bg-slate-50 dark:bg-charcoal-900">
+              <th class="w-10 px-4 py-3 text-left"><input type="checkbox" onclick="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-navy-800"/></th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Company / Product</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Stage</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Contact</th>
@@ -914,6 +942,11 @@ textarea.mfi{resize:vertical}
           </thead>
           <tbody id="tbody"></tbody>
         </table>
+      </div>
+      
+      <!-- MOBILE CARDS VIEW -->
+      <div id="mobile-cards" class="md:hidden flex flex-col gap-4">
+        <!-- Cards will be rendered here by JS -->
       </div>
       <div id="table-empty-state" style="display:none" class="bg-navy-800 border border-slate-700 rounded-lg mt-0 p-10 text-center">
         <div class="w-14 h-14 rounded-full bg-gold-500/10 border border-gold-500/30 mx-auto flex items-center justify-center mb-4">
@@ -1030,8 +1063,8 @@ textarea.mfi{resize:vertical}
       <input id="txd" type="date" class="mfi"/><input id="txp" class="mfi" placeholder="Product"/>
       <input id="txq" type="number" class="mfi" placeholder="Qty"/>
       <input id="txa" type="number" class="mfi" placeholder="Amount (Rs.)"/>
-      <input id="txsn-start" type="number" class="mfi" placeholder="Start S/N (Required for validation)" oninput="updateSerialQtyLabel()"/>
-      <input id="txsn-end" type="number" class="mfi" placeholder="End S/N (Required for validation)" oninput="updateSerialQtyLabel()"/>
+      <input id="txsn-start" type="number" inputmode="numeric" class="mfi" placeholder="Start S/N (Required for validation)" oninput="updateSerialQtyLabel()"/>
+      <input id="txsn-end" type="number" inputmode="numeric" class="mfi" placeholder="End S/N (Required for validation)" oninput="updateSerialQtyLabel()"/>
       <select id="txsup" class="mfi"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select>
       <select id="txst" class="mfi"><option>Outstanding</option><option>Received</option></select>
     </div>
@@ -1144,14 +1177,14 @@ textarea.mfi{resize:vertical}
 
 <!-- ══════════════════════ ADD MODAL ══════════════════════ -->
 <div class="modal-ovl" id="addmod" style="display:none">
-<div class="bg-navy-800 border border-slate-700 rounded-2xl w-full max-w-md p-6 m-auto shadow-2xl">
+<div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md p-6 m-auto shadow-2xl mx-4">
   <div class="flex justify-between items-center mb-5">
-    <h3 class="text-lg font-bold text-white">New Record</h3>
-    <button onclick="closeAdd()" class="text-slate-400 hover:text-white text-xl">✕</button>
+    <h3 class="text-lg font-bold text-slate-900 dark:text-zinc-100">New Record</h3>
+    <button onclick="closeAdd()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition-colors">✕</button>
   </div>
-  <div class="mfield"><label class="block text-[9px] font-bold tracking-wider text-slate-500 uppercase mb-1">Company Name *</label><input id="an" class="mfi"/></div>
-  <div class="mfield"><label class="block text-[9px] font-bold tracking-wider text-slate-500 uppercase mb-1">Product</label><input id="aprod" class="mfi" placeholder="e.g. Holo, Cert, Sticker"/></div>
-  <button onclick="confirmAdd()" class="w-full py-2.5 text-sm font-bold bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-400 transition-colors mt-2">Create Record</button>
+  <div class="mfield"><label class="block text-[10px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase mb-2">Company Name *</label><input id="an" class="mfi" placeholder="e.g. Acme Corp"/></div>
+  <div class="mfield"><label class="block text-[10px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase mb-2">Product</label><input id="aprod" class="mfi" placeholder="e.g. Holo, Cert, Sticker"/></div>
+  <button onclick="confirmAdd()" class="w-full h-[48px] text-sm font-bold bg-gold-500 dark:bg-bronze-500 text-white dark:text-zinc-950 rounded-xl hover:shadow-lg transition-all active:scale-95 mt-4">Create Record</button>
 </div>
 </div>
 
@@ -1174,6 +1207,63 @@ textarea.mfi{resize:vertical}
 
 <div id="toast"></div>
 
+<!-- ══════════════════════ MOBILE BOTTOM NAV ══════════════════════ -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-white/80 dark:bg-charcoal-900/80 backdrop-blur-md border-t border-slate-200 dark:border-white/10 px-6 py-3 flex justify-between items-center safe-area-inset-bottom">
+  <button onclick="ss('scr-portal')" class="flex flex-col items-center gap-1 text-slate-500 dark:text-zinc-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    <span class="text-[10px] font-medium uppercase tracking-widest">Home</span>
+  </button>
+  <button onclick="openAdd()" class="relative -top-6 w-14 h-14 bg-gold-500 dark:bg-bronze-500 text-navy-900 dark:text-zinc-950 rounded-full flex items-center justify-center shadow-lg border-4 border-slate-50 dark:border-charcoal-900 transition-transform active:scale-95">
+    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+  </button>
+  <button id="theme-toggle-mobile" onclick="toggleTheme()" class="flex flex-col items-center gap-1 text-slate-500 dark:text-zinc-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">
+    <svg id="theme-icon-mobile" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    <span class="text-[10px] font-medium uppercase tracking-widest">Theme</span>
+  </button>
+</nav>
+
+<style>
+  /* Safe area padding for iPhone 13 / notched devices */
+  .safe-area-inset-bottom {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  
+  /* Dark Mode Overrides */
+  .dark .glass-card {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(18, 18, 18, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .dark .kpi-alert {
+    background: linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Mobile First Adjustments */
+  @media (max-width: 768px) {
+    .main-content {
+      padding-bottom: 5rem; /* Space for bottom nav */
+    }
+    
+    button, .btn {
+      min-height: 44px !important;
+    }
+    
+    input, select, textarea {
+      font-size: 16px !important; /* Prevent iOS auto-zoom */
+    }
+    
+    .kboard {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .kcol {
+      width: 100%;
+    }
+  }
+</style>
+
 <script>
 // ════════════════════════════════════════
 // CONFIG
@@ -1190,11 +1280,11 @@ let userName = "Admin User"; // Default name, can be updated from auth
 let custs=[], cid=null, ccust=null, vmode='table', qfilt=null, productFilter='all', tableDensity='relaxed', awFile=null, kpiDateFilter=null, bulkSelected=new Set(), emailTone='formal', txEditId=null;
 
 const SC={
-  'Inquiry':         {bg:'rgba(100,116,139,.2)', color:'#94a3b8',border:'rgba(100,116,139,.4)'},
-  'Quoted':          {bg:'rgba(180,83,9,.2)',    color:'#f59e0b',border:'rgba(180,83,9,.4)'},
-  'PO Received':     {bg:'rgba(30,58,138,.25)',  color:'#60a5fa',border:'rgba(30,58,138,.45)'},
-  'Artwork Approval':{bg:'rgba(76,29,149,.25)',  color:'#a78bfa',border:'rgba(76,29,149,.45)'},
-  'Production (PI)': {bg:'rgba(6,78,59,.25)',    color:'#34d399',border:'rgba(6,78,59,.45)'},
+  'Inquiry':         {bg:'rgba(100,116,139,.2)', color:'#94a3b8', border:'rgba(100,116,139,.4)', darkColor:'#cbd5e1'},
+  'Quoted':          {bg:'rgba(180,83,9,.2)',    color:'#f59e0b', border:'rgba(180,83,9,.4)',  darkColor:'#fbbf24'},
+  'PO Received':     {bg:'rgba(30,58,138,.25)',  color:'#60a5fa', border:'rgba(30,58,138,.45)', darkColor:'#93c5fd'},
+  'Artwork Approval':{bg:'rgba(76,29,149,.25)',  color:'#a78bfa', border:'rgba(76,29,149,.45)', darkColor:'#c4b5fd'},
+  'Production (PI)': {bg:'rgba(6,78,59,.25)',    color:'#34d399', border:'rgba(6,78,59,.45)', darkColor:'#6ee7b7'},
 };
 const STAGES=['Inquiry','Quoted','PO Received','Artwork Approval','Production (PI)'];
 const SLBLS =['Inquiry','Quoted','PO Recd','Artwork','Production'];
@@ -1210,7 +1300,12 @@ function fmtM(v){return`Rs.${(v/1e6).toFixed(2)}M`;}
 function fmtK(v){if(v>=1e6)return`Rs.${(v/1e6).toFixed(1)}M`;if(v>=1e3)return`Rs.${Math.round(v/1e3)}K`;return`Rs.${Math.round(v).toLocaleString()}`;}
 function ddiff(ds){if(!ds)return null;const d=new Date(ds),t=new Date();if(isNaN(d))return null;t.setHours(0,0,0,0);d.setHours(0,0,0,0);return Math.floor((d-t)/864e5);}
 function dsince(ds){if(!ds)return null;const d=new Date(ds);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5);}
-function badge(s){const c=SC[s]||SC['Inquiry'];return`<span class="badge" style="background:${c.bg};color:${c.color};border-color:${c.border}">${s}</span>`;}
+function badge(s){
+  const c=SC[s]||SC['Inquiry'];
+  const isDark = document.documentElement.classList.contains('dark');
+  const color = isDark ? c.darkColor : c.color;
+  return`<span class="badge" style="background:${c.bg};color:${color};border-color:${c.border}">${s}</span>`;
+}
 function etaBadge(c){
   const logs=(c.logistics||[]).filter(l=>l.lc_status!=='Completed');
   if(!logs.length)return'<span class="text-slate-600 text-xs">—</span>';
@@ -1340,8 +1435,34 @@ function updateUserProfile() {
 }
 
 function toggleTheme(){
-  // Light mode toggle — kept for future; currently just shows dark
-  toast('Theme toggle coming soon','info');
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('crmTheme', isDark ? 'dark' : 'light');
+  
+  const btn = $('theme-toggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  
+  const mobileBtnIcon = $('theme-icon-mobile');
+  if (mobileBtnIcon) {
+    mobileBtnIcon.innerHTML = isDark 
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M4 12H3m15.364-6.364l-.707.707M6.364 17.636l-.707.707M6.364 6.364l-.707-.707m12.728 12.728l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+  }
+  
+  render(); // Re-render to update badge colors
+  toast(`Switched to ${isDark ? 'Dark Academia' : 'Navy Professional'} mode`, 'info');
+}
+
+// Update initial theme button state
+function initTheme() {
+  const theme = localStorage.getItem('crmTheme') || 'light';
+  const isDark = theme === 'dark';
+  const btn = $('theme-toggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  
+  const mobileBtnIcon = $('theme-icon-mobile');
+  if (mobileBtnIcon && isDark) {
+    mobileBtnIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M4 12H3m15.364-6.364l-.707.707M6.364 17.636l-.707.707M6.364 6.364l-.707-.707m12.728 12.728l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>';
+  }
 }
 
 // ════════════════════════════════════════
@@ -1631,42 +1752,77 @@ function renderTable(){
   const list=filt(custs);const q=$('gsearch').value;
   const compact=tableDensity==='compact';
   const rowPad=compact?'px-3 py-2':'px-4 py-3';
-  const nameClass=compact?'font-bold text-white text-[13px] leading-tight':'font-bold text-white text-sm leading-tight';
+  const nameClass=compact?'font-bold text-slate-900 dark:text-zinc-100 text-[13px] leading-tight':'font-bold text-slate-900 dark:text-zinc-100 text-sm leading-tight';
   const cityClass=compact?'text-[10px] text-slate-500 mt-0.5':'text-[11px] text-slate-500 mt-1';
   const productClass=compact?'text-[10px] text-slate-400 mt-0.5':'text-[11px] text-slate-400 mt-0.5';
-  const contactText=compact?'text-xs text-slate-300':'text-sm text-slate-300';
-  const nextActionText=compact?'text-[11px] text-slate-300':'text-xs text-slate-300';
+  const contactText=compact?'text-xs text-slate-600 dark:text-zinc-300':'text-sm text-slate-600 dark:text-zinc-300';
+  const nextActionText=compact?'text-[11px] text-slate-500 dark:text-zinc-400':'text-xs text-slate-500 dark:text-zinc-400';
+  
+  // Desktop Table Render
   $('tbody').innerHTML=list.map(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
     const city=c.city||c.location||c.address_city||c.region||'—';
     const s=SC[c.status]||SC['Inquiry'];
-    return`<tr class="group transition-colors duration-200 hover:bg-navy-700/50" data-id="${c.id}" onclick="openModal(${c.id})">
-      <td class="${rowPad} bg-navy-900/45 rounded-l-xl">
-        <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-slate-600 bg-navy-800"/>
+    const isDark = document.documentElement.classList.contains('dark');
+    const statusColor = isDark ? s.darkColor : s.color;
+    return`<tr class="group transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-charcoal-700" data-id="${c.id}" onclick="openModal(${c.id})">
+      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
+        <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-navy-800"/>
       </td>
-      <td class="${rowPad} bg-navy-900/45">
+      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
         <p class="${nameClass}">${hl(c.name,q)}</p>
         <p class="${cityClass}">${hl(city,q)}</p>
         <p class="${productClass}">${hl(c.product||'—',q)}</p>
       </td>
-      <td class="${rowPad} bg-navy-900/45">
-        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${s.color};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
+      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
       </td>
-      <td class="${rowPad} bg-navy-900/45 ${contactText}">${c.contact||'<span class="text-slate-600">—</span>'}</td>
-      <td class="${rowPad} bg-navy-900/45 ${nextActionText}">${c.next_action||'<span class="text-slate-600">—</span>'}</td>
-      <td class="${rowPad} bg-navy-900/45">${out>0?`<span class="text-rose-400 font-semibold ${compact?'text-xs':'text-sm'}">${fmtK(out)}</span>`:'<span class="text-slate-600">Clear</span>'}</td>
-      <td class="${rowPad} bg-navy-900/45">${etaBadge(c)}</td>
-      <td class="${rowPad} bg-navy-900/45 rounded-r-xl">
+      <td class="${rowPad} ${contactText} border-b border-slate-100 dark:border-white/5">${c.contact||'—'}</td>
+      <td class="${rowPad} ${nextActionText} border-b border-slate-100 dark:border-white/5">${c.next_action||'—'}</td>
+      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">${out>0?`<span class="text-rose-500 dark:text-rose-400 font-semibold ${compact?'text-xs':'text-sm'}">${fmtK(out)}</span>`:'<span class="text-emerald-500 dark:text-emerald-400 font-medium">Clear</span>'}</td>
+      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">${etaBadge(c)}</td>
+      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
         <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
-          <button onclick="openModal(${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-300 hover:bg-navy-700/70 transition-colors" title="View details">
+          <button onclick="openModal(${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z"/></svg>
-          </button>
-          <button onclick="cpbr(event,${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-300 hover:bg-navy-700/70 transition-colors" title="Copy bridge">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M8 16h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
           </button>
         </div>
       </td>
     </tr>`;
+  }).join('');
+  
+  // Mobile Cards Render
+  $('mobile-cards').innerHTML=list.map(c=>{
+    const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    const s=SC[c.status]||SC['Inquiry'];
+    const isDark = document.documentElement.classList.contains('dark');
+    const statusColor = isDark ? s.darkColor : s.color;
+    return `<div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm active:scale-[0.98] transition-transform" onclick="openModal(${c.id})">
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 dark:text-zinc-100">${hl(c.name,q)}</h3>
+          <p class="text-xs text-slate-500">${hl(c.product||'—',q)}</p>
+        </div>
+        <span class="px-2 py-1 rounded-full text-[10px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-4 text-xs mb-3">
+        <div>
+          <p class="text-slate-400 uppercase tracking-widest text-[9px] font-bold mb-1">Contact</p>
+          <p class="text-slate-700 dark:text-zinc-300 font-medium">${c.contact||'—'}</p>
+        </div>
+        <div>
+          <p class="text-slate-400 uppercase tracking-widest text-[9px] font-bold mb-1">Outstanding</p>
+          <p class="${out>0?'text-rose-500':'text-emerald-500'} font-bold">${out>0?fmtK(out):'Clear'}</p>
+        </div>
+      </div>
+      <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
+        <div class="flex items-center gap-2">
+          <p class="text-[10px] text-slate-400 font-medium">ETA:</p>
+          ${etaBadge(c)}
+        </div>
+        <p class="text-[10px] text-gold-500 dark:text-gold-400 font-bold uppercase tracking-wider">Tap to View →</p>
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -2194,6 +2350,7 @@ async function huntLeads(){
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
+initTheme();
 initExecutiveDashboardCollapse();
 initTableDensity();
 checkAuth();
