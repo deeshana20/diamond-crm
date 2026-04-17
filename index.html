@@ -27,7 +27,7 @@ tailwind.config={
 }
 </script>
 <style>
-body{font-family:'Inter',system-ui,sans-serif;background-color:#0a192f}
+body{font-family:'Inter',system-ui,sans-serif;background-color:#0a192f;color:#f8fafc}
 .glass-card{background:linear-gradient(135deg,rgba(17,34,64,.9) 0%,rgba(10,25,47,.95) 100%);backdrop-filter:blur(10px);border:1px solid rgba(212,175,55,.2)}
 .table-row-hover:hover{background-color:rgba(29,52,97,.5);cursor:pointer}
 .kpi-alert{background:linear-gradient(180deg,#112240 0%,#0a192f 100%);border-top:2px solid}
@@ -419,19 +419,19 @@ textarea.mfi{resize:vertical}
     <p class="text-xs tracking-widest text-slate-500 uppercase mb-2">Select Division</p>
     <h1 class="text-3xl font-bold text-white text-center mb-2">Where are you<br/>working today?</h1>
     <p class="text-sm text-slate-500 mb-10">Choose a business unit to continue</p>
-    <div class="grid grid-cols-3 gap-5 max-w-3xl w-full">
-      <div onclick="openModule()" class="glass-card rounded-xl p-6 cursor-pointer hover:-translate-y-1 transition-all hover:border-gold-500/50">
+    <div class="flex flex-col md:flex-row items-stretch justify-center gap-5 max-w-4xl w-full">
+      <div onclick="openModule()" class="glass-card rounded-xl p-6 cursor-pointer hover:-translate-y-1 transition-all hover:border-gold-500/50 w-full">
         <div class="w-10 h-10 rounded-lg bg-gold-500/10 flex items-center justify-center text-xl mb-3">🛡️</div>
         <p class="font-semibold text-white mb-1">Security Printing & Imports</p>
         <p class="text-xs text-slate-500">Pipeline CRM, logistics, artwork, supplier management</p>
       </div>
-      <div class="glass-card rounded-xl p-6 opacity-40">
+      <div class="glass-card rounded-xl p-6 opacity-40 w-full">
         <div class="w-10 h-10 rounded-lg bg-slate-500/10 flex items-center justify-center text-xl mb-3">🚢</div>
         <p class="font-semibold text-white mb-1">General Exports Division</p>
         <p class="text-xs text-slate-500">Export docs, overseas clients, shipping manifests</p>
         <span class="inline-block mt-2 px-2 py-0.5 text-[9px] font-bold tracking-wider bg-slate-700 text-slate-400 rounded uppercase">Coming Soon</span>
       </div>
-      <div class="glass-card rounded-xl p-6 opacity-40">
+      <div class="glass-card rounded-xl p-6 opacity-40 w-full">
         <div class="w-10 h-10 rounded-lg bg-slate-500/10 flex items-center justify-center text-xl mb-3">🚛</div>
         <p class="font-semibold text-white mb-1">Logistics & Distribution</p>
         <p class="text-xs text-slate-500">Fleet management, delivery, warehouse operations</p>
@@ -497,26 +497,26 @@ textarea.mfi{resize:vertical}
   </aside>
 
   <!-- MAIN CONTENT WRAPPER -->
-  <div class="main-content flex-1 min-h-screen flex flex-col bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 overflow-x-hidden" id="main-content">
+  <div class="main-content flex-1 min-h-screen flex flex-col bg-navy-900 text-slate-100 overflow-x-hidden" id="main-content">
     <!-- TOP BAR -->
-    <header class="border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-charcoal-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+    <header class="border-b border-gold-500/20 bg-navy-800/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-charcoal-800 rounded-lg">
+        <button onclick="toggleMobileSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center text-slate-300 hover:bg-navy-700 rounded-lg">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
         </button>
-        <button onclick="ss('scr-portal')" class="hidden sm:flex px-3 py-1.5 text-xs font-medium text-slate-500 dark:text-zinc-400 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-slate-100 dark:hover:bg-charcoal-800 transition-colors">← Portal</button>
+        <button onclick="ss('scr-portal')" class="hidden sm:flex px-3 py-1.5 text-xs font-medium text-slate-300 border border-gold-500/20 rounded-lg hover:bg-navy-700 transition-colors">← Portal</button>
         <div class="hidden xs:block">
-          <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">SecureHub Command Center</p>
-          <h1 class="text-sm font-bold text-slate-900 dark:text-zinc-100">Diamond Intl Lanka</h1>
+          <p class="text-[9px] font-bold tracking-widest text-gold-400 uppercase">SecureHub Command Center</p>
+          <h1 class="text-sm font-bold text-white">Diamond Intl Lanka</h1>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button id="theme-toggle" onclick="toggleTheme()" class="hidden md:flex w-10 h-10 items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-charcoal-800 transition-colors">🌙</button>
-        <button onclick="openRiskReport()" class="px-3 py-1.5 text-xs font-bold bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-lg hover:shadow-sm transition-all flex items-center gap-1.5">
+        <button id="theme-toggle" onclick="toggleTheme()" class="hidden md:flex w-10 h-10 items-center justify-center rounded-lg border border-gold-500/20 text-slate-300 hover:bg-navy-700 transition-colors">🌙</button>
+        <button onclick="openRiskReport()" class="px-3 py-1.5 text-xs font-bold bg-rose-900/20 text-rose-400 border border-rose-500/30 rounded-lg hover:shadow-sm transition-all flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span><span class="hidden sm:inline">AI Risk</span>
         </button>
-        <button onclick="exportCSV()" class="hidden sm:flex px-3 py-1.5 text-xs font-bold bg-slate-50 dark:bg-charcoal-800 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-white/10 rounded-lg hover:shadow-sm transition-all">📥 Export</button>
-        <button onclick="openAdd()" class="px-4 py-1.5 text-xs font-bold bg-gold-500 dark:bg-bronze-500 text-white dark:text-zinc-950 rounded-lg hover:shadow-lg transition-all active:scale-95">+ New</button>
+        <button onclick="exportCSV()" class="hidden sm:flex px-3 py-1.5 text-xs font-bold bg-navy-700 text-slate-300 border border-gold-500/20 rounded-lg hover:shadow-sm transition-all">📥 Export</button>
+        <button onclick="openAdd()" class="px-4 py-1.5 text-xs font-bold bg-gold-500 text-navy-900 rounded-lg hover:shadow-lg transition-all active:scale-95">+ New</button>
       </div>
     </header>
 
@@ -524,72 +524,72 @@ textarea.mfi{resize:vertical}
       <section id="dashboard-view">
         <!-- INTEL ALERT CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          <div onclick="qf('stale')" class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer border-t-4 border-t-amber-500">
+          <div onclick="qf('stale')" class="bg-navy-800 border border-gold-500/20 rounded-2xl p-5 shadow-lg hover:shadow-gold-500/5 transition-all cursor-pointer border-t-4 border-t-amber-500">
             <div class="flex justify-between items-start mb-4">
-              <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                 <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
               </div>
-              <span class="text-[10px] font-bold text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-md uppercase tracking-widest">Alert</span>
+              <span class="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md uppercase tracking-widest border border-amber-500/20">Alert</span>
             </div>
-            <p id="ic-stale" class="text-3xl font-bold text-slate-900 dark:text-zinc-100">—</p>
-            <p class="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-1">Stale Accounts</p>
-            <p class="text-[10px] text-slate-400 mt-1">No contact in 7+ days</p>
+            <p id="ic-stale" class="text-3xl font-bold text-white">—</p>
+            <p class="text-xs font-bold text-slate-400 mt-1">Stale Accounts</p>
+            <p class="text-[10px] text-slate-500 mt-1">No contact in 7+ days</p>
           </div>
-          <div onclick="qf('eta')" class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer border-t-4 border-t-sky-500">
+          <div onclick="qf('eta')" class="bg-navy-800 border border-gold-500/20 rounded-2xl p-5 shadow-lg hover:shadow-gold-500/5 transition-all cursor-pointer border-t-4 border-t-sky-500">
             <div class="flex justify-between items-start mb-4">
-              <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
+              <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20">
                 <svg class="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
-              <span class="text-[10px] font-bold text-sky-500 bg-sky-50 dark:bg-sky-950/30 px-2 py-1 rounded-md uppercase tracking-widest">Tracking</span>
+              <span class="text-[10px] font-bold text-sky-500 bg-sky-500/10 px-2 py-1 rounded-md uppercase tracking-widest border border-sky-500/20">Tracking</span>
             </div>
-            <p id="ic-ship" class="text-3xl font-bold text-slate-900 dark:text-zinc-100">—</p>
-            <p class="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-1">Active Shipments</p>
-            <p class="text-[10px] text-slate-400 mt-1">ETA within 5 days</p>
+            <p id="ic-ship" class="text-3xl font-bold text-white">—</p>
+            <p class="text-xs font-bold text-slate-400 mt-1">Active Shipments</p>
+            <p class="text-[10px] text-slate-500 mt-1">ETA within 5 days</p>
           </div>
-          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm border-t-4 border-t-rose-500 sm:col-span-2 lg:col-span-1">
+          <div class="bg-navy-800 border border-gold-500/20 rounded-2xl p-5 shadow-lg border-t-4 border-t-rose-500 sm:col-span-2 lg:col-span-1">
             <div class="flex justify-between items-start mb-4">
-              <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center">
+              <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
                 <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
-              <span class="text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/30 px-2 py-1 rounded-md uppercase tracking-widest">Financial</span>
+              <span class="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-1 rounded-md uppercase tracking-widest border border-rose-500/20">Financial</span>
             </div>
-            <p id="ic-risk" class="text-3xl font-bold text-slate-900 dark:text-zinc-100">—</p>
-            <p class="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-1">Total Outstanding</p>
-            <p class="text-[10px] text-slate-400 mt-1">Across all active accounts</p>
+            <p id="ic-risk" class="text-3xl font-bold text-white">—</p>
+            <p class="text-xs font-bold text-slate-400 mt-1">Total Outstanding</p>
+            <p class="text-[10px] text-slate-500 mt-1">Across all active accounts</p>
           </div>
         </div>
 
         <!-- KPI DATE FILTER -->
         <div class="flex items-center gap-3 mb-5 flex-wrap">
-          <span class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Filter KPIs:</span>
-          <input id="kpi-from" type="date" class="px-3 py-1.5 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 focus:border-gold-500 focus:outline-none transition-colors shadow-sm"/>
-          <span class="text-xs text-slate-500 dark:text-zinc-400 font-medium">to</span>
-          <input id="kpi-to" type="date" class="px-3 py-1.5 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 focus:border-gold-500 focus:outline-none transition-colors shadow-sm"/>
-          <button onclick="applyKPIDateFilter()" class="px-4 py-2 text-xs font-bold bg-slate-100 dark:bg-charcoal-700 text-slate-600 dark:text-zinc-300 rounded-lg hover:shadow-sm transition-all active:scale-95">Apply</button>
-          <button onclick="clearKPIDateFilter()" class="px-4 py-2 text-xs font-bold text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 transition-colors">Clear</button>
+          <span class="text-xs text-slate-400 font-medium">Filter KPIs:</span>
+          <input id="kpi-from" type="date" class="px-3 py-1.5 text-base bg-navy-800 border border-gold-500/20 rounded-lg text-white focus:border-gold-500/40 focus:outline-none transition-all shadow-inner"/>
+          <span class="text-xs text-slate-400 font-medium">to</span>
+          <input id="kpi-to" type="date" class="px-3 py-1.5 text-base bg-navy-800 border border-gold-500/20 rounded-lg text-white focus:border-gold-500/40 focus:outline-none transition-all shadow-inner"/>
+          <button onclick="applyKPIDateFilter()" class="px-4 py-2 text-xs font-bold bg-navy-700 text-slate-300 rounded-lg hover:shadow-md transition-all active:scale-95 border border-gold-500/20">Apply</button>
+          <button onclick="clearKPIDateFilter()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">Clear</button>
         </div>
 
         <!-- REVENUE KPIs -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
-            <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">This Month</p>
-            <p id="kc-m" class="text-xl font-bold text-slate-900 dark:text-zinc-100 mt-1">—</p>
+          <div class="bg-navy-800 border border-gold-500/20 rounded-xl p-4 shadow-lg">
+            <p class="text-[9px] font-bold tracking-widest text-slate-500 uppercase">This Month</p>
+            <p id="kc-m" class="text-xl font-bold text-white mt-1">—</p>
           </div>
-          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
-            <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">This Quarter</p>
-            <p id="kc-q" class="text-xl font-bold text-slate-900 dark:text-zinc-100 mt-1">—</p>
+          <div class="bg-navy-800 border border-gold-500/20 rounded-xl p-4 shadow-lg">
+            <p class="text-[9px] font-bold tracking-widest text-slate-500 uppercase">This Quarter</p>
+            <p id="kc-q" class="text-xl font-bold text-white mt-1">—</p>
           </div>
-          <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
-            <p class="text-[9px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">YTD 2026</p>
-            <p id="kc-y" class="text-xl font-bold text-slate-900 dark:text-zinc-100 mt-1">—</p>
+          <div class="bg-navy-800 border border-gold-500/20 rounded-xl p-4 shadow-lg">
+            <p class="text-[9px] font-bold tracking-widest text-slate-500 uppercase">YTD 2026</p>
+            <p id="kc-y" class="text-xl font-bold text-white mt-1">—</p>
           </div>
-          <div class="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-xl p-4 shadow-sm">
-            <p class="text-[9px] font-bold tracking-widest text-rose-400 dark:text-rose-500 uppercase">Outstanding</p>
-            <p id="kc-o" class="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">—</p>
+          <div class="bg-rose-900/10 border border-rose-500/20 rounded-xl p-4 shadow-lg">
+            <p class="text-[9px] font-bold tracking-widest text-rose-500 uppercase">Outstanding</p>
+            <p id="kc-o" class="text-xl font-bold text-rose-400 mt-1">—</p>
           </div>
-          <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-4 shadow-sm">
-            <p class="text-[9px] font-bold tracking-widest text-emerald-400 dark:text-emerald-500 uppercase">Paid Total</p>
-            <p id="kc-p" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">—</p>
+          <div class="bg-emerald-900/10 border border-emerald-500/20 rounded-xl p-4 shadow-lg">
+            <p class="text-[9px] font-bold tracking-widest text-emerald-500 uppercase">Paid Total</p>
+            <p id="kc-p" class="text-xl font-bold text-emerald-400 mt-1">—</p>
           </div>
         </div>
 
@@ -601,20 +601,20 @@ textarea.mfi{resize:vertical}
               <h2 class="text-2xl font-bold text-gold-light">Sales & Operations Analytics</h2>
               <p class="text-slate-400 text-sm mt-1">Security printing pipeline and financial overview</p>
             </div>
-            <div class="flex items-center gap-2">
-              <div class="flex items-center gap-2 bg-navy-lighter px-3 py-1.5 rounded-full border border-slate-700/50">
-                <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
-                <span class="text-emerald-400 text-xs font-medium">Live Data</span>
-              </div>
-              <button id="executive-report-btn" onclick="generateExecutiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded border border-gold-400 hover:bg-gold-400 transition-colors whitespace-nowrap">
-                Generate Executive Report
-              </button>
-              <button id="executive-dashboard-toggle" onclick="toggleExecutiveDashboard()" aria-expanded="true" class="w-8 h-8 flex items-center justify-center rounded border border-slate-600 bg-navy-lighter text-gold hover:text-gold-light hover:border-gold-500/60 transition-colors" title="Collapse dashboard charts">
-                <svg id="executive-dashboard-chevron" class="exec-dash-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/>
-                </svg>
-              </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-2 bg-navy-lighter px-3 py-1.5 rounded-full border border-slate-700/50">
+              <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
+              <span class="text-emerald-400 text-xs font-medium">Live Data</span>
             </div>
+            <button id="executive-report-btn" onclick="generateExecutiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded border border-gold-400 hover:bg-gold-400 transition-colors w-full sm:w-auto">
+              Generate Executive Report
+            </button>
+            <button id="executive-dashboard-toggle" onclick="toggleExecutiveDashboard()" aria-expanded="true" class="w-8 h-8 flex items-center justify-center rounded border border-slate-600 bg-navy-lighter text-gold hover:text-gold-light hover:border-gold-500/60 transition-colors" title="Collapse dashboard charts">
+              <svg id="executive-dashboard-chevron" class="exec-dash-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+          </div>
           </div>
           
           <div id="executive-dashboard-content" class="exec-dash-content">
@@ -901,36 +901,36 @@ textarea.mfi{resize:vertical}
 
     <!-- VIEW TOGGLE & SEARCH -->
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-      <div class="flex items-center gap-1 bg-navy-800 p-1 rounded border border-slate-700">
-        <button id="vtb-t" onclick="sv('table')" class="px-4 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded flex items-center gap-1.5">☰ Table</button>
-        <button id="vtb-k" onclick="sv('kanban')" class="px-4 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors flex items-center gap-1.5">⧉ Kanban</button>
+      <div class="flex items-center gap-1 bg-navy-800 p-1 rounded border border-gold-500/20 shadow-inner">
+        <button id="vtb-t" onclick="sv('table')" class="px-4 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded flex items-center gap-1.5 shadow-sm">☰ Table</button>
+        <button id="vtb-k" onclick="sv('kanban')" class="px-4 py-1.5 text-xs font-medium text-slate-300 rounded hover:bg-navy-700 transition-colors flex items-center gap-1.5">⧉ Kanban</button>
       </div>
-      <div class="flex items-center gap-2">
-        <div class="relative">
+      <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
+        <div class="relative w-full sm:w-72">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input id="gsearch" type="text" placeholder="Search company, product..." oninput="updateClearButton();render()" class="w-72 pl-10 pr-4 py-2 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:border-gold-500 focus:outline-none transition-colors shadow-sm"/>
+          <input id="gsearch" type="text" placeholder="Search company, product..." oninput="updateClearButton();render()" class="w-full pl-10 pr-4 py-2 text-base bg-navy-800 border border-gold-500/20 rounded-lg text-white placeholder-slate-500 focus:border-gold-500/40 focus:outline-none transition-all shadow-inner"/>
         </div>
-        <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-charcoal-800 p-1 rounded-lg border border-slate-200 dark:border-white/10">
-          <button id="density-compact" onclick="setTableDensity('compact')" class="px-3 py-1.5 text-xs font-medium text-slate-500 rounded hover:bg-white dark:hover:bg-charcoal-700 transition-colors">Compact</button>
-          <button id="density-relaxed" onclick="setTableDensity('relaxed')" class="px-3 py-1.5 text-xs font-medium text-slate-500 rounded hover:bg-white dark:hover:bg-charcoal-700 transition-colors">Relaxed</button>
+        <div class="hidden sm:flex items-center gap-1 bg-navy-800 p-1 rounded-lg border border-gold-500/20 shadow-inner">
+          <button id="density-compact" onclick="setTableDensity('compact')" class="px-3 py-1.5 text-xs font-medium text-slate-300 rounded hover:bg-navy-700 transition-colors">Compact</button>
+          <button id="density-relaxed" onclick="setTableDensity('relaxed')" class="px-3 py-1.5 text-xs font-medium text-slate-300 rounded hover:bg-navy-700 transition-colors">Relaxed</button>
         </div>
-        <select id="product-filter" onchange="onProductFilterChange()" class="px-3 py-2 text-base bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-zinc-100 focus:border-gold-500 focus:outline-none transition-colors shadow-sm">
+        <select id="product-filter" onchange="onProductFilterChange()" class="w-full sm:w-auto px-3 py-2 text-base bg-navy-800 border border-gold-500/20 rounded-lg text-white focus:border-gold-500/40 focus:outline-none transition-all shadow-inner">
           <option value="all">All Products</option>
           <option value="holograms">Holograms</option>
           <option value="certificates">Certificates</option>
           <option value="security_docs">Security Docs</option>
         </select>
-        <button id="clrbtn" onclick="cf()" style="display:none" class="px-3 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">✕ Clear</button>
+        <button id="clrbtn" onclick="cf()" style="display:none" class="px-3 py-2 text-xs font-medium text-slate-300 border border-gold-500/20 rounded-lg hover:bg-navy-700 transition-colors">✕ Clear</button>
       </div>
     </div>
 
     <!-- TABLE VIEW -->
-    <div id="vw-t">
-      <div class="hidden md:block bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
-        <table class="w-full text-sm min-w-[980px] border-separate border-spacing-y-2">
+    <div id="vw-t" class="w-full">
+      <div class="hidden md:block bg-navy-800 border border-gold-500/20 rounded-xl overflow-hidden shadow-lg">
+        <table class="w-full text-sm min-w-[980px] border-separate border-spacing-y-2 px-2">
           <thead>
-            <tr class="bg-slate-50 dark:bg-charcoal-900">
-              <th class="w-10 px-4 py-3 text-left"><input type="checkbox" onclick="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-navy-800"/></th>
+            <tr class="bg-navy-900/50">
+              <th class="w-10 px-4 py-3 text-left"><input type="checkbox" onclick="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/></th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Company / Product</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Stage</th>
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Contact</th>
@@ -940,7 +940,7 @@ textarea.mfi{resize:vertical}
               <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Action</th>
             </tr>
           </thead>
-          <tbody id="tbody"></tbody>
+          <tbody id="tbody" class="overflow-hidden"></tbody>
         </table>
       </div>
       
@@ -1295,7 +1295,11 @@ const SDOTS=['#64748b','#f59e0b','#3b82f6','#a78bfa','#22c55e'];
 // HELPERS
 // ════════════════════════════════════════
 function $(id){return document.getElementById(id);}
-function ss(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');}
+function ss(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  const el=$(id);
+  if(el) el.classList.add('on');
+}
 function fmtM(v){return`Rs.${(v/1e6).toFixed(2)}M`;}
 function fmtK(v){if(v>=1e6)return`Rs.${(v/1e6).toFixed(1)}M`;if(v>=1e3)return`Rs.${Math.round(v/1e3)}K`;return`Rs.${Math.round(v).toLocaleString()}`;}
 function ddiff(ds){if(!ds)return null;const d=new Date(ds),t=new Date();if(isNaN(d))return null;t.setHours(0,0,0,0);d.setHours(0,0,0,0);return Math.floor((d-t)/864e5);}
@@ -1470,8 +1474,10 @@ function initTheme() {
 // ════════════════════════════════════════
 async function loadData(){
   console.log('Fetching Supabase data for Security Printing module...');
-  $('tbody').innerHTML='<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">Loading records…</td></tr>';
-  $('kboard').innerHTML='<div class="kcol"><div style="height:200px;background:rgba(255,255,255,.04);border-radius:8px;margin:8px;animation:etapulse 2s infinite"></div></div>'.repeat(5);
+  const tbody = $('tbody');
+  if(tbody) tbody.innerHTML='<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">Loading records…</td></tr>';
+  const kboard = $('kboard');
+  if(kboard) kboard.innerHTML='<div class="kcol"><div style="height:200px;background:rgba(255,255,255,.04);border-radius:8px;margin:8px;animation:etapulse 2s infinite"></div></div>'.repeat(5);
   try{
     const{data,error}=await sb.from('Diamond crM').select('*,transactions(*),activity_logs(*),logistics(*)').order('id');
     if(error) throw error;
@@ -1489,11 +1495,16 @@ async function loadData(){
 // INTEL & KPIs
 // ════════════════════════════════════════
 function updIntel(){
-  $('ic-stale').textContent=custs.filter(c=>{const d=dsince(c.last_contact);return d===null||d>=7;}).length;
+  const staleEl = $('ic-stale');
+  if(staleEl) staleEl.textContent=custs.filter(c=>{const d=dsince(c.last_contact);return d===null||d>=7;}).length;
+  
   let sc=0;custs.forEach(c=>(c.logistics||[]).filter(l=>l.lc_status!=='Completed').forEach(l=>{const d=ddiff(l.eta);if(d!==null&&d>=0&&d<=5)sc++;}));
-  $('ic-ship').textContent=sc;
+  const shipEl = $('ic-ship');
+  if(shipEl) shipEl.textContent=sc;
+  
   let out=0;custs.forEach(c=>(c.transactions||[]).forEach(t=>{if(t.payment_status==='Outstanding')out+=parseFloat(t.amount)||0;}));
-  $('ic-risk').textContent=fmtK(out);
+  const riskEl = $('ic-risk');
+  if(riskEl) riskEl.textContent=fmtK(out);
 }
 function updKPIs(df=null){
   let o=0,m=0,q=0,y=0;
@@ -1515,7 +1526,11 @@ function updKPIs(df=null){
       }
     }
   }));
-  $('kc-o').textContent=fmtM(o);$('kc-y').textContent=fmtM(y);$('kc-q').textContent=fmtM(q);$('kc-m').textContent=fmtM(m);
+  const kco=$('kc-o'), kcy=$('kc-y'), kcq=$('kc-q'), kcm=$('kc-m');
+  if(kco) kco.textContent=fmtM(o);
+  if(kcy) kcy.textContent=fmtM(y);
+  if(kcq) kcq.textContent=fmtM(q);
+  if(kcm) kcm.textContent=fmtM(m);
 
   const monthsElapsed=Math.max(cm+1,1);
   const avgMonthly=y/monthsElapsed;
@@ -1525,15 +1540,19 @@ function updKPIs(df=null){
   const upward=forecastMonthly>=lastMonthRevenue;
 
   const trendEl=$('kc-ftrend');
-  const trendIcon=upward?'▲':'⚠';
-  const trendLabel=upward?'Upward Trend':'Below Last Month';
-  trendEl.className=`mt-2 text-xs font-semibold flex items-center gap-1 ${upward?'text-emerald-400':'text-rose-400'}`;
-  trendEl.textContent=`${trendIcon} ${trendLabel}`;
+  if(trendEl){
+    const trendIcon=upward?'▲':'⚠';
+    const trendLabel=upward?'Upward Trend':'Below Last Month';
+    trendEl.className=`mt-2 text-xs font-semibold flex items-center gap-1 ${upward?'text-emerald-400':'text-rose-400'}`;
+    trendEl.textContent=`${trendIcon} ${trendLabel}`;
+  }
 
   const confidence=Math.min(100,Math.round((txCount/50)*100));
   const confidenceBand=confidence>=75?'High':confidence>=40?'Medium':'Low';
-  $('kc-fcst').textContent=fmtM(yearEndForecast);
-  $('kc-fconf').textContent=`Confidence: ${confidence}% (${confidenceBand}) · ${txCount} tx`;
+  const fcstEl=$('kc-fcst');
+  if(fcstEl) fcstEl.textContent=fmtM(yearEndForecast);
+  const confEl=$('kc-fconf');
+  if(confEl) confEl.textContent=`Confidence: ${confidence}% (${confidenceBand}) · ${txCount} tx`;
 }
 function applyKPIDateFilter(){
   const from=$('kpi-from').value,to=$('kpi-to').value;
@@ -1561,7 +1580,8 @@ function toggleAIHub(){
 function updateClearButton(){
   const hasSearch=($('gsearch')?.value||'').trim().length>0;
   const hasFilter=!!qfilt||productFilter!=='all';
-  $('clrbtn').style.display=(hasSearch||hasFilter)?'inline-flex':'none';
+  const btn = $('clrbtn');
+  if(btn) btn.style.display=(hasSearch||hasFilter)?'inline-flex':'none';
 }
 function onProductFilterChange(){
   productFilter=$('product-filter').value;
@@ -1599,10 +1619,18 @@ function render(){
   if(vmode==='table'){
     const filtered=filt(custs);
     const empty=!custs.length||!filtered.length;
-    $('table-empty-state').style.display=empty?'block':'none';
-    document.querySelector('#vw-t .overflow-x-auto').style.display=empty?'none':'block';
+    const emptyState = $('table-empty-state');
+    if(emptyState) emptyState.style.display=empty?'block':'none';
+    
+    const tableContainer = document.querySelector('#vw-t .hidden.md\\:block') || document.querySelector('#vw-t div');
+    if(tableContainer) tableContainer.style.display=empty?'none':'block';
+    
+    const mobileCards = $('mobile-cards');
+    if(mobileCards) mobileCards.style.display=empty?'none':'flex';
+
     if(empty){
-      $('table-empty-text').textContent=custs.length?'No customers match your current filters.':'No customer records available yet.';
+      const emptyText = $('table-empty-text');
+      if(emptyText) emptyText.textContent=custs.length?'No customers match your current filters.':'No customer records available yet.';
       $('tbody').innerHTML='';
     }else{
       renderTable();
@@ -1610,7 +1638,7 @@ function render(){
   }else{
     renderKanban();
   }
-  syncDashboard();
+  if(typeof syncDashboard === 'function') syncDashboard();
 }
 function setExecutiveDashboardCollapsed(collapsed){
   const content=$('executive-dashboard-content');
@@ -1642,8 +1670,10 @@ function initExecutiveDashboardCollapse(){
 }
 function updateDensityButtons(){
   const compactOn=tableDensity==='compact';
-  $('density-compact').className=compactOn?'px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded transition-colors':'px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors';
-  $('density-relaxed').className=!compactOn?'px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded transition-colors':'px-3 py-1.5 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors';
+  const cBtn = $('density-compact');
+  const rBtn = $('density-relaxed');
+  if(cBtn) cBtn.className=compactOn?'px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded transition-colors':'px-3 py-1.5 text-xs font-medium text-slate-300 rounded hover:bg-navy-700 transition-colors';
+  if(rBtn) rBtn.className=!compactOn?'px-3 py-1.5 text-xs font-semibold bg-gold-500 text-navy-900 rounded transition-colors':'px-3 py-1.5 text-xs font-medium text-slate-300 rounded hover:bg-navy-700 transition-colors';
 }
 function setTableDensity(mode){
   tableDensity=mode==='compact'?'compact':'relaxed';
@@ -1752,38 +1782,39 @@ function renderTable(){
   const list=filt(custs);const q=$('gsearch').value;
   const compact=tableDensity==='compact';
   const rowPad=compact?'px-3 py-2':'px-4 py-3';
-  const nameClass=compact?'font-bold text-slate-900 dark:text-zinc-100 text-[13px] leading-tight':'font-bold text-slate-900 dark:text-zinc-100 text-sm leading-tight';
-  const cityClass=compact?'text-[10px] text-slate-500 mt-0.5':'text-[11px] text-slate-500 mt-1';
-  const productClass=compact?'text-[10px] text-slate-400 mt-0.5':'text-[11px] text-slate-400 mt-0.5';
-  const contactText=compact?'text-xs text-slate-600 dark:text-zinc-300':'text-sm text-slate-600 dark:text-zinc-300';
-  const nextActionText=compact?'text-[11px] text-slate-500 dark:text-zinc-400':'text-xs text-slate-500 dark:text-zinc-400';
+  const nameClass=compact?'font-bold text-white text-[13px] leading-tight':'font-bold text-white text-sm leading-tight';
+  const cityClass=compact?'text-[10px] text-slate-400 mt-0.5':'text-[11px] text-slate-400 mt-1';
+  const productClass=compact?'text-[10px] text-gold-500/80 mt-0.5':'text-[11px] text-gold-500/80 mt-0.5';
+  const contactText=compact?'text-xs text-slate-300':'text-sm text-slate-300';
+  const nextActionText=compact?'text-[11px] text-slate-400':'text-xs text-slate-400';
   
+  const tbody = $('tbody');
   // Desktop Table Render
-  $('tbody').innerHTML=list.map(c=>{
+  if(tbody) tbody.innerHTML=list.map(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
     const city=c.city||c.location||c.address_city||c.region||'—';
     const s=SC[c.status]||SC['Inquiry'];
     const isDark = document.documentElement.classList.contains('dark');
     const statusColor = isDark ? s.darkColor : s.color;
-    return`<tr class="group transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-charcoal-700" data-id="${c.id}" onclick="openModal(${c.id})">
-      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
-        <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-navy-800"/>
+    return`<tr class="group transition-colors duration-200 hover:bg-navy-700/30" data-id="${c.id}" onclick="openModal(${c.id})">
+      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
+        <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/>
       </td>
-      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
+      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
         <p class="${nameClass}">${hl(c.name,q)}</p>
         <p class="${cityClass}">${hl(city,q)}</p>
         <p class="${productClass}">${hl(c.product||'—',q)}</p>
       </td>
-      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
+      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
       </td>
-      <td class="${rowPad} ${contactText} border-b border-slate-100 dark:border-white/5">${c.contact||'—'}</td>
-      <td class="${rowPad} ${nextActionText} border-b border-slate-100 dark:border-white/5">${c.next_action||'—'}</td>
-      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">${out>0?`<span class="text-rose-500 dark:text-rose-400 font-semibold ${compact?'text-xs':'text-sm'}">${fmtK(out)}</span>`:'<span class="text-emerald-500 dark:text-emerald-400 font-medium">Clear</span>'}</td>
-      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">${etaBadge(c)}</td>
-      <td class="${rowPad} border-b border-slate-100 dark:border-white/5">
+      <td class="${rowPad} ${contactText} border-b border-white/5 bg-navy-800/40">${c.contact||'—'}</td>
+      <td class="${rowPad} ${nextActionText} border-b border-white/5 bg-navy-800/40">${c.next_action||'—'}</td>
+      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">${out>0?`<span class="text-rose-400 font-semibold ${compact?'text-xs':'text-sm'}">${fmtK(out)}</span>`:'<span class="text-emerald-400 font-medium">Clear</span>'}</td>
+      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">${etaBadge(c)}</td>
+      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
         <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
-          <button onclick="openModal(${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">
+          <button onclick="openModal(${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-500 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z"/></svg>
           </button>
         </div>
@@ -1791,36 +1822,37 @@ function renderTable(){
     </tr>`;
   }).join('');
   
+  const mCards = $('mobile-cards');
   // Mobile Cards Render
-  $('mobile-cards').innerHTML=list.map(c=>{
+  if(mCards) mCards.innerHTML=list.map(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
     const s=SC[c.status]||SC['Inquiry'];
     const isDark = document.documentElement.classList.contains('dark');
     const statusColor = isDark ? s.darkColor : s.color;
-    return `<div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm active:scale-[0.98] transition-transform" onclick="openModal(${c.id})">
+    return `<div class="bg-navy-800 border border-gold-500/20 rounded-xl p-4 shadow-lg active:scale-[0.98] transition-transform" onclick="openModal(${c.id})">
       <div class="flex justify-between items-start mb-3">
         <div>
-          <h3 class="font-bold text-slate-900 dark:text-zinc-100">${hl(c.name,q)}</h3>
-          <p class="text-xs text-slate-500">${hl(c.product||'—',q)}</p>
+          <h3 class="font-bold text-white">${hl(c.name,q)}</h3>
+          <p class="text-xs text-gold-500/70">${hl(c.product||'—',q)}</p>
         </div>
         <span class="px-2 py-1 rounded-full text-[10px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
       </div>
       <div class="grid grid-cols-2 gap-4 text-xs mb-3">
         <div>
-          <p class="text-slate-400 uppercase tracking-widest text-[9px] font-bold mb-1">Contact</p>
-          <p class="text-slate-700 dark:text-zinc-300 font-medium">${c.contact||'—'}</p>
+          <p class="text-slate-500 uppercase tracking-widest text-[9px] font-bold mb-1">Contact</p>
+          <p class="text-slate-300 font-medium">${c.contact||'—'}</p>
         </div>
         <div>
-          <p class="text-slate-400 uppercase tracking-widest text-[9px] font-bold mb-1">Outstanding</p>
-          <p class="${out>0?'text-rose-500':'text-emerald-500'} font-bold">${out>0?fmtK(out):'Clear'}</p>
+          <p class="text-slate-500 uppercase tracking-widest text-[9px] font-bold mb-1">Outstanding</p>
+          <p class="${out>0?'text-rose-400':'text-emerald-400'} font-bold">${out>0?fmtK(out):'Clear'}</p>
         </div>
       </div>
-      <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
+      <div class="flex justify-between items-center pt-3 border-t border-white/5">
         <div class="flex items-center gap-2">
-          <p class="text-[10px] text-slate-400 font-medium">ETA:</p>
+          <p class="text-[10px] text-slate-500 font-medium">ETA:</p>
           ${etaBadge(c)}
         </div>
-        <p class="text-[10px] text-gold-500 dark:text-gold-400 font-bold uppercase tracking-wider">Tap to View →</p>
+        <p class="text-[10px] text-gold-500 font-bold uppercase tracking-wider">Tap to View →</p>
       </div>
     </div>`;
   }).join('');
