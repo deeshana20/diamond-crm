@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Diamond AI | Market Prospector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 40px; }
         .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         .search-area { background: #0056b3; padding: 30px; border-radius: 12px; color: white; margin-bottom: 30px; }
         input { width: 70%; padding: 12px; border-radius: 6px; border: none; }
         button { padding: 12px 25px; border-radius: 6px; border: none; background: #ffcc00; color: #333; font-weight: bold; cursor: pointer; }
-        .lead-card { border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .lead-card { border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
         .lead-info h3 { margin: 0 0 5px 0; color: #0056b3; }
-        .email-btn { background: #28a745; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-size: 13px; }
+        .lead-info p { margin: 0; }
+        .email-btn { background: #28a745; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-size: 13px; white-space: nowrap; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="search-area">
-        <h2>🚀 Market Prospector</h2>
+        <h2>Market Prospector</h2>
         <p>Target new sectors (e.g., "Find new universities in Sri Lanka for exam security")</p>
         <input type="text" id="prospectQuery" placeholder="Who are we hunting for today?">
         <button onclick="huntLeads()">Find Leads</button>
@@ -29,45 +31,122 @@
     </div>
 </div>
 
-<script>
-    async function huntLeads() {
-        const query = document.getElementById('prospectQuery').value;
-        const resultsArea = document.getElementById('resultsArea');
-        resultsArea.innerHTML = "<p>✨ Diamond is scouting the market...</p>";
+<script type="module">
+    const SUPABASE_URL = "https://euppycxpozqtdwbhxcjy.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_21vgnKgrn1yRURN6Rcu-2g_x-b4J9JP";
+    const EDGE_FN_URL = "https://euppycxpozqtdwbhxcjy.supabase.co/functions/v1/ai-analyst";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // The AI Prompt for external lead generation
-        const prompt = `Act as a B2B Sales Scout for a Security Printing company. 
-        Industry: Security Printing (Checkbooks, Certificates, Secure Labels).
-        User Query: ${query}. 
-        Location: Sri Lanka.
-        Provide a list of 5 REAL potential organizations. For each, give:
-        1. Name
-        2. Why they need security printing
-        3. A professional email subject line
-        4. A short 2-sentence pitch.
-        Format as JSON array of objects: [{name, reason, subject, pitch}]`;
+    function clearNode(node) {
+        if (node) node.replaceChildren();
+    }
+
+    function createNode(tag, { text = "", className = "", attrs = {}, style = {} } = {}) {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text !== "") el.textContent = text;
+        Object.entries(attrs).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) el.setAttribute(key, String(value));
+        });
+        Object.assign(el.style, style);
+        return el;
+    }
+
+    function setStatus(message, color = "#999") {
+        const resultsArea = document.getElementById("resultsArea");
+        clearNode(resultsArea);
+        resultsArea.appendChild(createNode("p", { text: message, style: { textAlign: "center", color } }));
+    }
+
+    async function callGemini(prompt) {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session?.access_token) {
+            throw new Error("Please sign in to the CRM first so this prospector can use the secured AI proxy.");
+        }
+
+        const response = await fetch(EDGE_FN_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || "Prospector request failed.");
+        }
+
+        return data.reply || data.text || "";
+    }
+
+    async function huntLeads() {
+        const query = document.getElementById("prospectQuery").value.trim();
+        const resultsArea = document.getElementById("resultsArea");
+
+        if (!query) {
+            setStatus("Enter a search term to scout the market.", "#c0392b");
+            return;
+        }
+
+        setStatus("Diamond is scouting the market...", "#0056b3");
+
+        const prompt = `Act as a B2B Sales Scout for a Security Printing company.
+Industry: Security Printing (Checkbooks, Certificates, Secure Labels).
+User Query: ${query}.
+Location: Sri Lanka.
+Provide a list of 5 REAL potential organizations. For each, give:
+1. Name
+2. Why they need security printing
+3. A professional email subject line
+4. A short 2-sentence pitch.
+Format as JSON array of objects: [{name, reason, subject, pitch}]`;
 
         try {
-            // Replace 'callGemini' with your actual API function name
-            const response = await callGemini(prompt); 
-            const leads = JSON.parse(response); 
-            
-            resultsArea.innerHTML = ""; // Clear loading
-            leads.forEach(lead => {
-                resultsArea.innerHTML += `
-                    <div class="lead-card">
-                        <div class="lead-info">
-                            <h3>${lead.name}</h3>
-                            <p style="font-size: 13px; color: #666;">${lead.reason}</p>
-                        </div>
-                        <a href="mailto:?subject=${encodeURIComponent(lead.subject)}&body=${encodeURIComponent(lead.pitch)}" class="email-btn">📧 Draft Email</a>
-                    </div>
-                `;
+            const response = await callGemini(prompt);
+            let leads;
+
+            try {
+                leads = JSON.parse(response);
+            } catch {
+                throw new Error("The AI returned malformed JSON. Please try again.");
+            }
+
+            if (!Array.isArray(leads) || !leads.length) {
+                throw new Error("No prospect leads were returned.");
+            }
+
+            clearNode(resultsArea);
+            leads.forEach((lead) => {
+                const card = createNode("div", { className: "lead-card" });
+                const info = createNode("div", { className: "lead-info" });
+                info.append(
+                    createNode("h3", { text: lead?.name || "Unnamed lead" }),
+                    createNode("p", { text: lead?.reason || "No reason supplied.", style: { fontSize: "13px", color: "#666" } })
+                );
+
+                const mailto = new URL("mailto:");
+                mailto.searchParams.set("subject", lead?.subject || "Security Printing Opportunity");
+                mailto.searchParams.set("body", lead?.pitch || "");
+
+                card.append(
+                    info,
+                    createNode("a", {
+                        className: "email-btn",
+                        text: "Draft Email",
+                        attrs: { href: mailto.toString() }
+                    })
+                );
+
+                resultsArea.appendChild(card);
             });
-        } catch (e) {
-            resultsArea.innerHTML = "<p>Error finding leads. Make sure the AI is connected.</p>";
+        } catch (error) {
+            setStatus(error.message || "Error finding leads. Make sure the AI is connected.", "#c0392b");
         }
     }
+
+    window.huntLeads = huntLeads;
 </script>
 </body>
 </html>

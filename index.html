@@ -153,6 +153,117 @@ textarea.mfi{resize:vertical}
 /* BULK TOOLBAR */
 #bulk-toolbar{display:none}
 
+/* QUICK NOTES */
+.qn-cell{position:relative;min-width:160px;max-width:200px}
+.qn-trigger-btn{
+background:rgba(255,255,255,.04);
+border:1px dashed rgba(255,255,255,.12);
+border-radius:6px;
+padding:3px 8px;
+font-size:10px;
+color:#475569;
+cursor:pointer;
+transition:all .15s;
+display:inline-flex;
+align-items:center;
+gap:4px;
+white-space:nowrap
+}
+.qn-trigger-btn:hover{
+border-color:rgba(212,175,55,.4);
+color:#d4af37;
+background:rgba(212,175,55,.06)
+}
+.qn-editor-wrap{
+display:none;
+position:absolute;
+top:calc(100% + 4px);
+left:0;
+z-index:300;
+width:240px;
+background:#0c1829;
+border:1px solid rgba(212,175,55,.3);
+border-radius:10px;
+padding:10px;
+box-shadow:0 20px 40px rgba(0,0,0,.6)
+}
+.qn-editor-wrap.open{display:block;animation:qnIn .18s ease}
+@keyframes qnIn{
+from{opacity:0;transform:translateY(-4px)}
+to{opacity:1;transform:translateY(0)}
+}
+.qn-textarea{
+width:100%;
+background:rgba(255,255,255,.05);
+border:1px solid rgba(255,255,255,.1);
+border-radius:6px;
+color:#e2e8f0;
+font-size:12px;
+font-family:inherit;
+padding:7px 9px;
+resize:none;
+outline:none;
+line-height:1.5
+}
+.qn-textarea:focus{border-color:#d4af37}
+.qn-char-counter{
+font-size:9px;
+color:#334155;
+text-align:right;
+margin-top:3px;
+font-weight:700;
+letter-spacing:.5px
+}
+.qn-char-counter.warn{color:#f59e0b}
+.qn-char-counter.over{color:#ef4444}
+.qn-save-btn{
+width:100%;
+margin-top:7px;
+padding:6px;
+font-size:11px;
+font-weight:700;
+background:#d4af37;
+color:#0a192f;
+border:none;
+border-radius:6px;
+cursor:pointer;
+transition:background .15s
+}
+.qn-save-btn:hover{background:#e5c158}
+.qn-save-btn:disabled{opacity:.5;cursor:not-allowed}
+.qn-bubble{
+display:block;
+font-size:10px;
+color:#94a3b8;
+background:rgba(255,255,255,.04);
+border:1px solid rgba(255,255,255,.07);
+border-radius:5px;
+padding:2px 6px;
+margin-top:3px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+max-width:180px
+}
+.qn-vibe-badge{
+display:inline-block;
+font-size:9px;
+font-weight:700;
+letter-spacing:.4px;
+padding:2px 7px;
+border-radius:20px;
+margin-top:4px;
+text-transform:lowercase;
+background:rgba(167,139,250,.15);
+color:#a78bfa;
+border:1px solid rgba(167,139,250,.3)
+}
+.qn-vibe-badge.unavailable{
+background:rgba(100,116,139,.12);
+color:#475569;
+border-color:rgba(100,116,139,.2)
+}
+
 /* RISK REPORT MODAL */
 .rr-ovl{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
 .rr-modal{background:#0c1829;border:1px solid rgba(212,175,55,.2);border-radius:14px;width:100%;max-width:560px;padding:26px;box-shadow:0 40px 80px rgba(0,0,0,.6)}
@@ -786,22 +897,28 @@ textarea.mfi{resize:vertical}
 
     <!-- TABLE VIEW -->
     <div id="vw-t">
-      <div class="bg-navy-800 border border-slate-700 rounded-lg overflow-hidden overflow-x-auto">
-        <table class="w-full text-sm min-w-[700px]">
+      <div class="hidden lg:block bg-navy-800 border border-slate-700 rounded-lg overflow-hidden">
+        <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-700 bg-navy-900/50">
-              <th class="w-10 px-4 py-3 text-left"><input type="checkbox" onclick="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-slate-600 bg-navy-800"/></th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Company / Product</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Stage</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase hidden lg:table-cell">Contact</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase hidden lg:table-cell">Next Action</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Outstanding</th>
-              <th class="px-4 py-3 text-left text-[10px] font-semibold tracking-wider text-slate-400 uppercase">ETA</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                <input type="checkbox" id="bulk-all-check" onchange="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/>
+              </th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Company</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Stage</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Contact</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Next Action</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Outstanding</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">ETA</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden xl:table-cell">Quick Note</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
+    
+      <div id="mobile-cards" class="lg:hidden flex flex-col gap-4">
+        </div>
     </div>
 
     <!-- KANBAN VIEW -->
@@ -1080,6 +1197,28 @@ textarea.mfi{resize:vertical}
 </nav>
 
 <style>
+  /* High-End Bento Card Styling */
+.bento-card {
+    background: linear-gradient(145deg, rgba(17, 34, 64, 0.7) 0%, rgba(10, 25, 47, 0.9) 100%);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    border-radius: 24px; /* Chunky corners like the reference */
+    padding: 20px;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    transition: transform 0.2s ease;
+}
+
+/* Status Glows */
+.status-pill-glow {
+    box-shadow: 0 0 15px currentColor;
+    opacity: 0.9;
+}
+
+/* Fix for mobile font sizing */
+@media (max-width: 768px) {
+    .bento-title { font-size: 1.1rem; line-height: 1.2; }
+    .bento-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 700; }
+}
   /* Safe area padding for iPhone 13 / notched devices */
   .safe-area-inset-bottom {
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
@@ -1224,6 +1363,12 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ════════════════════════════════════════
 let userName = "Admin User"; // Default name, can be updated from auth
 let custs=[], cid=null, ccust=null, vmode='table', qfilt=null, productFilter='all', tableDensity='relaxed', awFile=null, kpiDateFilter=null, bulkSelected=new Set(), emailTone='formal', txEditId=null;
+
+// In-memory cache: { customerId: [noteObj, ...] }
+const qnCache = {};
+
+// Track which editor is currently open
+let qnOpenId = null;
 
 const SC={
   'Inquiry':         {bg:'rgba(100,116,139,.2)', color:'#94a3b8', border:'rgba(100,116,139,.4)', darkColor:'#cbd5e1'},
@@ -1429,7 +1574,7 @@ function initTheme() {
 async function loadData(){
   console.log('Fetching Supabase data for Security Printing module...');
   const tbody = $('tbody');
-  if(tbody) tbody.innerHTML='<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">Loading records…</td></tr>';
+  if(tbody) tbody.innerHTML='<tr><td colspan="8" class="px-4 py-10 text-center text-slate-500">Loading records…</td></tr>';
   const kboard = $('kboard');
   if(kboard) kboard.innerHTML='<div class="kcol"><div style="height:200px;background:rgba(255,255,255,.04);border-radius:8px;margin:8px;animation:etapulse 2s infinite"></div></div>'.repeat(5);
   try{
@@ -1443,6 +1588,9 @@ async function loadData(){
     }catch(e2){toast('DB Error: '+e2.message,'warn');return;}
   }
   updIntel();updKPIs();render();
+  custs.forEach(c=>{
+    if(!qnCache[c.id] || qnCache[c.id].length===0) fetchRecentNotes(c.id);
+  });
 }
 
 // ════════════════════════════════════════
@@ -1736,98 +1884,341 @@ async function bulkUpdateStatus(){
 }
 
 // ════════════════════════════════════════
+// QUICK NOTES
+// ════════════════════════════════════════
+function toggleQNEditor(customerId){
+  if(qnOpenId!==null && qnOpenId!==customerId){
+    const prev=document.getElementById('qn-editor-'+qnOpenId);
+    if(prev) prev.classList.remove('open');
+  }
+
+  const editor=document.getElementById('qn-editor-'+customerId);
+  if(!editor) return;
+
+  const isOpen=editor.classList.toggle('open');
+  qnOpenId=isOpen?customerId:null;
+
+  if(isOpen){
+    const textarea=document.getElementById('qn-input-'+customerId);
+    if(textarea){
+      textarea.value='';
+      textarea.focus();
+      onQNInput(customerId);
+    }
+    if(!qnCache[customerId]){
+      fetchRecentNotes(customerId);
+    }
+  }
+}
+
+document.addEventListener('click',function(e){
+  if(qnOpenId===null) return;
+  const editorEl=document.getElementById('qn-editor-'+qnOpenId);
+  const cellEl=document.getElementById('qn-cell-'+qnOpenId);
+  if(editorEl && cellEl && !cellEl.contains(e.target)){
+    editorEl.classList.remove('open');
+    qnOpenId=null;
+  }
+});
+
+function onQNInput(customerId){
+  const textarea=document.getElementById('qn-input-'+customerId);
+  const counter=document.getElementById('qn-counter-'+customerId);
+  if(!textarea || !counter) return;
+
+  const len=textarea.value.length;
+  counter.textContent=len+' / 280';
+  counter.classList.remove('warn','over');
+  if(len>=280){
+    counter.classList.add('over');
+  }else if(len>=240){
+    counter.classList.add('warn');
+  }
+}
+
+async function saveQuickNote(customerId){
+  const textarea=document.getElementById('qn-input-'+customerId);
+  const saveBtn=document.getElementById('qn-btn-'+customerId);
+  if(!textarea) return;
+
+  const noteText=textarea.value.trim();
+  if(!noteText){
+    toast('Note cannot be empty','warn');
+    textarea.focus();
+    return;
+  }
+  if(noteText.length>280){
+    toast('Note exceeds 280 characters','warn');
+    return;
+  }
+  if(saveBtn){
+    saveBtn.disabled=true;
+    saveBtn.textContent='Saving…';
+  }
+
+  const optimisticNote={
+    id:'optimistic-'+Date.now(),
+    customer_id:customerId,
+    note_text:noteText,
+    created_at:new Date().toISOString(),
+    created_by:userName || 'Admin',
+    _pending:true
+  };
+
+  if(!qnCache[customerId]) qnCache[customerId]=[];
+  qnCache[customerId].unshift(optimisticNote);
+  renderQNBubbles(customerId);
+
+  textarea.value='';
+  onQNInput(customerId);
+
+  const editor=document.getElementById('qn-editor-'+customerId);
+  if(editor) editor.classList.remove('open');
+  qnOpenId=null;
+
+  let savedNote=null;
+  try{
+    const {data,error}=await sb
+      .from('quick_notes')
+      .insert([{
+        customer_id:customerId,
+        note_text:noteText,
+        created_by:userName || 'Admin'
+      }])
+      .select()
+      .single();
+
+    if(error) throw error;
+    savedNote=data;
+
+    const idx=qnCache[customerId].findIndex(n=>n.id===optimisticNote.id);
+    if(idx!==-1){
+      qnCache[customerId][idx]=savedNote;
+    }
+
+    renderQNBubbles(customerId);
+    toast('✓ Note saved');
+  }catch(err){
+    qnCache[customerId]=qnCache[customerId].filter(n=>n.id!==optimisticNote.id);
+    renderQNBubbles(customerId);
+    toast('⚠ Failed to save note','warn');
+
+    if(saveBtn){
+      saveBtn.disabled=false;
+      saveBtn.textContent='Save Note';
+    }
+    const editorToReopen=document.getElementById('qn-editor-'+customerId);
+    if(editorToReopen) editorToReopen.classList.add('open');
+    const ta=document.getElementById('qn-input-'+customerId);
+    if(ta){
+      ta.value=noteText;
+      onQNInput(customerId);
+      ta.focus();
+    }
+    return;
+  }finally{
+    if(saveBtn){
+      saveBtn.disabled=false;
+      saveBtn.textContent='Save Note';
+    }
+  }
+
+  if(savedNote){
+    callGeminiForSummary(customerId,noteText,savedNote.id);
+  }
+}
+
+async function fetchRecentNotes(customerId) {
+  if (qnCache[customerId] && qnCache[customerId].length > 0) {
+    renderQNBubbles(customerId);
+    return;
+  }
+
+  try {
+    const { data, error } = await sb
+      .from('quick_notes')
+      .select('id, note_text, created_at, created_by, vibe_summary')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    if (error) {
+      // LOG THE FULL ERROR so we can see exactly what Supabase returns
+      console.error('[quick_notes] Full error object:', JSON.stringify(error));
+      qnCache[customerId] = [];
+      return;
+    }
+
+    qnCache[customerId] = data || [];
+    renderQNBubbles(customerId);
+
+  } catch (err) {
+    console.error('[quick_notes] Caught exception:', err);
+    qnCache[customerId] = [];
+  }
+}
+
+function escapeHTML(str){
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function renderQNBubbles(customerId){
+  const container=document.getElementById('qn-bubbles-'+customerId);
+  const label=document.getElementById('qn-label-'+customerId);
+  if(!container) return;
+
+  const notes=(qnCache[customerId] || []).slice(0,3);
+  if(label){
+    label.textContent=notes.length ? notes.length+' note'+(notes.length>1?'s':'') : 'Add note';
+  }
+
+  if(!notes.length){
+    container.innerHTML='';
+    return;
+  }
+
+  container.innerHTML=notes.map((n,i)=>{
+    const fullText=n.note_text || '';
+    const truncated=fullText.length>38 ? fullText.substring(0,38)+'…' : fullText;
+    const isPending=n._pending===true;
+
+    let vibeBadge='';
+    if(i===0 && !isPending){
+      if(typeof n.vibe_summary==='string' && n.vibe_summary){
+        vibeBadge=`<span class="qn-vibe-badge" title="AI Vibe: ${escapeHTML(n.vibe_summary)}">✦ ${escapeHTML(n.vibe_summary)}</span>`;
+      }else if(n.vibe_summary===null){
+        vibeBadge='<span class="qn-vibe-badge unavailable">Summary unavailable</span>';
+      }
+    }
+
+    return `<span class="qn-bubble" title="${escapeHTML(fullText)}">${isPending?'⏳ ':''}${escapeHTML(truncated)}</span>${vibeBadge}`;
+  }).join('');
+}
+
+async function callGeminiForSummary(customerId,noteText,noteId){
+  if(!noteText || !noteText.trim()) return;
+
+  const prompt=`Read this CRM note and return EXACTLY 5 words (no punctuation, no explanation, no quotes)
+that capture the sales situation described. Return ONLY the 5 words, nothing else.
+
+NOTE: "${noteText}"
+
+Example of correct output: price negotiation in final stage
+Example of WRONG output: "The note discusses price negotiation."`;
+
+  let vibeText=null;
+
+  try{
+    const raw=await callGemini(prompt);
+    const words=raw.trim().split(/\s+/);
+    if(words.length>=2 && words.length<=7){
+      vibeText=words.slice(0,5).join(' ').toLowerCase();
+    }
+  }catch(err){
+    vibeText=null;
+  }
+
+  try{
+    await sb.from('quick_notes').update({vibe_summary:vibeText}).eq('id',noteId);
+  }catch(dbErr){}
+
+  if(qnCache[customerId]){
+    const noteInCache=qnCache[customerId].find(n=>String(n.id)===String(noteId));
+    if(noteInCache){
+      noteInCache.vibe_summary=vibeText;
+    }
+  }
+  renderQNBubbles(customerId);
+}
+
+// ════════════════════════════════════════
 // TABLE & KANBAN
 // ════════════════════════════════════════
 function renderTable(){
-  const list=filt(custs);const q=$('gsearch').value;
-  const compact=tableDensity==='compact';
-  const rowPad=compact?'px-3 py-2':'px-4 py-3';
-  const nameClass=compact?'font-bold text-white text-[13px] leading-tight':'font-bold text-white text-sm leading-tight';
-  const cityClass=compact?'text-[10px] text-slate-400 mt-0.5':'text-[11px] text-slate-400 mt-1';
-  const productClass=compact?'text-[10px] text-gold-500/80 mt-0.5':'text-[11px] text-gold-500/80 mt-0.5';
-  const contactText=compact?'text-xs text-slate-300':'text-sm text-slate-300';
-  const nextActionText=compact?'text-[11px] text-slate-400':'text-xs text-slate-400';
+  // 1. DEFINE THE LIST (This fixes your error)
+  const list = filt(custs);
+  const q = $('gsearch').value;
   
+  // 2. DESKTOP TABLE LOGIC (Claude's original design)
   const tbody = $('tbody');
-  // Desktop Table Render
-  if(tbody) tbody.innerHTML=list.map(c=>{
-    const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-    const city=c.city||c.location||c.address_city||c.region||'—';
-    const s=SC[c.status]||SC['Inquiry'];
-    const isDark = document.documentElement.classList.contains('dark');
-    const statusColor = isDark ? s.darkColor : s.color;
-    return`<tr class="group transition-colors duration-200 hover:bg-navy-700/30" data-id="${c.id}" onclick="openModal(${c.id})">
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-        <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/>
-      </td>
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-        <p class="${nameClass}">${hl(c.name,q)}</p>
-        <p class="${cityClass}">${hl(city,q)}</p>
-        <p class="${productClass}">${hl(c.product||'—',q)}</p>
-      </td>
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
-      </td>
-      
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden lg:table-cell text-sm text-slate-300">
-        ${c.contact || '—'}
-      </td>
-      
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden lg:table-cell text-xs text-slate-400">
-        ${c.next_action || '—'}
-      </td>
-      
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-        ${out > 0 ? `<span class="text-rose-400 font-semibold ${compact ? 'text-xs' : 'text-sm'}">${fmtK(out)}</span>` : '<span class="text-emerald-400 font-medium">Clear</span>'}
-      </td>
-      
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-        ${etaBadge(c)}
-      </td>
-      <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-        <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
-          <button onclick="openModal(${c.id})" class="w-8 h-8 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-gold-500 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z"/></svg>
-          </button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-  
+  if(tbody) {
+    tbody.innerHTML = list.map(c => {
+      const out = (c.transactions || []).filter(t => t.payment_status === 'Outstanding').reduce((s,t) => s + (parseFloat(t.amount) || 0), 0);
+      const s = SC[c.status] || SC['Inquiry'];
+      const isDark = document.documentElement.classList.contains('dark');
+      const statusColor = isDark ? s.darkColor : s.color;
+      const compact = tableDensity === 'compact';
+      const rowPad = compact ? 'px-3 py-2' : 'px-4 py-3';
+
+      return `<tr class="group transition-colors duration-200 hover:bg-navy-700/30" data-id="${c.id}" onclick="openModal(${c.id})">
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
+          <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/>
+        </td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
+          <p class="font-bold text-white text-sm">${hl(c.name,q)}</p>
+          <p class="text-[11px] text-gold-500/80">${hl(c.product || '—',q)}</p>
+        </td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
+        </td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden lg:table-cell text-sm text-slate-300">${c.contact || '—'}</td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden lg:table-cell text-xs text-slate-400">${c.next_action || '—'}</td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
+          <span class="${out > 0 ? 'text-rose-400' : 'text-emerald-400'} font-semibold">${fmtK(out)}</span>
+        </td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">${etaBadge(c)}</td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 qn-cell hidden xl:table-cell" id="qn-cell-${c.id}">
+          <div id="qn-display-${c.id}">
+            <button class="qn-trigger-btn" onclick="event.stopPropagation();toggleQNEditor(${c.id})">
+              📝 <span id="qn-label-${c.id}">Add note</span>
+            </button>
+            <div id="qn-bubbles-${c.id}"></div>
+          </div>
+          <div class="qn-editor-wrap" id="qn-editor-${c.id}" onclick="event.stopPropagation()">
+            <textarea class="qn-textarea" id="qn-input-${c.id}" rows="3" maxlength="280" placeholder="Quick note (280 chars max)…" oninput="onQNInput(${c.id})" onkeydown="if(event.key==='Enter'&& !event.shiftKey){event.preventDefault();saveQuickNote(${c.id});}"></textarea>
+            <div class="qn-char-counter" id="qn-counter-${c.id}">0 / 280</div>
+            <button class="qn-save-btn" id="qn-btn-${c.id}" onclick="saveQuickNote(${c.id})">Save Note</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // 3. MOBILE BENTO LOGIC (The new Mobile-Sized design)
   const mCards = $('mobile-cards');
-  // Mobile Cards Render
-  if(mCards) mCards.innerHTML=list.map(c=>{
-    const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-    const s=SC[c.status]||SC['Inquiry'];
-    const isDark = document.documentElement.classList.contains('dark');
-    const statusColor = isDark ? s.darkColor : s.color;
-    return `<div class="bg-navy-800 border border-gold-500/20 rounded-xl p-4 shadow-lg active:scale-[0.98] transition-transform" onclick="openModal(${c.id})">
-      <div class="flex justify-between items-start mb-3">
-        <div>
-          <h3 class="font-bold text-white">${hl(c.name,q)}</h3>
-          <p class="text-xs text-gold-500/70">${hl(c.product||'—',q)}</p>
+  if(mCards) {
+    mCards.innerHTML = list.map(c => {
+      const out = (c.transactions || []).filter(t => t.payment_status === 'Outstanding').reduce((s,t) => s + (parseFloat(t.amount) || 0), 0);
+      const s = SC[c.status] || SC['Inquiry'];
+      
+      return `
+      <div class="bento-card relative overflow-hidden mb-4 p-5" onclick="openModal(${c.id})">
+        <div class="absolute top-0 left-0 w-1.5 h-full" style="background:${s.color}"></div>
+        <div class="flex justify-between items-start mb-4 pl-2">
+          <div>
+            <h3 class="text-lg font-bold text-white">${c.name}</h3>
+            <p class="text-xs text-gold-500/80">${c.product || 'Security Printing'}</p>
+          </div>
+          <span class="px-2 py-1 rounded-lg text-[10px] font-bold" style="background:${s.bg}; color:${s.color}; border: 1px solid ${s.border}">${c.status}</span>
         </div>
-        <span class="px-2 py-1 rounded-full text-[10px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
-      </div>
-      <div class="grid grid-cols-2 gap-4 text-xs mb-3">
-        <div>
-          <p class="text-slate-500 uppercase tracking-widest text-[9px] font-bold mb-1">Contact</p>
-          <p class="text-slate-300 font-medium">${c.contact||'—'}</p>
+        <div class="grid grid-cols-2 gap-3 pl-2">
+          <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+            <p class="text-[9px] text-slate-500 uppercase font-bold">Outstanding</p>
+            <p class="text-sm font-bold ${out > 0 ? 'text-rose-400' : 'text-emerald-400'}">${fmtK(out)}</p>
+          </div>
+          <div class="bg-black/20 rounded-xl p-3 border border-white/5">
+            <p class="text-[9px] text-slate-500 uppercase font-bold">Timeline</p>
+            <p class="text-sm font-bold text-slate-200">${etaBadge(c)}</p>
+          </div>
         </div>
-        <div>
-          <p class="text-slate-500 uppercase tracking-widest text-[9px] font-bold mb-1">Outstanding</p>
-          <p class="${out>0?'text-rose-400':'text-emerald-400'} font-bold">${out>0?fmtK(out):'Clear'}</p>
-        </div>
-      </div>
-      <div class="flex justify-between items-center pt-3 border-t border-white/5">
-        <div class="flex items-center gap-2">
-          <p class="text-[10px] text-slate-500 font-medium">ETA:</p>
-          ${etaBadge(c)}
-        </div>
-        <p class="text-[10px] text-gold-500 font-bold uppercase tracking-wider">Tap to View →</p>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    }).join('');
+  }
 }
 
 function renderKanban(){
