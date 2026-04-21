@@ -273,6 +273,10 @@ border-color:rgba(100,116,139,.2)
 .qn-del-btn{color:#ef4444}
 .qn-del-btn:hover{background:rgba(239,68,68,.06)}
 
+/* Hover rules to reveal inline actions and add a hover scale for buttons */
+.qn-bubble-wrapper:hover .qn-actions { display: flex !important; }
+.qn-actions button:hover { transform: scale(1.2); transition: transform .12s ease; }
+
 /* RISK REPORT MODAL */
 .rr-ovl{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
 .rr-modal{background:#0c1829;border:1px solid rgba(212,175,55,.2);border-radius:14px;width:100%;max-width:560px;padding:26px;box-shadow:0 40px 80px rgba(0,0,0,.6)}
@@ -916,7 +920,7 @@ border-color:rgba(100,116,139,.2)
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Company</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Stage</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Contact</th>
-              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Next Action</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Current Status</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Outstanding</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">ETA</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden xl:table-cell">Quick Note</th>
@@ -986,10 +990,7 @@ border-color:rgba(100,116,139,.2)
   <div id="td" class="tcont on">
     <div class="mfield">
       <label>Stage Gate</label>
-      <select id="ms" class="mfi" onchange="renderTracker(this.value)">
-        <option>Inquiry</option><option>Quoted</option><option>PO Received</option>
-        <option>Artwork Approval</option><option>Production (PI)</option>
-      </select>
+            <select id="ms" class="mfi" onchange="renderTracker(this.value)"></select>
     </div>
     <div class="mfrow">
       <div class="mfield"><label>Contact Person</label><input id="mc" class="mfi"/></div>
@@ -1004,7 +1005,7 @@ border-color:rgba(100,116,139,.2)
       <div class="mfield"><label>Supplier Ref #</label><input id="msr" class="mfi"/></div>
     </div>
     <div class="mfrow">
-      <div class="mfield"><label>Next Action</label><input id="mna" class="mfi"/></div>
+      <div class="mfield"><label>Current Status</label><input id="mna" class="mfi" placeholder="e.g. Waiting for final PO approval"/></div>
       <div class="mfield"><label>Priority</label>
         <select id="mpri" class="mfi"><option value="false">Standard</option><option value="true">Priority Account</option></select>
       </div>
@@ -1387,10 +1388,10 @@ const SC={
   'Artwork Approval':{bg:'rgba(76,29,149,.25)',  color:'#a78bfa', border:'rgba(76,29,149,.45)', darkColor:'#c4b5fd'},
   'Production (PI)': {bg:'rgba(6,78,59,.25)',    color:'#34d399', border:'rgba(6,78,59,.45)', darkColor:'#6ee7b7'},
 };
-const STAGES=['Inquiry','Quoted','PO Received','Artwork Approval','Production (PI)'];
-const SLBLS =['Inquiry','Quoted','PO Recd','Artwork','Production'];
+let STAGES=['Inquiry','Quoted','PO Received','Artwork Approval','Production (PI)'];
+let SLBLS =['Inquiry','Quoted','PO Recd','Artwork','Production'];
 const LC_STEPS=['Draft PI Received','LC Opened','TT Paid','In Clearing','Completed'];
-const SDOTS=['#64748b','#f59e0b','#3b82f6','#a78bfa','#22c55e'];
+let SDOTS=['#64748b','#f59e0b','#3b82f6','#a78bfa','#22c55e'];
 
 // ════════════════════════════════════════
 // HELPERS
@@ -1442,6 +1443,94 @@ function renderAIResponse(el,markdown,withTyping=true){
 // ════════════════════════════════════════
 // AUTH & THEME
 // ════════════════════════════════════════
+
+// Load pipeline stages from Supabase and populate the Stage dropdown
+async function loadPipelineStages(){
+  try{
+    // Try to read org_id from sessionStorage (may be used for multi-tenant setups)
+    const orgId = sessionStorage.getItem('org_id') || null;
+    // Ensure we have a valid client/session when fetching stages
+    const client = await getValidClient();
+    if(!client){
+      console.warn('loadPipelineStages: no valid session; attempting public fetch with client');
+    }
+
+    // Fetch ordered stages
+    const { data, error } = await sb.from('pipeline_stages').select('*').order('order', { ascending: true });
+    if(error){
+      console.warn('loadPipelineStages supabase error', error);
+    }
+
+    console.log('DEBUG: Stages fetched:', data);
+
+    // Fallback hardcoded stages (ensure Serial Number Approval present)
+    const fallback = [
+      { id: 'inquiry', name: 'Inquiry', label: 'Inquiry' },
+      { id: 'quoted', name: 'Quoted', label: 'Quoted' },
+      { id: 'po_received', name: 'PO Received', label: 'PO Received' },
+      { id: 'artwork', name: 'Artwork Approval', label: 'Artwork Approval' },
+      { id: 'sn_approval', name: 'Serial Number Approval', label: 'Serial Number Approval' },
+      { id: 'production', name: 'Production (PI)', label: 'Production (PI)' }
+    ];
+
+    const stages = (data && data.length) ? data : fallback;
+
+    // Expose globally
+    window.crmStages = stages || [];
+
+    // Update STAGES, SLBLS and SDOTS to match returned sequence
+    STAGES = window.crmStages.map(s => (s.label || s.name || String(s.id)));
+    SLBLS = STAGES.map(s => (s.length>12? s.split(' ')[0] : s));
+
+    // Generate a color palette of sufficient length (cycle if needed)
+    const palette = ['#64748b','#f59e0b','#3b82f6','#a78bfa','#22c55e','#ef4444','#f97316','#06b6d4'];
+    SDOTS = STAGES.map((_,i)=> palette[i % palette.length]);
+
+    // Populate the Stage dropdown in the modal
+    const ms = document.getElementById('ms');
+    if(ms){
+      ms.innerHTML = '';
+      window.crmStages.forEach(stage => {
+        const opt = document.createElement('option');
+        const label = stage.label || stage.name || String(stage.id);
+        opt.value = label;
+        opt.textContent = label;
+        // If a customer is currently being edited, pre-select their value
+        try{
+          if(window.ccust && (window.ccust.status === label || window.ccust.status === stage.name || window.ccust.status === stage.label)){
+            opt.selected = true;
+          }
+        }catch(e){/* ignore */}
+        ms.appendChild(opt);
+      });
+    }
+
+    console.log('loadPipelineStages done. STAGES=', STAGES);
+
+  }catch(err){
+    console.error('loadPipelineStages error', err);
+    // ensure minimal fallback
+    window.crmStages = window.crmStages || [];
+    if(!window.crmStages.length){
+      const fallback = [
+        { id: 'inquiry', name: 'Inquiry', label: 'Inquiry' },
+        { id: 'quoted', name: 'Quoted', label: 'Quoted' },
+        { id: 'po_received', name: 'PO Received', label: 'PO Received' },
+        { id: 'artwork', name: 'Artwork Approval', label: 'Artwork Approval' },
+        { id: 'sn_approval', name: 'Serial Number Approval', label: 'Serial Number Approval' },
+        { id: 'production', name: 'Production (PI)', label: 'Production (PI)' }
+      ];
+      window.crmStages = fallback;
+      STAGES = window.crmStages.map(s => s.label);
+      SLBLS = STAGES.map(s => (s.length>12? s.split(' ')[0] : s));
+      SDOTS = ['#64748b','#f59e0b','#3b82f6','#a78bfa','#22c55e','#ef4444'];
+      const ms = document.getElementById('ms');
+      if(ms){ ms.innerHTML=''; window.crmStages.forEach(stage=>{ const opt=document.createElement('option'); opt.value=stage.label; opt.textContent=stage.label; ms.appendChild(opt); }); }
+    }
+  }
+}
+
+
 async function login(){
   const{error}=await sb.auth.signInWithPassword({email:$('ae').value,password:$('ap').value});
   if(error) toast('Login failed: '+error.message,'warn'); else checkAuth();
@@ -1457,13 +1546,36 @@ async function checkAuth(){
   }
   ss(session?'scr-portal':'scr-auth');
 }
-async function logout(){await sb.auth.signOut();ss('scr-auth');}
+async function logout(){
+  try{ await sb.auth.signOut(); }catch(e){/* ignore */}
+  ss('scr-auth');
+}
 function openModule(){
   ss('scr-app');
   showView('dashboard-view');
   updateUserProfile();
   loadData();
 }
+
+// Helper to ensure valid session before DB calls
+async function getValidClient(){
+  try{
+    const sessionResp = await sb.auth.getSession();
+    const session = sessionResp?.data?.session;
+    if(!session || !session.user){
+      toast('Session expired. Please login again.','warn');
+      ss('scr-auth');
+      return null;
+    }
+    return sb; // existing client is fine
+  }catch(err){
+    console.error('getValidClient error',err);
+    toast('Session error. Please login again.','warn');
+    ss('scr-auth');
+    return null;
+  }
+}
+
 
 // ════════════════════════════════════════
 // SIDEBAR LOGIC
@@ -1966,12 +2078,23 @@ async function saveQuickNote(customerId){
     saveBtn.textContent='Saving…';
   }
 
+  // Validate session/client before performing DB operations
+  const client = await getValidClient();
+  if(!client){
+    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save Note';}
+    return;
+  }
+
   // If editing an existing note
   if(qnEditingId){
     const editingId = qnEditingId;
     try{
-      const { data, error } = await sb.from('quick_notes').update({ note_text: noteText, updated_by: userName || 'Admin' }).eq('id', editingId).select().single();
-      if(error) throw error;
+      const { data, error } = await client.from('quick_notes').update({ note_text: noteText, updated_by: userName || 'Admin' }).eq('id', parseInt(String(editingId),10)).select().single();
+      if(error){
+        console.error('saveQuickNote (edit) supabase error:',error);
+        if(error.code==='PGRST303'){ toast('Session expired. Please login again.','warn'); ss('scr-auth'); }
+        throw error;
+      }
       // update cache
       if(qnCache[customerId]){
         const idx=qnCache[customerId].findIndex(n=>String(n.id)===String(editingId));
@@ -1981,6 +2104,7 @@ async function saveQuickNote(customerId){
       toast('✓ Note updated');
     }catch(err){
       console.error('saveQuickNote (edit) error',err);
+      if(err && err.code==='PGRST303'){ ss('scr-auth'); }
       toast('Failed to update note','warn');
     }finally{
       qnEditingId=null;
@@ -2013,7 +2137,7 @@ async function saveQuickNote(customerId){
 
   let savedNote=null;
   try{
-    const {data,error}=await sb
+    const {data,error}=await client
       .from('quick_notes')
       .insert([{
         customer_id:customerId,
@@ -2023,7 +2147,11 @@ async function saveQuickNote(customerId){
       .select()
       .single();
 
-    if(error) throw error;
+    if(error){
+      console.error('saveQuickNote insert supabase error:',error);
+      if(error.code==='PGRST303'){ toast('Session expired. Please login again.','warn'); ss('scr-auth'); }
+      throw error;
+    }
     savedNote=data;
 
     const idx=qnCache[customerId].findIndex(n=>n.id===optimisticNote.id);
@@ -2036,6 +2164,8 @@ async function saveQuickNote(customerId){
   }catch(err){
     qnCache[customerId]=qnCache[customerId].filter(n=>n.id!==optimisticNote.id);
     renderQNBubbles(customerId);
+    console.error('saveQuickNote error',err);
+    if(err && err.code==='PGRST303'){ ss('scr-auth'); }
     toast('⚠ Failed to save note','warn');
 
     if(saveBtn){
@@ -2129,36 +2259,179 @@ function renderQNBubbles(customerId){
       }else if(n.vibe_summary===null){
         vibeBadge='<span class="qn-vibe-badge unavailable">Summary unavailable</span>';
       }
-    }
-
-    // action buttons (edit / delete) — ensure clicks don't bubble to the row
-    const editBtn = `<button class="qn-edit-btn" title="Edit" onclick="event.stopPropagation();editQuickNote('${n.id}', ${customerId})">✎</button>`;
-    const delBtn  = `<button class="qn-del-btn" title="Delete" onclick="event.stopPropagation();deleteQuickNote('${n.id}', ${customerId})">✕</button>`;
-
-    return `<span class="qn-bubble" title="${escapeHTML(fullText)}">${isPending?'⏳ ':''}${escapeHTML(truncated)}</span><span class="qn-actions">${editBtn}${delBtn}</span>${vibeBadge}`;
-  }).join('');
-}
-
+    }// Updated deleteQuickNote with "Nuclear" safety checks
 async function deleteQuickNote(noteId, customerId){
-  if(!confirm('Delete this quick note?')) return;
-  try{
-    // If optimistic local id, remove locally only
-    if(String(noteId).startsWith('optimistic-')){
-      qnCache[customerId] = (qnCache[customerId] || []).filter(n=>String(n.id)!==String(noteId));
-      renderQNBubbles(customerId);
-      toast('✓ Note removed');
-      return;
+  console.log('DEBUG: deleteQuickNote triggered for ID:', noteId, 'customerId:', customerId);
+  if(!confirm('Are you sure?')) return;
+
+  // 1. CACHE KEY RESOLUTION
+  const cacheKey = String(customerId);
+
+  // Handle optimistic/local-only notes first
+  if(String(noteId).startsWith('optimistic-')){
+    if(qnCache[cacheKey]){
+      qnCache[cacheKey] = qnCache[cacheKey].filter(n => String(n.id) !== String(noteId));
+      console.log(`DEBUG: Optimistic delete on ${cacheKey}. New cache length:`, qnCache[cacheKey].length);
+    } else {
+      console.warn(`DEBUG: Could not find key ${cacheKey} in qnCache during optimistic delete. Keys:`, Object.keys(qnCache));
     }
-    const { error } = await sb.from('quick_notes').delete().eq('id',noteId);
-    if(error) throw error;
-    qnCache[customerId] = (qnCache[customerId] || []).filter(n=>String(n.id)!==String(noteId));
-    renderQNBubbles(customerId);
+    renderQNBubbles(cacheKey);
+    toast('✓ Note removed');
+    return;
+  }
+
+  // Validate session/client before DB operations
+  const client = await getValidClient();
+  if(!client) return;
+
+  try{
+    // PESSIMISTIC DELETE: call Supabase first
+    let delRes = await client.from('quick_notes').delete().eq('id', noteId);
+    console.log('DEBUG: Supabase response (initial):', delRes);
+
+    // If initial attempt failed, try numeric cast (BIGINT mismatch)
+    if(delRes && delRes.error){
+      const numericId = Number(noteId);
+      if(!Number.isNaN(numericId)){
+        delRes = await client.from('quick_notes').delete().eq('id', numericId);
+        console.log('DEBUG: Supabase response (after casting):', delRes);
+      }
+    }
+
+    const { data, error } = delRes || {};
+    console.log('DEBUG: Supabase final response:', { data, error });
+
+    if(error){
+      if(error.code === 'PGRST303'){
+        toast('Session expired. Please login again.','warn');
+        ss('scr-auth');
+        return;
+      }
+      toast('Failed to delete note: '+(error.message||error.code||'Unknown error'),'warn');
+      return; // Do NOT touch local cache on DB failure
+    }
+
+    // 2. AGGRESSIVE FILTER (type-agnostic)
+    if(qnCache[cacheKey]){
+      qnCache[cacheKey] = qnCache[cacheKey].filter(n => String(n.id) !== String(noteId));
+      console.log(`DEBUG: Target Key ${cacheKey} updated. New cache length:`, qnCache[cacheKey].length);
+    } else {
+      console.warn(`DEBUG: Could not find key ${cacheKey} in qnCache. Existing keys:`, Object.keys(qnCache));
+    }
+
+    // 4. GLOBAL SYNC MARKER: mark last op so other code can be aware if needed
+    qnCache.__lastOp = { type: 'delete', key: cacheKey, ts: Date.now() };
+
+    // Ensure UI reflects the change immediately
+    renderQNBubbles(cacheKey);
+
     toast('✓ Note deleted');
   }catch(err){
-    console.error('deleteQuickNote error',err);
+    console.error('deleteQuickNote caught exception:',err);
+    if(err && err.code==='PGRST303'){
+      toast('Session expired. Please login again.','warn');
+      ss('scr-auth');
+      return;
+    }
     toast('Failed to delete note','warn');
   }
 }
+
+// Updated renderQNBubbles that clears DOM when notes empty and uses string cache key
+function renderQNBubbles(customerId){
+  const cacheKey = String(customerId);
+  const container = document.getElementById('qn-bubbles-'+customerId);
+  const label = document.getElementById('qn-label-'+customerId);
+  if(!container) return;
+
+  const notes = (qnCache[cacheKey] || []).slice(0,3);
+
+  // 3. DOM CLEARING: if no notes, ensure container is empty and label reset
+  if(!notes.length){
+    container.innerHTML = '';
+    if(label) label.textContent = 'Add note';
+    return;
+  }
+
+  if(label){
+    label.textContent = notes.length ? notes.length+' note'+(notes.length>1?'s':'') : 'Add note';
+  }
+
+  container.innerHTML = notes.map((n,i)=>{
+    const fullText = n.note_text || '';
+    const truncated = fullText.length>38 ? fullText.substring(0,38)+'…' : fullText;
+    const isPending = n._pending === true;
+
+    let vibeBadge = '';
+    if(i===0 && !isPending){
+      if(typeof n.vibe_summary === 'string' && n.vibe_summary){
+        vibeBadge = `<span class="qn-vibe-badge" title="AI Vibe: ${escapeHTML(n.vibe_summary)}">✦ ${escapeHTML(n.vibe_summary)}</span>`;
+      } else if(n.vibe_summary === null){
+        vibeBadge = '<span class="qn-vibe-badge unavailable">Summary unavailable</span>';
+      }
+    }
+
+        const editBtn = `<button class="qn-edit-btn" title="Edit" onclick="event.stopPropagation();editQuickNote('${n.id}', ${customerId})">✎</button>`;
+
+    return `<span class="qn-bubble" title="${n.note_text}">
+${isPending ? '⏳ ' : ''}${truncated}
+${!isPending ? `<button 
+onclick="event.stopPropagation(); deleteQuickNote('${n.id}', ${customerId})" 
+style="margin-left:6px; color:#ef4444; font-size:11px; font-weight:bold; background:none; border:none; cursor:pointer; padding:0 2px;"
+title="Delete note">✕</button>` : ''}
+</span>${vibeBadge}`;
+  }).join('');
+}
+
+    // action buttons (edit / delete) — ensure clicks don't bubble to the row
+        const editBtn = `<button class="qn-edit-btn" title="Edit" onclick="event.stopPropagation();editQuickNote('${n.id}', ${customerId})">✎</button>`;
+
+    return `<span class="qn-bubble" title="${n.note_text}">
+${isPending ? '⏳ ' : ''}${truncated}
+${!isPending ? `<button 
+onclick="event.stopPropagation(); deleteQuickNote('${n.id}', ${customerId})" 
+style="margin-left:6px; color:#ef4444; font-size:11px; font-weight:bold; background:none; border:none; cursor:pointer; padding:0 2px;"
+title="Delete note">✕</button>` : ''}
+</span>${vibeBadge}`;
+  }).join('');
+}
+
+async function deleteQuickNote(noteId, customerId) {
+  if (!noteId || !customerId) return;
+
+  // Ensure noteId is a number for int8 compatibility
+  const numericId = Number(noteId);
+
+  try {
+    const { error, count } = await sb
+      .from('quick_notes')
+      .delete({ count: 'exact' })
+      .eq('id', Number(numericId));
+
+    if (error) {
+      toast('⚠ Delete failed: ' + (error.message || error), 'warn');
+      return;
+    }
+
+    if (typeof count === 'number' && count === 0) {
+      console.warn('Delete returned 204 but 0 rows affected. noteId:', noteId);
+      toast('⚠ Note not found (Type Mismatch)', 'warn');
+      return;
+    }
+
+    const key = String(customerId);
+    if (qnCache[key]) {
+      qnCache[key] = qnCache[key].filter(n => String(n.id) !== String(noteId));
+    }
+
+    renderQNBubbles(customerId);
+    toast('✓ Note deleted');
+  } catch (err) {
+    console.error('deleteQuickNote error', err);
+    toast('⚠ Delete failed: ' + (err.message || String(err)), 'warn');
+  }
+}
+
 
 function editQuickNote(noteId, customerId){
   // find note
@@ -2222,6 +2495,37 @@ Example of WRONG output: "The note discusses price negotiation."`;
 // ════════════════════════════════════════
 // TABLE & KANBAN
 // ════════════════════════════════════════
+function renderQNBubbles(customerId) {
+  const container = document.getElementById('qn-bubbles-' + customerId);
+  const label = document.getElementById('qn-label-' + customerId);
+  if (!container) return;
+  const notes = (qnCache[customerId] || []).slice(0, 3);
+  if (label) label.textContent = notes.length ? notes.length + ' note' + (notes.length > 1 ? 's' : '') : 'Add note';
+  if (!notes.length) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = notes.map((n, i) => {
+    const truncated = (n.note_text || '').length > 30 ? (n.note_text || '').substring(0, 30) + '...' : (n.note_text || '');
+    const isPending = n._pending === true;
+    let vibeBadge = (i === 0 && !isPending && n.vibe_summary) ? `<span class="qn-vibe-badge">✦ ${escapeHTML(n.vibe_summary || '')}</span>` : '';
+    return `\
+<div class="qn-bubble-wrapper group" style="position:relative; display:flex; flex-direction:column; align-items:flex-start;">\
+  <div class="qn-bubble-row" style="display:flex; align-items:center; width:100%;">\
+    <span class="qn-bubble" style="flex-grow:1;" title="${escapeHTML(n.note_text || '')}">\
+      ${isPending ? '⏳ ' : ''}${escapeHTML(truncated)}\
+    </span>\
+    ${!isPending ? `\
+    <div class="qn-actions" style="display:none; gap:4px; margin-left:4px;">\
+      <button onclick="event.stopPropagation(); editQuickNote('${escapeHTML(String(n.id))}', ${customerId})" style="color:#94a3b8; background:none; border:none; cursor:pointer; font-size:10px;">✎</button>\
+      <button onclick="event.stopPropagation(); deleteQuickNote('${escapeHTML(String(n.id))}', ${customerId})" style="color:#ef4444; background:none; border:none; cursor:pointer; font-size:10px;">✕</button>\
+    </div>` : ''}\
+  </div>\
+  ${vibeBadge}\
+</div>`;
+  }).join('');
+}
+
 function renderTable(){
   // 1. DEFINE THE LIST (This fixes your error)
   const list = filt(custs);
@@ -2330,7 +2634,7 @@ function renderKanban(){
 // CSV & COPY
 // ════════════════════════════════════════
 function exportCSV(){
-  let csv="Company,Product,Stage,Contact,Next Action,Outstanding,Last Contact\n";
+  let csv="Company,Product,Stage,Contact,Current Status,Outstanding,Last Contact\n";
   custs.forEach(c=>{
     const out=(c.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
     csv+=`"${c.name}","${c.product||''}","${c.status}","${c.contact||''}","${c.next_action||''}","${out}","${c.last_contact||''}"\n`;
@@ -2343,7 +2647,7 @@ function exportCSV(){
 function cpbr(e,id){
   e.stopPropagation();
   const c=custs.find(x=>x.id===id);if(!c)return;
-  navigator.clipboard.writeText(`${c.name} | ${c.product||'—'} | Next Action: ${c.next_action||'—'}`).then(()=>toast('📋 Copied','info'));
+  navigator.clipboard.writeText(`${c.name} | ${c.product||'—'} | Current Status: ${c.next_action||'—'}`).then(()=>toast('📋 Copied','info'));
 }
 
 // ════════════════════════════════════════
@@ -2461,12 +2765,23 @@ async function saveCust(){
       }
     });
 
+    // Ensure session valid and get client
+    const client = await getValidClient();
+    if(!client){
+      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = origLabel || 'Save Changes'; }
+      return;
+    }
+
     // Perform the update and request the updated row back for validation
-    const res = await sb.from('Diamond crM').update(u).eq('id',cid).select().single();
+    const res = await client.from('Diamond crM').update(u).eq('id',cid).select().single();
     console.log('saveCust update response:', res);
 
     if(res.error){
       console.error('saveCust: Supabase update error object:', res.error);
+      if(res.error.code==='PGRST303'){
+        toast('Session expired. Please login again.','warn');
+        ss('scr-auth');
+      }
       toast('Save failed: '+(res.error.message||'Database error'),'warn');
       if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = origLabel || 'Save Changes'; }
       return;
@@ -2482,7 +2797,7 @@ async function saveCust(){
 
     // Log stage change activity only if stage changed
     if(os!==ns){
-      const logRes = await sb.from('activity_logs').insert([{customer_id:cid,change_description:`Stage: ${os} → ${ns}`,log_type:'stage'}]).select();
+      const logRes = await client.from('activity_logs').insert([{customer_id:cid,change_description:`Stage: ${os} → ${ns}`,log_type:'stage'}]).select();
       console.log('saveCust activity_logs insert response:', logRes);
     }
 
@@ -2498,7 +2813,11 @@ async function saveCust(){
   }catch(err){
     // Surface full error for debugging
     console.error('saveCust caught exception:', err);
-    try{ toast('Save failed: '+(err.message||String(err)),'warn'); }catch(e){console.warn('Failed to show toast after save error',e);}
+    if(err && err.code==='PGRST303'){
+      toast('Session expired. Please login again.','warn');
+      ss('scr-auth');
+    }
+    try{ toast('Save failed: '+(err.message||String(err)),'warn'); }catch(e){console.warn('Failed to show toast after save error',e);} 
   }finally{
     if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = origLabel || 'Save Changes'; }
   }
@@ -2912,7 +3231,11 @@ async function huntLeads(){
 initTheme();
 initExecutiveDashboardCollapse();
 initTableDensity();
+// Ensure stages are loaded early so UI components render correctly
+loadPipelineStages();
 checkAuth();
+// Also ensure stages load if DOM ready later
+window.addEventListener('load', ()=>{ if(!window.crmStages||!window.crmStages.length) loadPipelineStages(); });
 // ════════════════════════════════════════
 // DASHBOARD SYNC
 // ════════════════════════════════════════
@@ -3037,6 +3360,40 @@ function syncDashboard() {
     }
   }
 }
+
+/* Final authoritative renderQNBubbles to override any previous duplicates */
+function renderQNBubbles(customerId) {
+  const container = document.getElementById('qn-bubbles-' + customerId);
+  const label = document.getElementById('qn-label-' + customerId);
+  if (!container) return;
+  const notes = (qnCache[customerId] || []).slice(0, 3);
+  if (label) label.textContent = notes.length ? notes.length + ' note' + (notes.length > 1 ? 's' : '') : 'Add note';
+  if (!notes.length) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = notes.map((n, i) => {
+    const full = n.note_text || '';
+    const truncated = full.length > 30 ? full.substring(0, 30) + '...' : full;
+    const isPending = n._pending === true;
+    const vibe = (i === 0 && !isPending && n.vibe_summary) ? `<span class="qn-vibe-badge" title="AI Vibe: ${escapeHTML(n.vibe_summary || '')}">✦ ${escapeHTML(n.vibe_summary || '')}</span>` : '';
+    return `\
+<div class="qn-bubble-wrapper group" style="position:relative; display:flex; flex-direction:column; align-items:flex-start;">\
+  <div class="qn-bubble-row" style="display:flex; align-items:center; width:100%;">\
+    <span class="qn-bubble" style="flex-grow:1;" title="${escapeHTML(full)}">\
+      ${isPending ? '⏳ ' : ''}${escapeHTML(truncated)}\
+    </span>\
+    ${!isPending ? `\
+    <div class="qn-actions" style="display:none; gap:4px; margin-left:4px;">\
+      <button onclick="event.stopPropagation(); editQuickNote('${escapeHTML(String(n.id))}', ${customerId})" style="color:#94a3b8; background:none; border:none; cursor:pointer; font-size:10px;">✎</button>\
+      <button onclick="event.stopPropagation(); deleteQuickNote('${escapeHTML(String(n.id))}', ${customerId})" style="color:#ef4444; background:none; border:none; cursor:pointer; font-size:10px;">✕</button>\
+    </div>` : ''}\
+  </div>\
+  ${vibe}\
+</div>`;
+  }).join('');
+}
+
 </script>
 </body>
 </html>
