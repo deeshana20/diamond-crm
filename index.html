@@ -264,6 +264,15 @@ color:#475569;
 border-color:rgba(100,116,139,.2)
 }
 
+/* QUICK NOTES ACTION BUTTONS */
+.qn-actions{display:inline-flex;gap:6px;margin-left:6px;opacity:0;transition:opacity .12s}
+.qn-cell:hover .qn-actions{opacity:1}
+.qn-edit-btn,.qn-del-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:20px;font-size:10px;border-radius:4px;border:none;background:transparent;cursor:pointer;padding:0}
+.qn-edit-btn{color:#94a3b8}
+.qn-edit-btn:hover{background:rgba(148,163,184,.06)}
+.qn-del-btn{color:#ef4444}
+.qn-del-btn:hover{background:rgba(239,68,68,.06)}
+
 /* RISK REPORT MODAL */
 .rr-ovl{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
 .rr-modal{background:#0c1829;border:1px solid rgba(212,175,55,.2);border-radius:14px;width:100%;max-width:560px;padding:26px;box-shadow:0 40px 80px rgba(0,0,0,.6)}
@@ -1369,6 +1378,7 @@ const qnCache = {};
 
 // Track which editor is currently open
 let qnOpenId = null;
+let qnEditingId = null;
 
 const SC={
   'Inquiry':         {bg:'rgba(100,116,139,.2)', color:'#94a3b8', border:'rgba(100,116,139,.4)', darkColor:'#cbd5e1'},
@@ -1956,6 +1966,31 @@ async function saveQuickNote(customerId){
     saveBtn.textContent='Saving…';
   }
 
+  // If editing an existing note
+  if(qnEditingId){
+    const editingId = qnEditingId;
+    try{
+      const { data, error } = await sb.from('quick_notes').update({ note_text: noteText, updated_by: userName || 'Admin' }).eq('id', editingId).select().single();
+      if(error) throw error;
+      // update cache
+      if(qnCache[customerId]){
+        const idx=qnCache[customerId].findIndex(n=>String(n.id)===String(editingId));
+        if(idx!==-1) qnCache[customerId][idx]=data;
+      }
+      renderQNBubbles(customerId);
+      toast('✓ Note updated');
+    }catch(err){
+      console.error('saveQuickNote (edit) error',err);
+      toast('Failed to update note','warn');
+    }finally{
+      qnEditingId=null;
+      if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save Note';}
+      const editor=document.getElementById('qn-editor-'+customerId);if(editor) editor.classList.remove('open');qnOpenId=null;
+    }
+    return;
+  }
+
+  // Otherwise create a new note (existing behavior)
   const optimisticNote={
     id:'optimistic-'+Date.now(),
     customer_id:customerId,
@@ -2096,8 +2131,56 @@ function renderQNBubbles(customerId){
       }
     }
 
-    return `<span class="qn-bubble" title="${escapeHTML(fullText)}">${isPending?'⏳ ':''}${escapeHTML(truncated)}</span>${vibeBadge}`;
+    // action buttons (edit / delete) — ensure clicks don't bubble to the row
+    const editBtn = `<button class="qn-edit-btn" title="Edit" onclick="event.stopPropagation();editQuickNote('${n.id}', ${customerId})">✎</button>`;
+    const delBtn  = `<button class="qn-del-btn" title="Delete" onclick="event.stopPropagation();deleteQuickNote('${n.id}', ${customerId})">✕</button>`;
+
+    return `<span class="qn-bubble" title="${escapeHTML(fullText)}">${isPending?'⏳ ':''}${escapeHTML(truncated)}</span><span class="qn-actions">${editBtn}${delBtn}</span>${vibeBadge}`;
   }).join('');
+}
+
+async function deleteQuickNote(noteId, customerId){
+  if(!confirm('Delete this quick note?')) return;
+  try{
+    // If optimistic local id, remove locally only
+    if(String(noteId).startsWith('optimistic-')){
+      qnCache[customerId] = (qnCache[customerId] || []).filter(n=>String(n.id)!==String(noteId));
+      renderQNBubbles(customerId);
+      toast('✓ Note removed');
+      return;
+    }
+    const { error } = await sb.from('quick_notes').delete().eq('id',noteId);
+    if(error) throw error;
+    qnCache[customerId] = (qnCache[customerId] || []).filter(n=>String(n.id)!==String(noteId));
+    renderQNBubbles(customerId);
+    toast('✓ Note deleted');
+  }catch(err){
+    console.error('deleteQuickNote error',err);
+    toast('Failed to delete note','warn');
+  }
+}
+
+function editQuickNote(noteId, customerId){
+  // find note
+  const notes = qnCache[customerId] || [];
+  const note = notes.find(n=>String(n.id)===String(noteId));
+  // open editor
+  const editor = document.getElementById('qn-editor-'+customerId);
+  if(!editor){
+    // ensure cache loaded then open
+    fetchRecentNotes(customerId).then(()=>{
+      const ed = document.getElementById('qn-editor-'+customerId);
+      if(ed){ ed.classList.add('open'); }
+    });
+  } else {
+    editor.classList.add('open');
+  }
+  const ta = document.getElementById('qn-input-'+customerId);
+  if(ta) ta.value = note ? note.note_text : '';
+  onQNInput(customerId);
+  qnOpenId = customerId;
+  qnEditingId = noteId;
+  setTimeout(()=>{ if(ta) ta.focus(); },80);
 }
 
 async function callGeminiForSummary(customerId,noteText,noteId){
@@ -2323,21 +2406,102 @@ function closeModal(){$('modal').style.display='none';cid=null;}
 // SAVE / DELETE
 // ════════════════════════════════════════
 async function saveCust(){
-  const ns=$('ms').value,os=ccust.status;
-  const ip=$('mpri').value==='true';
-  if(ns==='Production (PI)'&&!ip){
-    const out=(ccust.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-    if(out>0){toast('⚠ Outstanding balance blocks Production','warn');return;}
+  // Defensive debugging wrapper to surface DB errors and mismatches
+  const saveBtn = document.querySelector('.modal-drawer button[onclick="saveCust()"]');
+  const origLabel = saveBtn ? saveBtn.textContent : null;
+  try{
+    // Disable save button to prevent double clicks
+    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+
+    console.log('saveCust invoked. cid=', cid);
+    if(!cid){
+      console.error('saveCust: missing cid (record id) — aborting update. cid=', cid);
+      toast('Record ID missing. Cannot save.','warn');
+      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = origLabel || 'Save Changes'; }
+      return;
+    }
+
+    const ns=$('ms').value, os=ccust?.status;
+    const ip=$('mpri').value==='true';
+
+    // Business rule: block Production if outstanding and not a priority account
+    if(ns==='Production (PI)' && !ip){
+      const out=(ccust.transactions||[]).filter(t=>t.payment_status==='Outstanding').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+      if(out>0){
+        toast('⚠ Outstanding balance blocks Production','warn');
+        if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = origLabel || 'Save Changes'; }
+        return;
+      }
+    }
+
+    const u={
+      status: ns,
+      contact: $('mc').value,
+      last_contact: $('mlc').value,
+      next_action: $('mna').value,
+      notes: $('mnotes').value,
+      is_priority: ip,
+      stakeholder_finance: $('msf').value,
+      stakeholder_artwork: $('msa').value,
+      supplier_ref_no: $('msr').value,
+      // Vault fields (ensure exact DB column names)
+      vault_approval_status: $('vault-status').value,
+      vault_verified_at: $('vault-status').value==='Final Verified'?($('vault-ts').dataset.iso||new Date().toISOString()):null,
+      vault_preview_url: $('vault-preview-img').style.display!=='none'?$('vault-preview-img').src:null
+    };
+
+    // Column audit: check whether the current ccust object contains these keys
+    const keys = Object.keys(u);
+    keys.forEach(k=>{
+      const present = ccust && Object.prototype.hasOwnProperty.call(ccust, k);
+      if(!present){
+        console.warn(`saveCust column-audit: property "${k}" not present on loaded record (ccust). This may indicate a DB column mismatch.`, { key:k, ccustHas: present, ccustSample: ccust ? Object.keys(ccust).slice(0,20) : null });
+      } else {
+        console.log(`saveCust column-audit: property "${k}" exists on ccust.`);
+      }
+    });
+
+    // Perform the update and request the updated row back for validation
+    const res = await sb.from('Diamond crM').update(u).eq('id',cid).select().single();
+    console.log('saveCust update response:', res);
+
+    if(res.error){
+      console.error('saveCust: Supabase update error object:', res.error);
+      toast('Save failed: '+(res.error.message||'Database error'),'warn');
+      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = origLabel || 'Save Changes'; }
+      return;
+    }
+
+    if(!res.data){
+      console.warn('saveCust: update returned no data. res:', res);
+      toast('Warning: No record returned after update. Check DB permissions.','warn');
+    } else {
+      console.log('saveCust: update successful. updated row id=', res.data.id || cid);
+      try{ console.log('saveCust: updated record snapshot:', res.data); }catch(e){/* ignore */}
+    }
+
+    // Log stage change activity only if stage changed
+    if(os!==ns){
+      const logRes = await sb.from('activity_logs').insert([{customer_id:cid,change_description:`Stage: ${os} → ${ns}`,log_type:'stage'}]).select();
+      console.log('saveCust activity_logs insert response:', logRes);
+    }
+
+    // Refresh data and close modal after successful save
+    try{
+      await loadData();
+      closeModal();
+    }catch(e){
+      console.error('saveCust: error while reloading data or closing modal', e);
+    }
+
+    toast('✓ Saved');
+  }catch(err){
+    // Surface full error for debugging
+    console.error('saveCust caught exception:', err);
+    try{ toast('Save failed: '+(err.message||String(err)),'warn'); }catch(e){console.warn('Failed to show toast after save error',e);}
+  }finally{
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = origLabel || 'Save Changes'; }
   }
-  const u={status:ns,contact:$('mc').value,last_contact:$('mlc').value,next_action:$('mna').value,
-    notes:$('mnotes').value,is_priority:ip,stakeholder_finance:$('msf').value,
-    stakeholder_artwork:$('msa').value,supplier_ref_no:$('msr').value,
-    vault_approval_status:$('vault-status').value,
-    vault_verified_at:$('vault-status').value==='Final Verified'?($('vault-ts').dataset.iso||new Date().toISOString()):null,
-    vault_preview_url:$('vault-preview-img').style.display!=='none'?$('vault-preview-img').src:null};
-  await sb.from('Diamond crM').update(u).eq('id',cid);
-  if(os!==ns) await sb.from('activity_logs').insert([{customer_id:cid,change_description:`Stage: ${os} → ${ns}`,log_type:'stage'}]);
-  toast('✓ Saved');loadData();closeModal();
 }
 async function delCust(){
   if(!confirm('Delete this record and all associated data?'))return;
