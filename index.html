@@ -73,7 +73,12 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.7)}
 /* MODAL */
 .modal-ovl{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:flex-start;justify-content:flex-end;backdrop-filter:blur(8px)}
 .modal-drawer{background:#0c1829;border-left:1px solid rgba(212,175,55,.2);width:40%;max-width:580px;height:100vh;padding:24px;overflow-y:auto;animation:drawerin .28s cubic-bezier(.22,1,.36,1)}
+@media(max-width:767px){
+  .modal-ovl{align-items:stretch;justify-content:stretch}
+  .modal-drawer{width:100%!important;max-width:100%!important;height:100vh;border-left:none;border-top:1px solid rgba(212,175,55,.2);padding:16px;animation:drawerinmobile .28s cubic-bezier(.22,1,.36,1)}
+}
 @keyframes drawerin{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes drawerinmobile{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:18px;overflow-x:auto;gap:0}
 .mtab{padding:8px 11px;color:#475569;cursor:pointer;font-size:10px;font-weight:700;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.6px;transition:all .2s;white-space:nowrap}
 .mtab.on{color:#d4af37;border-bottom-color:#d4af37}
@@ -92,6 +97,7 @@ textarea.mfi{resize:vertical}
 .mfield{margin-bottom:13px}
 .mfield label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#64748b;display:block;margin-bottom:5px;font-weight:700}
 .mfrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.mfrow{grid-template-columns:1fr}}
 
 /* LOGISTICS */
 .lentry{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-bottom:8px}
@@ -283,7 +289,6 @@ border-color:rgba(100,116,139,.2)
 
 /* MOBILE */
 @media(max-width:768px){
-  .modal-drawer{width:100%;border-left:none;border-top:1px solid rgba(212,175,55,.2)}
   .mfrow{grid-template-columns:1fr}
 }
 /* ANALYTICS CHARTS & CUSTOM COLORS */
@@ -637,13 +642,13 @@ border-color:rgba(100,116,139,.2)
   <!-- MAIN CONTENT -->
   <main id="app-main-content">
     <section id="executive-overview" class="mb-8">
-  <div class="flex items-center justify-between mb-4">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
     <div class="flex items-center gap-3">
       <h2 class="text-lg font-bold text-white tracking-tight">Executive Overview</h2>
       <span class="px-2 py-0.5 text-[10px] font-bold bg-gold-500/10 text-gold-500 border border-gold-500/20 rounded uppercase">Live Data</span>
     </div>
     <div class="flex items-center gap-2">
-      <button id="executive-report-btn" onclick="generateExecutiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-navy-800 text-slate-300 border border-slate-700 rounded hover:bg-navy-700 transition-colors">
+      <button id="executive-report-btn" onclick="generateExecutiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-navy-800 text-slate-300 border border-slate-700 rounded hover:bg-navy-700 transition-colors hidden sm:inline-flex">
         Download PDF Report
       </button>
       <button id="executive-dashboard-toggle" onclick="toggleExecutiveDashboard()" class="w-8 h-8 flex items-center justify-center bg-navy-800 border border-slate-700 rounded text-slate-400 hover:text-white transition-colors">
@@ -683,7 +688,7 @@ border-color:rgba(100,116,139,.2)
 
       <div class="glass-card rounded-xl p-5">
         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Credit Exposure Top 5</p>
-        <div class="h-40 flex items-end justify-between gap-2 px-2">
+        <div class="h-40 sm:h-40 flex items-end justify-between gap-1 sm:gap-2 px-1 sm:px-2">
           <div class="flex-1 flex flex-col items-center gap-2 group cursor-help">
             <div class="w-full bar-gold-vertical rounded-t transition-all duration-700" style="height: 10%"></div>
             <p class="text-gold text-[9px] font-bold">Rs.0</p>
@@ -743,7 +748,7 @@ border-color:rgba(100,116,139,.2)
 
     </div>
 
-    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-navy-900/50 border border-white/5 p-4 rounded-xl">
         <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Accounts</p>
         <p class="text-2xl font-bold text-white mt-1">0</p>
@@ -910,7 +915,8 @@ border-color:rgba(100,116,139,.2)
 
     <!-- TABLE VIEW -->
     <div id="vw-t">
-      <div class="hidden lg:block bg-navy-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div class="hidden lg:block overflow-x-auto shadow-md rounded-lg">
+        <div class="bg-navy-800 border border-slate-700 rounded-lg overflow-hidden min-w-[700px]">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-700 bg-navy-900/50">
@@ -919,15 +925,16 @@ border-color:rgba(100,116,139,.2)
               </th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Company</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Stage</th>
-              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Contact</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">Contact</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Current Status</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Outstanding</th>
-              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">ETA</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">ETA</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden xl:table-cell">Quick Note</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
+        </div>
       </div>
     
       <div id="mobile-cards" class="lg:hidden flex flex-col gap-4">
@@ -1161,7 +1168,7 @@ border-color:rgba(100,116,139,.2)
 
 <!-- ══════════════════════ ADD MODAL ══════════════════════ -->
 <div class="modal-ovl" id="addmod" style="display:none">
-<div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md p-6 m-auto shadow-2xl mx-4">
+<div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md p-6 m-auto shadow-2xl mx-4 overflow-y-auto max-h-[90vh]">
   <div class="flex justify-between items-center mb-5">
     <h3 class="text-lg font-bold text-slate-900 dark:text-zinc-100">New Record</h3>
     <button onclick="closeAdd()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition-colors">✕</button>
@@ -1174,7 +1181,7 @@ border-color:rgba(100,116,139,.2)
 
 <!-- ══════════════════════ RISK REPORT MODAL ══════════════════════ -->
 <div class="rr-ovl" id="rrmod" style="display:none">
-<div class="rr-modal">
+<div class="rr-modal" style="max-height:90vh;overflow-y:auto">
   <div class="flex justify-between items-start mb-4">
     <div>
       <p class="text-[9px] tracking-widest text-purple-400 uppercase mb-1">Gemini AI via Supabase Edge</p>
@@ -1327,6 +1334,9 @@ border-color:rgba(100,116,139,.2)
 
 /* Main content offset on desktop */
 #app-main-content{padding:16px;padding-bottom:80px}
+@media(min-width:768px){
+  #app-main-content{padding:24px 32px;padding-bottom:32px}
+}
 @media(min-width:1024px){
   #app-main-content{padding:24px;padding-bottom:24px;margin-left:256px}
   #mobile-topbar{display:none}
@@ -1347,7 +1357,8 @@ border-color:rgba(100,116,139,.2)
 .intel-grid{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:640px){.intel-grid{grid-template-columns:repeat(3,1fr)}}
 
-.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.kpi-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1024px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
 
 .ai-hub-grid-inner{display:grid;grid-template-columns:1fr;gap:16px}
@@ -1355,7 +1366,24 @@ border-color:rgba(100,116,139,.2)
 
 /* Touch-friendly buttons on mobile */
 @media(max-width:1023px){
-  .mfi{font-size:16px}/* prevents iOS zoom on focus */
+  .mfi{font-size:16px;width:100%}/* prevents iOS zoom on focus + full width */
+}
+
+/* Responsive chart containers */
+.donut-chart{max-width:180px;max-height:180px;width:100%;aspect-ratio:1}
+
+/* Responsive stage tracker on mobile */
+@media(max-width:480px){
+  .stk{overflow-x:auto;flex-wrap:nowrap;padding-bottom:8px}
+  .sstep{min-width:60px}
+  .slbl{font-size:7px}
+  .sdot{width:22px;height:22px;font-size:9px}
+}
+
+/* Kanban responsive scroll */
+@media(max-width:640px){
+  .kboard{flex-direction:column;gap:16px}
+  .kcol{width:100%}
 }
 </style>
 
@@ -2553,12 +2581,12 @@ function renderTable(){
         <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
           <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
         </td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden lg:table-cell text-sm text-slate-300">${c.contact || '—'}</td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden md:table-cell text-sm text-slate-300">${c.contact || '—'}</td>
         <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden lg:table-cell text-xs text-slate-400">${c.next_action || '—'}</td>
         <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
           <span class="${out > 0 ? 'text-rose-400' : 'text-emerald-400'} font-semibold">${fmtK(out)}</span>
         </td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">${etaBadge(c)}</td>
+        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden md:table-cell">${etaBadge(c)}</td>
         <td class="${rowPad} border-b border-white/5 bg-navy-800/40 qn-cell hidden xl:table-cell" id="qn-cell-${c.id}">
           <div id="qn-display-${c.id}">
             <button class="qn-trigger-btn" onclick="event.stopPropagation();toggleQNEditor(${c.id})">
