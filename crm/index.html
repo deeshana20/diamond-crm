@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diamond International Lanka | Command Center</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          navy:    { '900':'#0a192f','800':'#112240','700':'#1d3461','600':'#264573' },
+          gold:    { '500':'#d4af37','400':'#e5c158','300':'#f0d77a' },
+          emerald: { '500':'#10b981','400':'#34d399' },
+          charcoal:{ '900':'#121212','800':'#1a1a1a' },
+          bronze:  { '500':'#cd7f32','400':'#d9a066' }
+        },
+        fontFamily: { sans: ['Inter','system-ui','sans-serif'] }
+      }
+    }
+  };
+  /* Immediate dark-mode application to prevent flash */
+  (function() {
+    const theme = localStorage.getItem('crmTheme') || 'light';
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+  })();
+</script>
+</head>
+<body class="min-h-screen text-slate-700 dark:text-zinc-100 bg-slate-50 dark:bg-charcoal-900 transition-colors duration-300">
+
+<!-- ══════════════════════ AUTH ══════════════════════ -->
+<div id="scr-auth" class="scr">
+  <div class="glass-card rounded-2xl p-10 w-full max-w-md shadow-2xl">
+    <p class="text-xs font-bold tracking-widest text-gold-400 uppercase mb-2">Diamond International Lanka</p>
+    <h1 class="text-3xl font-bold text-white mb-1">Enterprise Suite</h1>
+    <p class="text-sm text-slate-500 mb-8">Secure access — authorised personnel only</p>
+    <input id="ae" type="email" placeholder="Work email"
+      class="w-full px-4 py-3 mb-3 text-sm bg-navy-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-gold-500 focus:outline-none"/>
+    <input id="ap" type="password" placeholder="Password"
+      class="w-full px-4 py-3 mb-4 text-sm bg-navy-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-gold-500 focus:outline-none"/>
+    <button onclick="login()" class="w-full py-3 text-sm font-bold bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-400 transition-colors">
+      Access Portal →
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════ PORTAL ══════════════════════ -->
+<div id="scr-portal" class="scr min-h-screen bg-navy-900">
+  <div class="border-b border-slate-700/50 bg-navy-800/80 px-8 py-4 flex justify-between items-center">
+    <div>
+      <p class="text-xs font-bold tracking-widest text-gold-400 uppercase">Diamond International Lanka</p>
+      <h2 class="text-base font-semibold text-white">Enterprise Portal</h2>
+    </div>
+    <button onclick="logout()" class="px-3 py-1.5 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">Sign Out</button>
+  </div>
+  <div class="flex flex-col items-center justify-center py-20 px-6">
+    <p class="text-xs tracking-widest text-slate-500 uppercase mb-2">Select Division</p>
+    <h1 class="text-3xl font-bold text-white text-center mb-2">Where are you<br/>working today?</h1>
+    <p class="text-sm text-slate-500 mb-10">Choose a business unit to continue</p>
+    <div class="flex flex-col md:flex-row items-stretch justify-center gap-5 max-w-4xl w-full">
+      <div onclick="openModule()" class="glass-card rounded-xl p-6 cursor-pointer hover:-translate-y-1 transition-all hover:border-gold-500/50 w-full">
+        <div class="w-10 h-10 rounded-lg bg-gold-500/10 flex items-center justify-center text-xl mb-3">🛡️</div>
+        <p class="font-semibold text-white mb-1">Security Printing &amp; Imports</p>
+        <p class="text-xs text-slate-500">Pipeline CRM, logistics, artwork, supplier management</p>
+      </div>
+      <div class="glass-card rounded-xl p-6 opacity-40 w-full">
+        <div class="w-10 h-10 rounded-lg bg-slate-500/10 flex items-center justify-center text-xl mb-3">🚢</div>
+        <p class="font-semibold text-white mb-1">General Exports Division</p>
+        <p class="text-xs text-slate-500">Export docs, overseas clients, shipping manifests</p>
+        <span class="inline-block mt-2 px-2 py-0.5 text-[9px] font-bold tracking-wider bg-slate-700 text-slate-400 rounded uppercase">Coming Soon</span>
+      </div>
+      <div class="glass-card rounded-xl p-6 opacity-40 w-full">
+        <div class="w-10 h-10 rounded-lg bg-slate-500/10 flex items-center justify-center text-xl mb-3">🚛</div>
+        <p class="font-semibold text-white mb-1">Logistics &amp; Distribution</p>
+        <p class="text-xs text-slate-500">Fleet management, delivery, warehouse operations</p>
+        <span class="inline-block mt-2 px-2 py-0.5 text-[9px] font-bold tracking-wider bg-slate-700 text-slate-400 rounded uppercase">Coming Soon</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ APP ══════════════════════ -->
+<div id="scr-app" class="scr min-h-screen">
+
+  <!-- DESKTOP SIDEBAR -->
+  <aside id="app-sidebar">
+    <div class="px-5 py-5 border-b border-slate-700/40">
+      <p class="text-[9px] font-bold tracking-widest text-gold-400 uppercase mb-1">Diamond Int'l Lanka</p>
+      <h1 class="text-sm font-bold text-white leading-tight">Security Printing<br/>Command Center</h1>
+    </div>
+    <div class="flex-1 py-3">
+      <p class="snav-section">Pipeline</p>
+      <div class="snav-item active" id="snav-dashboard" onclick="showView('dashboard')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Dashboard
+      </div>
+      <div class="snav-item" id="snav-kanban" onclick="showView('kanban')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+        Kanban Board
+      </div>
+
+      <p class="snav-section">Intelligence</p>
+      <div class="snav-item" onclick="toggleAIHub();showView('dashboard')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        AI Intelligence Hub
+      </div>
+      <div class="snav-item" onclick="document.getElementById('tier1-analytics')?.scrollIntoView({behavior:'smooth'})">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20V10m5 10V4m5 16v-7M4 20h16"/></svg>
+        Analytics
+      </div>
+      <div class="snav-item" onclick="openRiskReport()">
+        <svg fill="currentColor" viewBox="0 0 20 20" class="text-rose-400"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <span>AI Risk Report</span>
+        <span class="ml-auto w-2 h-2 bg-rose-400 rounded-full animate-pulse"></span>
+      </div>
+
+      <p class="snav-section">Actions</p>
+      <div class="snav-item" onclick="openAdd()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Record
+      </div>
+      <div class="snav-item" onclick="exportCSV()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Export CSV
+      </div>
+    </div>
+    <div class="px-4 py-4 border-t border-slate-700/40">
+      <div class="snav-item" onclick="ss('scr-portal')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"/></svg>
+        Back to Portal
+      </div>
+      <p class="text-[9px] text-slate-600 px-2 mt-3">v3.0 · Banking-Grade Security</p>
+    </div>
+  </aside>
+
+  <!-- MOBILE TOP BAR -->
+  <div id="mobile-topbar">
+    <div>
+      <p class="text-[9px] font-bold tracking-widest text-gold-400 uppercase">Diamond Int'l Lanka</p>
+      <p class="text-sm font-semibold text-white">Command Center</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="openRiskReport()" class="flex items-center gap-1 px-3 py-2 text-xs font-medium bg-rose-900/50 text-rose-300 border border-rose-700/50 rounded-lg" style="min-height:44px">
+        <span class="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></span>Risk
+      </button>
+      <button onclick="openAdd()" class="px-4 py-2 text-xs font-bold bg-gold-500 text-navy-900 rounded-lg" style="min-height:44px">+ Add</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main id="app-main-content">
+
+    <!-- EXECUTIVE OVERVIEW -->
+    <section id="executive-overview" class="mb-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+        <div class="flex items-center gap-3">
+          <h2 class="text-lg font-bold text-white tracking-tight">Executive Overview</h2>
+          <span class="px-2 py-0.5 text-[10px] font-bold bg-gold-500/10 text-gold-500 border border-gold-500/20 rounded uppercase">Live Data</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="executive-report-btn" onclick="generateExecutiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-navy-800 text-slate-300 border border-slate-700 rounded hover:bg-navy-700 transition-colors hidden sm:inline-flex">
+            Download PDF Report
+          </button>
+          <button id="executive-dashboard-toggle" onclick="toggleExecutiveDashboard()" class="w-8 h-8 flex items-center justify-center bg-navy-800 border border-slate-700 rounded text-slate-400 hover:text-white transition-colors">
+            <svg id="executive-dashboard-chevron" class="w-4 h-4 exec-dash-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="executive-dashboard-content" class="exec-dash-content">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+          <!-- Pipeline Velocity -->
+          <div class="glass-card rounded-xl p-5">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Pipeline Velocity</p>
+            <div class="space-y-3">
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Inquiry</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Quoted</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>PO Received</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Artwork Approval</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Serial Number Approval</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Production (PI)</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Delivered</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+              <div class="relative pt-1">
+                <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Closed</span><span class="text-navy">0</span></div>
+                <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Credit Exposure -->
+          <div class="glass-card rounded-xl p-5">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Credit Exposure Top 5</p>
+            <div class="h-40 sm:h-40 flex items-end justify-between gap-1 sm:gap-2 px-1 sm:px-2">
+              <div class="flex-1 flex flex-col items-center gap-2 group cursor-help"><div class="w-full bar-gold-vertical rounded-t transition-all duration-700" style="height:10%"></div><p class="text-gold text-[9px] font-bold">Rs.0</p><p class="text-slate-400 text-[8px] truncate w-full text-center">—</p></div>
+              <div class="flex-1 flex flex-col items-center gap-2 group cursor-help"><div class="w-full bar-gold-vertical rounded-t transition-all duration-700" style="height:10%"></div><p class="text-gold text-[9px] font-bold">Rs.0</p><p class="text-slate-400 text-[8px] truncate w-full text-center">—</p></div>
+              <div class="flex-1 flex flex-col items-center gap-2 group cursor-help"><div class="w-full bar-gold-vertical rounded-t transition-all duration-700" style="height:10%"></div><p class="text-gold text-[9px] font-bold">Rs.0</p><p class="text-slate-400 text-[8px] truncate w-full text-center">—</p></div>
+              <div class="flex-1 flex flex-col items-center gap-2 group cursor-help"><div class="w-full bar-gold-vertical rounded-t transition-all duration-700" style="height:10%"></div><p class="text-gold text-[9px] font-bold">Rs.0</p><p class="text-slate-400 text-[8px] truncate w-full text-center">—</p></div>
+              <div class="flex-1 flex flex-col items-center gap-2 group cursor-help"><div class="w-full bar-gold-vertical rounded-t transition-all duration-700" style="height:10%"></div><p class="text-gold text-[9px] font-bold">Rs.0</p><p class="text-slate-400 text-[8px] truncate w-full text-center">—</p></div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-white/5 flex justify-between items-center">
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total At Risk</span>
+              <span class="text-red-400 font-semibold text-xs">Rs.0M</span>
+            </div>
+          </div>
+
+          <!-- Product Breakdown -->
+          <div class="glass-card rounded-xl p-5 flex flex-col items-center">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 self-start">Product Breakdown</p>
+            <div class="relative mb-4">
+              <canvas id="productChart" class="donut-chart transition-all duration-1000"></canvas>
+              <canvas id="velocityChart" style="display:none"></canvas>
+              <canvas id="exposureChart" style="display:none"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <p class="text-[9px] font-bold text-slate-500 uppercase">Products</p>
+                <p id="productBreakdownTotal" class="text-sm font-bold text-gold-light">0</p>
+              </div>
+            </div>
+            <div class="w-full space-y-2">
+              <div class="flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gold"></span><span class="text-slate-300">Holograms</span></div>
+                <div class="flex items-center gap-3"><span class="text-gold font-bold">0%</span><span class="text-slate-500">Rs.0</span></div>
+              </div>
+              <div class="flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gold-light"></span><span class="text-slate-300">Certificates</span></div>
+                <div class="flex items-center gap-3"><span class="text-gold font-bold">0%</span><span class="text-slate-500">Rs.0</span></div>
+              </div>
+              <div class="flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gold-dim"></span><span class="text-slate-300">Other</span></div>
+                <div class="flex items-center gap-3"><span class="text-gold font-bold">0%</span><span class="text-slate-500">Rs.0</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-navy-900/50 border border-white/5 p-4 rounded-xl">
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Accounts</p>
+            <p class="text-2xl font-bold text-white mt-1">0</p>
+          </div>
+          <div class="bg-navy-900/50 border border-white/5 p-4 rounded-xl">
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">YTD Revenue</p>
+            <p class="text-2xl font-bold text-white mt-1">Rs.0M</p>
+          </div>
+          <div class="bg-navy-900/50 border border-white/5 p-4 rounded-xl">
+            <p class="text-[9px] font-bold text-rose-500 uppercase tracking-widest">Outstanding</p>
+            <p class="text-2xl font-bold text-rose-400 mt-1">Rs.0M</p>
+          </div>
+          <div class="bg-navy-900/50 border border-white/5 p-4 rounded-xl">
+            <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Conversion</p>
+            <p class="text-2xl font-bold text-emerald-400 mt-1">0%</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIER 1 ANALYTICS -->
+    <section id="tier1-analytics" class="mb-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+        <div class="flex items-center gap-3">
+          <h2 class="text-lg font-bold text-white tracking-tight">Pipeline Intelligence</h2>
+          <span class="px-2 py-0.5 text-[10px] font-bold bg-gold-500/10 text-gold-500 border border-gold-500/20 rounded uppercase">Tier 1</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-5">
+        <!-- Revenue Waterfall -->
+        <div class="glass-card rounded-xl p-5">
+          <div class="mb-4">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Monthly Revenue Waterfall</p>
+            <p class="text-xs text-slate-500 mt-1">Received revenue vs outstanding exposure over the last 12 months</p>
+          </div>
+          <div id="revenueWaterfallChart-wrap" class="relative" style="height:220px">
+            <canvas id="revenueWaterfallChart"></canvas>
+            <div id="revenueWaterfallChart-empty" class="hidden absolute inset-0 items-center justify-center text-center text-sm text-slate-500 px-6">No data yet</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Artwork Cycle -->
+          <div class="glass-card rounded-xl p-5">
+            <div class="mb-4">
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Artwork Approval Cycle Time</p>
+              <p class="text-xs text-slate-500 mt-1">Slowest accounts by artwork turnaround window</p>
+            </div>
+            <div id="artworkCycleChart-wrap" class="relative" style="height:260px">
+              <canvas id="artworkCycleChart"></canvas>
+              <div id="artworkCycleChart-empty" class="hidden absolute inset-0 items-center justify-center text-center text-sm text-slate-500 px-6">No data yet</div>
+            </div>
+          </div>
+          <!-- Supplier On-Time -->
+          <div class="glass-card rounded-xl p-5">
+            <div class="mb-4">
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Supplier On-Time Score</p>
+              <p class="text-xs text-slate-500 mt-1">Delivery reliability across active suppliers</p>
+            </div>
+            <div id="supplierOnTimeChart-wrap" class="relative" style="height:180px">
+              <canvas id="supplierOnTimeChart"></canvas>
+              <div id="supplierOnTimeChart-empty" class="hidden absolute inset-0 items-center justify-center text-center text-sm text-slate-500 px-6">No data yet</div>
+            </div>
+            <div id="supplierOnTimeStats" class="mt-4 flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- LC Funnel -->
+          <div class="glass-card rounded-xl p-5">
+            <div class="mb-4">
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">LC Stage Funnel</p>
+              <p class="text-xs text-slate-500 mt-1">Live progression through the import logistics pipeline</p>
+            </div>
+            <div id="lcFunnelChart-wrap" class="relative" style="height:200px">
+              <canvas id="lcFunnelChart"></canvas>
+              <div id="lcFunnelChart-empty" class="hidden absolute inset-0 items-center justify-center text-center text-sm text-slate-500 px-6">No data yet</div>
+            </div>
+            <div id="lcFunnelStats" class="mt-4 flex flex-wrap gap-2"></div>
+          </div>
+          <!-- Stage Age Scatter -->
+          <div class="glass-card rounded-xl p-5">
+            <div class="mb-4">
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Stage Age Scatter</p>
+              <p class="text-xs text-slate-500 mt-1">Accounts aging through the sales pipeline</p>
+            </div>
+            <div id="stageAgeChart-wrap" class="relative" style="height:240px">
+              <canvas id="stageAgeChart"></canvas>
+              <div id="stageAgeChart-empty" class="hidden absolute inset-0 items-center justify-center text-center text-sm text-slate-500 px-6">No data yet</div>
+            </div>
+          </div>
+        </div>
+        <!-- S/N Heatmap -->
+        <div class="glass-card rounded-xl p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Serial Number Batch Heatmap</p>
+              <p class="text-xs text-slate-500 mt-1">Batch logging intensity across the last 70 days</p>
+            </div>
+            <button id="snConflictBadge" type="button" onclick="showSNConflicts()" class="hidden px-3 py-1.5 text-xs font-semibold text-red-200 bg-red-500/15 border border-red-500/30 rounded-full animate-pulse">
+              ⚠ 0 S/N Conflicts Detected
+            </button>
+          </div>
+          <div id="snHeatmapChart" class="flex justify-center"></div>
+          <div id="snHeatmapStats" class="mt-4 flex flex-wrap gap-2 justify-center"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTEL ALERT CARDS -->
+    <div class="intel-grid mb-5">
+      <div onclick="qf('stale')" class="kpi-alert border-t-amber-500 rounded-lg p-4 cursor-pointer hover:opacity-90 transition-opacity">
+        <div class="w-8 h-8 rounded bg-amber-500/10 flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        </div>
+        <p id="ic-stale" class="text-3xl font-bold text-amber-500">—</p>
+        <p class="text-[10px] font-semibold tracking-wider text-amber-500/80 uppercase mt-1">Stale Accounts</p>
+        <p class="text-xs text-slate-500 mt-1">No contact in 7+ days</p>
+      </div>
+      <div onclick="qf('eta')" class="kpi-alert border-t-sky-500 rounded-lg p-4 cursor-pointer hover:opacity-90 transition-opacity">
+        <div class="w-8 h-8 rounded bg-sky-500/10 flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-sky-400" fill="currentColor" viewBox="0 0 20 20"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1h3.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-4a1 1 0 00-.293-.707l-3-3A1 1 0 0016 5h-2V4a1 1 0 00-1-1H3zm11 3h1.586l2 2H14V7z"/></svg>
+        </div>
+        <p id="ic-ship" class="text-3xl font-bold text-sky-400">—</p>
+        <p class="text-[10px] font-semibold tracking-wider text-sky-400/80 uppercase mt-1">Active Shipments</p>
+        <p class="text-xs text-slate-500 mt-1">ETA within 5 days</p>
+      </div>
+      <div class="kpi-alert border-t-rose-500 rounded-lg p-4">
+        <div class="w-8 h-8 rounded bg-rose-500/10 flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/></svg>
+        </div>
+        <p id="ic-risk" class="text-3xl font-bold text-rose-500">—</p>
+        <p class="text-[10px] font-semibold tracking-wider text-rose-500/80 uppercase mt-1">Financial Exposure</p>
+        <p class="text-xs text-slate-500 mt-1">Total outstanding</p>
+      </div>
+    </div>
+
+    <!-- KPI DATE FILTER -->
+    <div class="flex items-center gap-2 mb-4 flex-wrap">
+      <span class="text-xs text-slate-500">Filter KPIs:</span>
+      <input id="kpi-from" type="date" class="px-3 py-1.5 text-xs bg-navy-800 border border-slate-600 rounded text-slate-300 focus:border-gold-500 focus:outline-none"/>
+      <span class="text-xs text-slate-500">to</span>
+      <input id="kpi-to" type="date" class="px-3 py-1.5 text-xs bg-navy-800 border border-slate-600 rounded text-slate-300 focus:border-gold-500 focus:outline-none"/>
+      <button onclick="applyKPIDateFilter()" class="px-3 py-1.5 text-xs font-medium bg-slate-700 text-slate-300 rounded hover:bg-slate-600 transition-colors">Apply</button>
+      <button onclick="clearKPIDateFilter()" class="px-3 py-1.5 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">Clear</button>
+    </div>
+
+    <!-- REVENUE KPIs -->
+    <div class="kpi-grid mb-5">
+      <div class="bg-navy-800 border border-slate-700 rounded-lg p-4">
+        <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">This Month</p>
+        <p id="kc-m" class="text-2xl font-bold text-white mt-1">—</p>
+      </div>
+      <div class="bg-navy-800 border border-slate-700 rounded-lg p-4">
+        <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">This Quarter</p>
+        <p id="kc-q" class="text-2xl font-bold text-white mt-1">—</p>
+      </div>
+      <div class="bg-navy-800 border border-slate-700 rounded-lg p-4">
+        <p class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">YTD 2026</p>
+        <p id="kc-y" class="text-2xl font-bold text-white mt-1">—</p>
+      </div>
+      <div class="bg-navy-800 border border-rose-700/30 rounded-lg p-4">
+        <p class="text-[10px] font-semibold tracking-wider text-rose-400 uppercase">Outstanding</p>
+        <p id="kc-o" class="text-2xl font-bold text-rose-400 mt-1">—</p>
+      </div>
+    </div>
+
+    <!-- AI INTELLIGENCE HUB -->
+    <div class="ai-hub-gradient rounded-xl mb-5">
+      <button onclick="toggleAIHub()" class="w-full px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-gold-500/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-gold-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm14.5 7a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-10.5 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10.5 3a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-10.5 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+          </div>
+          <div class="text-left">
+            <h2 class="text-sm font-semibold text-white">Diamond AI Intelligence Hub</h2>
+            <p class="text-[10px] text-slate-400">Customer Scan &amp; Market Prospector</p>
+          </div>
+          <span class="hidden sm:inline ml-2 px-2 py-0.5 text-[9px] font-semibold tracking-wider bg-gold-500/20 text-gold-400 rounded uppercase">Premium</span>
+        </div>
+        <div class="flex items-center gap-2 text-gold-400">
+          <span id="aiHubToggleText" class="text-xs hidden sm:inline">Click to Expand</span>
+          <svg id="aiHubChevron" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+      </button>
+      <div id="aiHubContent" class="hidden px-5 pb-5">
+        <div class="ai-hub-grid-inner pt-4 border-t border-slate-700/50">
+          <!-- Customer Finder -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+              <h3 class="text-xs font-semibold text-white uppercase tracking-wider">Internal Customer Scan</h3>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-3">Search CRM records using natural language</p>
+            <div class="flex gap-2">
+              <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="aiSearchInput" placeholder="e.g. 'Show me banks'" class="w-full pl-9 pr-3 py-2 text-xs bg-navy-900 border border-slate-600 rounded text-white placeholder-slate-500 focus:border-gold-500 focus:outline-none"/>
+              </div>
+              <button onclick="runAIDiscovery()" class="px-3 py-2 text-xs font-semibold bg-emerald-900/40 text-emerald-400 border border-emerald-700/40 rounded hover:bg-emerald-900/60 transition-colors" style="min-height:44px">Scan</button>
+            </div>
+            <p id="aiSearchStatus" class="text-[10px] text-slate-500 mt-2">Ready to scan your database…</p>
+          </div>
+          <!-- Market Prospector -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <svg class="w-4 h-4 text-sky-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clip-rule="evenodd"/></svg>
+              <h3 class="text-xs font-semibold text-white uppercase tracking-wider">Global Market Prospector</h3>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-3">AI-powered lead discovery for new sectors</p>
+            <div class="flex gap-2">
+              <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="prospectQuery" placeholder="e.g. 'Central Bank hologram tender'" class="w-full pl-9 pr-3 py-2 text-xs bg-navy-900 border border-slate-600 rounded text-white placeholder-slate-500 focus:border-gold-500 focus:outline-none"/>
+              </div>
+              <button onclick="huntLeads()" class="px-3 py-2 text-xs font-semibold bg-sky-900/40 text-sky-400 border border-sky-700/40 rounded hover:bg-sky-900/60 transition-colors" style="min-height:44px">Hunt</button>
+            </div>
+            <div id="prospectResults" class="mt-3 p-3 bg-navy-900/60 border border-slate-700 rounded min-h-[50px] text-[11px] text-slate-400">
+              Enter a query to discover market opportunities…
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BULK TOOLBAR -->
+    <div id="bulk-toolbar" class="bg-navy-800 border border-slate-700 rounded-lg px-4 py-3 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-xs text-slate-400">Selected: <strong id="bulk-count" class="text-white">0</strong></span>
+        <select id="bulk-status" class="px-3 py-1.5 text-xs bg-navy-900 border border-slate-600 rounded text-slate-300 focus:border-gold-500 focus:outline-none">
+  <option>Inquiry</option>
+  <option>Quoted</option>
+  <option>PO Received</option>
+  <option>Artwork Approval</option>
+  <option>Production (PI)</option>
+  <option>Delivered</option>
+  <option>Closed</option>
+</select>
+        <button onclick="bulkUpdateStatus()" class="px-3 py-2 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors" style="min-height:44px">Update Status</button>
+        <button onclick="clearBulkSelection()" class="px-3 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors" style="min-height:44px">Clear</button>
+      </div>
+    </div>
+
+    <!-- VIEW TOGGLE & SEARCH -->
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div class="flex items-center gap-1 bg-navy-800 p-1 rounded border border-slate-700">
+        <button id="vtb-t" onclick="sv('table')"  class="px-4 py-2 text-xs font-semibold bg-gold-500 text-navy-900 rounded flex items-center gap-1.5" style="min-height:44px">☰ Table</button>
+        <button id="vtb-k" onclick="sv('kanban')" class="px-4 py-2 text-xs font-medium text-slate-400 rounded hover:bg-slate-700/50 transition-colors flex items-center gap-1.5" style="min-height:44px">⧉ Kanban</button>
+      </div>
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <div class="relative flex-1 max-w-xs">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input id="gsearch" type="text" placeholder="Search company, product..." oninput="render()" class="w-full pl-10 pr-4 py-2 text-sm bg-navy-800 border border-slate-600 rounded text-white placeholder-slate-500 focus:border-gold-500 focus:outline-none"/>
+        </div>
+        <button id="clrbtn" onclick="cf()" style="display:none;min-height:44px" class="px-3 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">✕ Clear</button>
+      </div>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="vw-t">
+      <div class="hidden lg:block overflow-x-auto shadow-md rounded-lg">
+        <div class="bg-navy-800 border border-slate-700 rounded-lg overflow-hidden min-w-[700px]">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-700 bg-navy-900/50">
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                  <input type="checkbox" id="bulk-all-check" onchange="toggleAllBulk(this.checked)" class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/>
+                </th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Company</th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Stage</th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">Contact</th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Current Status</th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Outstanding</th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">ETA</th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden xl:table-cell">Quick Note</th>
+                <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden xl:table-cell">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="mobile-cards" class="lg:hidden flex flex-col gap-4"></div>
+    </div>
+
+    <!-- KANBAN VIEW -->
+    <div id="vw-k" style="display:none">
+      <div class="kboard" id="kboard"></div>
+    </div>
+
+  </main>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="bnav-tab active" id="bnav-dashboard" onclick="showView('dashboard')" style="min-height:44px">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Home
+    </button>
+    <button class="bnav-tab" id="bnav-kanban" onclick="showView('kanban')" style="min-height:44px">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+      Pipeline
+    </button>
+    <button class="bnav-tab" onclick="document.getElementById('tier1-analytics')?.scrollIntoView({behavior:'smooth'})" style="min-height:44px">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20V10m5 10V4m5 16v-7M4 20h16"/></svg>
+      Analytics
+    </button>
+    <button class="bnav-tab bnav-add" onclick="openAdd()">+</button>
+    <button class="bnav-tab" onclick="toggleAIHub()" style="min-height:44px">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      AI Hub
+    </button>
+    <button class="bnav-tab" onclick="ss('scr-portal')" style="min-height:44px">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Portal
+    </button>
+  </nav>
+
+</div><!-- /scr-app -->
+
+<!-- ══════════════════════ EDIT MODAL ══════════════════════ -->
+<div class="modal-ovl" id="modal" style="display:none">
+  <div class="modal-drawer">
+    <div class="flex justify-between items-start mb-1">
+      <div>
+        <p class="text-[9px] tracking-widest text-gold-400 uppercase mb-1">Customer Record</p>
+        <h2 id="mn" class="text-xl font-bold text-white"></h2>
+        <p id="mp" class="text-sm text-slate-400 mt-1"></p>
+      </div>
+      <button onclick="closeModal()" class="px-3 py-1.5 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 mt-1">✕</button>
+    </div>
+    <div class="stk" id="mstk"><div class="stk-line"></div></div>
+    <div class="modal-tabs">
+      <div class="mtab on"  onclick="st('td',this)">Details</div>
+      <div class="mtab"     onclick="st('tl',this)">Logistics<span class="tbadge" id="tb-l">0</span></div>
+      <div class="mtab"     onclick="st('tt',this)">Tx<span class="tbadge" id="tb-t">0</span></div>
+      <div class="mtab"     onclick="st('ta',this)">Artwork<span class="tbadge" id="tb-a">0</span></div>
+      <div class="mtab"     onclick="st('tv',this)">Vault<span class="tbadge" id="tb-v">0</span></div>
+      <div class="mtab"     onclick="st('th',this)">History<span class="tbadge" id="tb-h">0</span></div>
+      <div class="mtab"     onclick="st('tai',this)">🧠 AI</div>
+    </div>
+
+    <!-- DETAILS -->
+    <div id="td" class="tcont on">
+      <div class="mfield">
+        <label>Stage Gate</label>
+        <select id="ms" class="mfi" onchange="renderTracker(this.value)"></select>
+      </div>
+      <div class="mfrow">
+        <div class="mfield"><label>Contact Person</label><input id="mc" class="mfi"/></div>
+        <div class="mfield"><label>Last Contact Date</label><input id="mlc" type="date" class="mfi"/></div>
+      </div>
+      <div class="mb-3 p-3 rounded-lg" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+        <p class="text-[9px] font-bold tracking-wider text-slate-500 uppercase mb-2">Stakeholder Mapping</p>
+        <div class="mfrow">
+          <div class="mfield"><label>Finance Contact</label><input id="msf" class="mfi"/></div>
+          <div class="mfield"><label>Production Contact</label><input id="msa" class="mfi"/></div>
+        </div>
+        <div class="mfield"><label>Supplier Ref #</label><input id="msr" class="mfi"/></div>
+      </div>
+      <div class="mfrow">
+        <div class="mfield"><label>Current Status</label><input id="mna" class="mfi" placeholder="e.g. Waiting for final PO approval"/></div>
+        <div class="mfield"><label>Priority</label>
+          <select id="mpri" class="mfi"><option value="false">Standard</option><option value="true">Priority Account</option></select>
+        </div>
+      </div>
+      <div class="mfield"><label>Notes</label><textarea id="mnotes" class="mfi" rows="3"></textarea></div>
+      <div class="flex gap-2 mt-4 pt-4 border-t border-slate-700/50">
+        <button onclick="delCust()"    class="flex-1 py-2 text-xs font-semibold bg-rose-900/40 text-rose-400 border border-rose-700/40 rounded hover:bg-rose-900/60 transition-colors">Delete</button>
+        <button onclick="closeModal()" class="flex-1 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">Cancel</button>
+        <button onclick="saveCust()"   class="flex-[2] py-2 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- LOGISTICS -->
+    <div id="tl" class="tcont">
+      <div class="p-3 rounded-lg mb-4" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)">
+        <p class="text-[9px] font-bold tracking-wider text-slate-500 uppercase mb-3">Log New Shipment</p>
+        <div class="mfrow">
+          <div class="mfield"><label>Product</label><input id="lp" class="mfi"/></div>
+          <div class="mfield"><label>PI Date</label><input id="lpi" type="date" class="mfi"/></div>
+        </div>
+        <div class="mfrow">
+          <div class="mfield"><label>Mode</label><select id="lm" class="mfi"><option>Air</option><option>Sea</option><option>Courier</option></select></div>
+          <div class="mfield"><label>Supplier</label><select id="lsup" class="mfi"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select></div>
+        </div>
+        <div class="mfrow">
+          <div class="mfield"><label>LC Status</label>
+            <select id="llc" class="mfi"><option>Draft PI Received</option><option>LC Opened</option><option>TT Paid</option><option>In Clearing</option><option>Completed</option></select>
+          </div>
+          <div class="mfield"><label>ETA</label><input id="leta" type="date" class="mfi"/></div>
+        </div>
+        <button onclick="addLogi()" class="w-full py-2 text-xs font-semibold bg-sky-900/40 text-sky-400 border border-sky-700/40 rounded hover:bg-sky-900/60 transition-colors">Log Shipment</button>
+      </div>
+      <div id="logilist"></div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div id="tt" class="tcont">
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <input id="txd"      type="date"   class="mfi"/>
+        <input id="txp"                    class="mfi" placeholder="Product"/>
+        <input id="txq"      type="number" class="mfi" placeholder="Qty"/>
+        <input id="txa"      type="number" class="mfi" placeholder="Amount (Rs.)"/>
+        <input id="txsn-start" type="number" inputmode="numeric" class="mfi" placeholder="Start S/N" oninput="updateSerialQtyLabel()"/>
+        <input id="txsn-end"   type="number" inputmode="numeric" class="mfi" placeholder="End S/N"   oninput="updateSerialQtyLabel()"/>
+        <select id="txsup" class="mfi"><option>Holostik</option><option>Holographic Asia</option><option>Other</option></select>
+        <select id="txst"  class="mfi"><option>Outstanding</option><option>Received</option></select>
+      </div>
+      <p id="txsn-info" class="text-[10px] text-gold-400 mb-2">S/N quantity: —</p>
+      <div class="flex gap-2 mb-4">
+        <button id="tx-save-btn"        onclick="addTx()"      class="flex-1 py-2 text-xs font-semibold bg-gold-500 text-navy-900 rounded hover:bg-gold-400 transition-colors">Log Transaction</button>
+        <button id="tx-cancel-edit-btn" onclick="resetTxForm()" style="display:none" class="px-3 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">Cancel Edit</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="txt">
+          <thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Amount</th><th>Supplier</th><th>Status</th></tr></thead>
+          <tbody id="txbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ARTWORK -->
+    <div id="ta" class="tcont">
+      <div class="p-3 rounded-lg mb-4" style="background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.18)">
+        <p class="text-[9px] font-bold tracking-wider text-amber-500 uppercase mb-3">🎨 Log Artwork Event</p>
+        <div class="mfrow">
+          <div class="mfield"><label>Version</label><input id="awv" class="mfi" placeholder="e.g. Proof V1"/></div>
+          <div class="mfield"><label>Date</label><input id="awd" type="date" class="mfi"/></div>
+        </div>
+        <div class="mfield"><label>Description</label><input id="awdesc" class="mfi" placeholder="e.g. V1 sent to NIBM for approval"/></div>
+        <div class="mfield">
+          <label>Attach Image / File</label>
+          <div onclick="document.getElementById('awf-inp').click()" class="border border-dashed border-amber-500/30 rounded-lg p-3 text-center cursor-pointer text-slate-500 text-xs hover:border-amber-500/60 hover:text-slate-300 transition-colors bg-navy-900/40">🖼️ Click to attach proof image</div>
+          <input type="file" id="awf-inp" accept="image/*,.pdf" style="display:none" onchange="awprev(event)"/>
+          <div id="awprev" style="display:none" class="mt-2"></div>
+        </div>
+        <button onclick="addAw()" class="w-full py-2 text-xs font-semibold bg-amber-900/40 text-amber-400 border border-amber-700/40 rounded hover:bg-amber-900/60 transition-colors">Log Artwork Event</button>
+      </div>
+      <div id="awlist"></div>
+    </div>
+
+    <!-- VAULT -->
+    <div id="tv" class="tcont">
+      <div class="rounded-xl p-4 mb-4" style="background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(17,34,64,.7));border:1px solid rgba(212,175,55,.28)">
+        <p class="text-[9px] font-bold tracking-wider text-gold-400 uppercase mb-3">Security Design Vault</p>
+        <div class="rounded-xl p-3 mb-3" style="background:rgba(10,25,47,.75);border:1px solid rgba(212,175,55,.2)">
+          <div id="vault-preview" class="relative rounded-lg overflow-hidden h-40 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(17,34,64,.95),rgba(10,25,47,.95));border:1px solid rgba(255,255,255,.08)">
+            <div id="vault-no-image" class="text-center text-slate-500">
+              <svg class="w-9 h-9 mx-auto mb-2 text-gold-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.5-4.5a2 2 0 012.8 0L16 16m-2-2l1.5-1.5a2 2 0 012.8 0L20 14m-9-9h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <p class="text-xs font-semibold">No Image</p>
+            </div>
+            <img id="vault-preview-img" style="display:none;width:100%;height:100%;object-fit:cover" alt="Vault Artwork Preview"/>
+            <div id="vault-seal" style="display:none" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div class="px-4 py-2 rounded border-2 text-xs font-bold tracking-widest" style="color:#FFD700;border-color:rgba(255,215,0,.85);background:rgba(10,25,47,.65);transform:rotate(-14deg)">SEAL OF APPROVAL</div>
+            </div>
+          </div>
+        </div>
+        <div class="mfrow">
+          <div class="mfield">
+            <label>Approval Status</label>
+            <select id="vault-status" class="mfi" onchange="onVaultStatusChange()">
+              <option>Drafting</option><option>Awaiting Client Approval</option><option>Final Verified</option>
+            </select>
+          </div>
+          <div class="mfield">
+            <label>Verification Timestamp</label>
+            <input id="vault-ts" class="mfi" readonly placeholder="Not verified yet"/>
+          </div>
+        </div>
+      </div>
+      <div onclick="document.getElementById('vfinp').click()" class="border-2 border-dashed border-slate-600 rounded-xl p-6 text-center cursor-pointer hover:border-gold-500/50 hover:text-gold-400 transition-colors text-slate-500 mb-3">
+        <div class="text-2xl mb-2">🔐</div>
+        <p class="font-semibold text-sm mb-1">Upload Secured Vault File</p>
+        <p class="text-xs">PO, PI, Artwork, Certificates</p>
+        <input type="file" id="vfinp" accept="image/*,.pdf,.ai,.eps,.psd" style="display:none" onchange="uploadVault(event)"/>
+      </div>
+      <div id="vlist"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="th" class="tcont">
+      <div class="tl" id="htl"></div>
+    </div>
+
+    <!-- AI EMAIL -->
+    <div id="tai" class="tcont">
+      <div class="p-4 rounded-xl mb-3" style="background:linear-gradient(135deg,rgba(30,10,60,.5),rgba(13,32,64,.5));border:1px solid rgba(212,175,55,.2)">
+        <p class="text-[9px] font-bold tracking-wider text-gold-400 uppercase mb-3">💎 Diamond Help Me Write</p>
+        <div class="mfrow mb-3">
+          <input type="text" id="senderName"    class="mfi" placeholder="From: Your Name"/>
+          <input type="text" id="recipientName" class="mfi" placeholder="To: Client Name"/>
+        </div>
+        <div class="mfield">
+          <label>Writing Tone</label>
+          <div class="flex gap-2 flex-wrap">
+            <button class="tone-chip sel" onclick="selTone(this,'formal')">Formal</button>
+            <button class="tone-chip" onclick="selTone(this,'polish')">Polish</button>
+            <button class="tone-chip" onclick="selTone(this,'shorten')">Shorten</button>
+            <button class="tone-chip" onclick="selTone(this,'elaborate')">Elaborate</button>
+            <button class="tone-chip" onclick="selTone(this,'casual')">Friendly</button>
+          </div>
+        </div>
+        <div class="mfield">
+          <label>Specific Instructions</label>
+          <textarea id="customInstructions" class="mfi" rows="2" placeholder="e.g. Mention 10% discount, deadline is Friday"></textarea>
+        </div>
+        <button onclick="genEmail()" class="w-full py-2 text-xs font-semibold bg-gold-500/20 text-gold-400 border border-gold-500/30 rounded hover:bg-gold-500/30 transition-colors">✨ Generate with Diamond AI</button>
+        <div id="ai-email-out" class="mt-3 text-xs text-slate-400 italic min-h-[60px]">Select tone and click generate…</div>
+        <button id="copy-btn" onclick="copyEmail()" style="display:none" class="w-full mt-2 py-2 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50 transition-colors">📋 Copy Email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ ADD MODAL ══════════════════════ -->
+<div class="modal-ovl" id="addmod" style="display:none">
+  <div class="bg-white dark:bg-charcoal-800 border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-md p-6 m-auto shadow-2xl mx-4 overflow-y-auto max-h-[90vh]">
+    <div class="flex justify-between items-center mb-5">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-zinc-100">New Record</h3>
+      <button onclick="closeAdd()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition-colors">✕</button>
+    </div>
+    <div class="mfield"><label class="block text-[10px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase mb-2">Company Name *</label><input id="an" class="mfi" placeholder="e.g. Acme Corp"/></div>
+    <div class="mfield"><label class="block text-[10px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase mb-2">Product</label><input id="aprod" class="mfi" placeholder="e.g. Holo, Cert, Sticker"/></div>
+    <button onclick="confirmAdd()" class="w-full h-[48px] text-sm font-bold bg-gold-500 dark:bg-bronze-500 text-white dark:text-zinc-950 rounded-xl hover:shadow-lg transition-all active:scale-95 mt-4">Create Record</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ RISK REPORT MODAL ══════════════════════ -->
+<div class="rr-ovl" id="rrmod" style="display:none">
+  <div class="rr-modal" style="max-height:90vh;overflow-y:auto">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <p class="text-[9px] tracking-widest text-purple-400 uppercase mb-1">AI Edge Function</p>
+        <h2 class="text-lg font-bold text-white">Executive Risk Report</h2>
+      </div>
+      <button onclick="document.getElementById('rrmod').style.display='none'" class="text-slate-400 hover:text-white text-xl">✕</button>
+    </div>
+    <div id="rr-body" class="p-4 rounded-lg text-sm text-slate-400 italic min-h-[100px] leading-relaxed" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);white-space:pre-wrap">Generating report…</div>
+    <div class="text-right mt-4">
+      <button onclick="openRiskReport()" class="px-4 py-2 text-xs font-medium text-purple-400 border border-purple-700/40 rounded hover:bg-purple-900/30 transition-colors">↺ Regenerate</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ══════════════════════ APP.JS ══════════════════════ -->
+<script src="app.js"></script>
+
+</body>
+</html>
