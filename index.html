@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script>
 tailwind.config={
@@ -676,11 +677,11 @@ border-color:rgba(100,116,139,.2)
             <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width: 0%"></div></div>
           </div>
           <div class="relative pt-1">
-            <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Artwork</span><span class="text-navy">0</span></div>
+            <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Artwork Approval</span><span class="text-navy">0</span></div>
             <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width: 0%"></div></div>
           </div>
           <div class="relative pt-1">
-            <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Production</span><span class="text-navy">0</span></div>
+            <div class="flex items-center justify-between mb-1 text-[11px] font-bold text-slate-400"><span>Serial Number Approval</span><span class="text-navy">0</span></div>
             <div class="h-2 w-full bg-navy-900 rounded-full overflow-hidden"><div class="bar-gold h-full transition-all duration-1000" style="width: 0%"></div></div>
           </div>
         </div>
@@ -724,10 +725,10 @@ border-color:rgba(100,116,139,.2)
       <div class="glass-card rounded-xl p-5 flex flex-col items-center">
         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 self-start">Product Breakdown</p>
         <div class="relative mb-4">
-          <div class="donut-chart transition-all duration-1000"></div>
+          <canvas id="myChart" class="donut-chart transition-all duration-1000"></canvas>
           <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <p class="text-[9px] font-bold text-slate-500 uppercase">Revenue</p>
-            <p class="text-sm font-bold text-gold-light">Rs.0M</p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase">Products</p>
+            <p id="productBreakdownTotal" class="text-sm font-bold text-gold-light">0</p>
           </div>
         </div>
         <div class="w-full space-y-2">
@@ -1432,6 +1433,31 @@ function ss(id){
 }
 function fmtM(v){return`Rs.${(v/1e6).toFixed(2)}M`;}
 function fmtK(v){if(v>=1e6)return`Rs.${(v/1e6).toFixed(1)}M`;if(v>=1e3)return`Rs.${Math.round(v/1e3)}K`;return`Rs.${Math.round(v).toLocaleString()}`;}
+function fmtRs(v){return`Rs. ${Math.round(Number(v)||0).toLocaleString()}`;}
+function toNum(v){
+  if(v===null||v===undefined||v==='') return 0;
+  const n=Number(String(v).replace(/,/g,'').replace(/[^\d.-]/g,''));
+  return Number.isFinite(n) ? n : 0;
+}
+function ageInDays(createdAt){
+  if(!createdAt) return 0;
+  const dt=new Date(createdAt);
+  if(Number.isNaN(dt.getTime())) return 0;
+  const days=(Date.now()-dt.getTime())/86400000;
+  return Number.isFinite(days) && days>0 ? days : 0;
+}
+function getCustomerValue(c){
+  return toNum(c?.total_value ?? c?.totalValue ?? c?.price ?? c?.amount ?? c?.order_value ?? c?.orderValue ?? c?.value ?? 0);
+}
+function isActivePipelineStage(status){
+  return ['Inquiry','Quoted','PO Received','Artwork Approval','Serial Number Approval'].includes(status);
+}
+function getCustomerProductLabel(c){
+  const raw=(c?.product_type ?? c?.category ?? c?.product ?? 'Other');
+  const label=String(raw).trim();
+  return label || 'Other';
+}
+let myChart=null;
 function ddiff(ds){if(!ds)return null;const d=new Date(ds),t=new Date();if(isNaN(d))return null;t.setHours(0,0,0,0);d.setHours(0,0,0,0);return Math.floor((d-t)/864e5);}
 function dsince(ds){if(!ds)return null;const d=new Date(ds);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5);}
 function badge(s){
@@ -1738,6 +1764,7 @@ async function loadData(){
     }catch(e2){toast('DB Error: '+e2.message,'warn');return;}
   }
   updIntel();updKPIs();render();
+  refreshAnalytics();
   custs.forEach(c=>{
     if(!qnCache[c.id] || qnCache[c.id].length===0) fetchRecentNotes(c.id);
   });
@@ -2832,6 +2859,7 @@ async function saveCust(){
     // Refresh data and close modal after successful save
     try{
       await loadData();
+      await refreshAnalytics();
       closeModal();
     }catch(e){
       console.error('saveCust: error while reloading data or closing modal', e);
@@ -2853,7 +2881,13 @@ async function saveCust(){
 async function delCust(){
   if(!confirm('Delete this record and all associated data?'))return;
   await sb.from('Diamond crM').delete().eq('id',cid);
-  toast('✓ Deleted');loadData();closeModal();
+  toast('✓ Deleted');
+  await loadData();
+  await refreshAnalytics();
+  closeModal();
+}
+async function deleteCustomer(){
+  return delCust();
 }
 
 // ════════════════════════════════════════
@@ -3264,10 +3298,52 @@ loadPipelineStages();
 checkAuth();
 // Also ensure stages load if DOM ready later
 window.addEventListener('load', ()=>{ if(!window.crmStages||!window.crmStages.length) loadPipelineStages(); });
+function updateProductBreakdownChart(){
+  const counts=new Map();
+  (custs||[]).forEach(c=>{
+    const label=getCustomerProductLabel(c);
+    counts.set(label,(counts.get(label)||0)+1);
+  });
+
+  const labels=[...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([label])=>label);
+  const values=labels.map(label=>counts.get(label)||0);
+  const total=values.reduce((sum,val)=>sum+toNum(val),0);
+  const canvas=$('myChart');
+  if(!canvas || typeof Chart==='undefined') return;
+
+  const colors=['#d4af37','#e5c158','#f0d77a','#cd7f32','#d9a066','#60a5fa','#34d399','#a78bfa','#94a3b8'];
+  const datasetColors=labels.map((_,i)=>colors[i%colors.length]);
+
+  if(!myChart){
+    myChart=new Chart(canvas.getContext('2d'),{
+      type:'doughnut',
+      data:{labels:[],datasets:[{data:[],backgroundColor:datasetColors,borderWidth:0,hoverOffset:4}]},
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout:'72%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw}`}}}
+      }
+    });
+  }
+
+  myChart.data.labels=labels;
+  myChart.data.datasets[0].data=values;
+  myChart.data.datasets[0].backgroundColor=datasetColors;
+  myChart.update();
+
+  const totalEl=$('productBreakdownTotal');
+  if(totalEl) totalEl.textContent=String(total);
+}
+
+function refreshAnalytics(){
+  syncDashboard();
+  updateProductBreakdownChart();
+}
 // ════════════════════════════════════════
 // DASHBOARD SYNC
 // ════════════════════════════════════════
-function syncDashboard() {
+function syncDashboardLegacy() {
   if (!custs) return;
   const activeCusts = filt(custs);
 
@@ -3386,6 +3462,64 @@ function syncDashboard() {
       legendRows[2].querySelector('.text-gold').textContent = pOther + '%';
       legendRows[2].querySelector('.text-slate-500').textContent = fmtK(revOther);
     }
+  }
+}
+
+function syncDashboard(){
+  if(!custs) return;
+  const activeCusts=(custs||[]).filter(c=>isActivePipelineStage(c.status));
+
+  const stats=document.querySelectorAll('.mt-6.grid .text-2xl');
+  if(stats.length>=4){
+    stats[0].textContent=activeCusts.length;
+    stats[1].textContent=$('kc-y').textContent;
+    stats[2].textContent=$('kc-o').textContent;
+    const won=activeCusts.filter(c=>c.status==='Production (PI)'||c.status==='Artwork Approval').length;
+    stats[3].textContent=(activeCusts.length?Math.round((won/activeCusts.length)*100):0)+'%';
+  }
+
+  const pipelineStages=['Inquiry','Quoted','PO Received','Artwork Approval','Serial Number Approval'];
+  const stageAverages=pipelineStages.map(stage=>{
+    const stageDeals=activeCusts.filter(c=>c.status===stage);
+    if(!stageDeals.length) return 0;
+    return stageDeals.reduce((sum,c)=>sum+ageInDays(c.created_at),0)/stageDeals.length;
+  });
+  const maxVelocity=Math.max(...stageAverages,1);
+  const bars=document.querySelectorAll('#executive-overview .space-y-3 .bar-gold');
+  const texts=document.querySelectorAll('#executive-overview .space-y-3 .text-navy');
+  if(bars.length===5&&texts.length===5){
+    stageAverages.forEach((avg,i)=>{
+      bars[i].style.width=((avg/maxVelocity)*100)+'%';
+      texts[i].textContent=`${Math.round(avg)}d`;
+    });
+  }
+
+  const exposureData=activeCusts.map(c=>({name:c.name||'Unnamed',value:getCustomerValue(c)})).filter(c=>c.value>0).sort((a,b)=>b.value-a.value).slice(0,5);
+  const exposureTotal=exposureData.reduce((sum,c)=>sum+toNum(c.value),0);
+  const riskCols=document.querySelectorAll('.h-40 > div');
+  if(riskCols.length>=5){
+    const maxRisk=exposureData.length?Math.max(...exposureData.map(d=>d.value)):1;
+    for(let i=0;i<5;i++){
+      const col=riskCols[i];
+      const bar=col.querySelector('.bar-gold-vertical');
+      const amtText=col.querySelector('.text-gold');
+      const nameText=col.querySelector('.text-slate-400');
+      if(bar&&amtText&&nameText){
+        if(exposureData[i]){
+          bar.style.height=((exposureData[i].value/maxRisk)*100)+'%';
+          amtText.textContent=fmtRs(exposureData[i].value);
+          nameText.innerHTML=exposureData[i].name.substring(0,10);
+          col.style.opacity='1';
+        }else{
+          bar.style.height='4%';
+          amtText.textContent='Rs. 0';
+          nameText.innerHTML='—';
+          col.style.opacity='0.3';
+        }
+      }
+    }
+    const totalOutText=document.querySelector('.text-red-400.font-semibold');
+    if(totalOutText) totalOutText.textContent=fmtRs(exposureTotal);
   }
 }
 
