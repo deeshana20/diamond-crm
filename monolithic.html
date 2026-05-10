@@ -314,13 +314,8 @@ border-color:rgba(100,116,139,.2)
 .bar-gold-vertical { background: linear-gradient(0deg, var(--gold-dim), var(--gold), var(--gold-light)); }
 
 .donut-chart {
-  width: 180px; height: 180px; border-radius: 50%;
-  background: conic-gradient(var(--gold) 0deg 151.2deg, var(--gold-light) 151.2deg 277.2deg, var(--gold-dim) 277.2deg 360deg);
-  position: relative;
-}
-.donut-chart::before {
-  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 100px; height: 100px; border-radius: 50%; background-color: var(--navy-light);
+  width: 180px; height: 180px;
+  display: block;
 }
 
 .pulse-dot { animation: pulse 2s infinite; }
@@ -599,6 +594,10 @@ border-color:rgba(100,116,139,.2)
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
         AI Intelligence Hub
       </div>
+      <div class="snav-item" onclick="document.getElementById('tier1-analytics')?.scrollIntoView({behavior:'smooth'})">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20V10m5 10V4m5 16v-7M4 20h16"/></svg>
+        Analytics
+      </div>
       <div class="snav-item" onclick="openRiskReport()">
         <svg fill="currentColor" viewBox="0 0 20 20" class="text-rose-400"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
         <span>AI Risk Report</span>
@@ -725,7 +724,9 @@ border-color:rgba(100,116,139,.2)
       <div class="glass-card rounded-xl p-5 flex flex-col items-center">
         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 self-start">Product Breakdown</p>
         <div class="relative mb-4">
-          <canvas id="myChart" class="donut-chart transition-all duration-1000"></canvas>
+          <canvas id="productChart" class="donut-chart transition-all duration-1000"></canvas>
+          <canvas id="velocityChart" style="display:none"></canvas>
+          <canvas id="exposureChart" style="display:none"></canvas>
           <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
             <p class="text-[9px] font-bold text-slate-500 uppercase">Products</p>
             <p id="productBreakdownTotal" class="text-sm font-bold text-gold-light">0</p>
@@ -769,6 +770,28 @@ border-color:rgba(100,116,139,.2)
     </div>
   </div>
 </section>
+
+    <section id="tier1-analytics" class="mb-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+        <div class="flex items-center gap-3">
+          <h2 class="text-lg font-bold text-white tracking-tight">Pipeline Intelligence</h2>
+          <span class="px-2 py-0.5 text-[10px] font-bold bg-gold-500/10 text-gold-500 border border-gold-500/20 rounded uppercase">Tier 1</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-5">
+        <div class="glass-card rounded-xl p-5">
+          <div class="mb-4">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Monthly Revenue Waterfall</p>
+            <p class="text-xs text-slate-500 mt-1">Received revenue vs outstanding exposure over the last 12 months</p>
+          </div>
+          <div id="revenueWaterfallChart-wrap" class="relative" style="height:220px">
+            <canvas id="revenueWaterfallChart"></canvas>
+            <div id="revenueWaterfallChart-empty" class="hidden absolute inset-0 items-center justify-center text-center text-sm text-slate-500 px-6">No data yet — records will appear as you log transactions</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- INTEL ALERT CARDS -->
     <div class="intel-grid mb-5">
@@ -931,6 +954,7 @@ border-color:rgba(100,116,139,.2)
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest">Outstanding</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">ETA</th>
               <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden xl:table-cell">Quick Note</th>
+              <th class="px-4 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden xl:table-cell" id="th-actions">Actions</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -958,6 +982,10 @@ border-color:rgba(100,116,139,.2)
     <button class="bnav-tab" id="bnav-kanban" onclick="showView('kanban')" style="min-height:44px">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
       Pipeline
+    </button>
+    <button class="bnav-tab" onclick="document.getElementById('tier1-analytics')?.scrollIntoView({behavior:'smooth'})" style="min-height:44px">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20V10m5 10V4m5 16v-7M4 20h16"/></svg>
+      Analytics
     </button>
     <button class="bnav-tab bnav-add" onclick="openAdd()">+</button>
     <button class="bnav-tab" onclick="toggleAIHub();$('aiHubContent')?.scrollIntoView({behavior:'smooth'})" style="min-height:44px">
@@ -1386,7 +1414,22 @@ border-color:rgba(100,116,139,.2)
   .kboard{flex-direction:column;gap:16px}
   .kcol{width:100%}
 }
-</style>
+
+/* Row action hover reveal */
+#tbody tr { position: relative; }
+
+/* Stale pulse - reuse existing etapulse keyframe */
+.stale-pulse { animation: etapulse 2s infinite; }
+
+/* Stage progress bar transition */
+.stage-prog { transition: width .4s ease; }
+
+/* Avatar circle */
+.av-circle {
+  width: 32px; height: 32px; border-radius: 8px;
+  flex-shrink: 0; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 700;
+}</style>
 
 <script>
 // ════════════════════════════════════════
@@ -1396,7 +1439,262 @@ const SUPABASE_URL      = "https://euppycxpozqtdwbhxcjy.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_21vgnKgrn1yRURN6Rcu-2g_x-b4J9JP";
 const EDGE_FN_URL       = "https://euppycxpozqtdwbhxcjy.supabase.co/functions/v1/ai-analyst";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let velocityChart = null, exposureChart = null, productChart = null;
+let snConflictCache = [];
 
+function updateDashboard(customers) {
+  if (!customers || !customers.length) return;
+
+  // ── HELPERS ──────────────────────────────────────────
+  const toNum = v => {
+    const n = Number(String(v || 0).replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const fmtRs = v => {
+    if (v >= 1_000_000) return `Rs. ${(v / 1_000_000).toFixed(2)}M`;
+    if (v >= 1_000)     return `Rs. ${(v / 1_000).toFixed(1)}K`;
+    return `Rs. ${Math.round(v).toLocaleString()}`;
+  };
+
+  const daysSince = dateStr => {
+    if (!dateStr) return 0;
+    const diff = Date.now() - new Date(dateStr).getTime();
+    return Math.max(0, Math.floor(diff / 86_400_000));
+  };
+
+  // ── STAGE CONFIG ─────────────────────────────────────
+  // Serial Number Approval included as a high-value active stage
+  const ACTIVE_STAGES = [
+    'Inquiry',
+    'Quoted',
+    'PO Received',
+    'Artwork Approval',
+    'Serial Number Approval',  // ← new stage
+    'Production (PI)'
+  ];
+
+  const STAGE_COLORS = [
+    '#64748b',  // Inquiry       — slate
+    '#f59e0b',  // Quoted        — amber
+    '#3b82f6',  // PO Received   — blue
+    '#a78bfa',  // Artwork       — purple
+    '#ef4444',  // S/N Approval  — red (high value flag)
+    '#22c55e',  // Production    — green
+  ];
+
+  // ── 1. CREDIT EXPOSURE BAR CHART ─────────────────────
+  // Sum total_value per stage for all active-stage customers
+  const exposureByStage = ACTIVE_STAGES.map(stage => {
+    return customers
+      .filter(c => c.status === stage)
+      .reduce((sum, c) => {
+        const val = getCustomerValue(c);
+        console.log(`Calculating for ${c.name}: Stage=${c.status}, Value=${val}`);
+        return sum + val;
+      }, 0);
+  });
+
+  const exposureTotal = exposureByStage.reduce((a, b) => a + b, 0);
+
+  // Update the "Total At Risk" text in the UI
+  const riskTotalEl = document.getElementById('exposure-total');
+  if (riskTotalEl) riskTotalEl.textContent = fmtRs(exposureTotal);
+
+  const expCanvas = document.getElementById('exposureChart');
+  if (expCanvas && typeof Chart !== 'undefined') {
+    // Destroy before recreate — prevents canvas flicker + memory leak
+    if (exposureChart) { exposureChart.destroy(); exposureChart = null; }
+
+    exposureChart = new Chart(expCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ACTIVE_STAGES.map(s => s.length > 12 ? s.split(' ')[0] : s),
+        datasets: [{
+          label: 'Credit Exposure (Rs.)',
+          data: exposureByStage,
+          backgroundColor: STAGE_COLORS,
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${fmtRs(ctx.raw)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#64748b', font: { size: 10 } },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#64748b',
+              font: { size: 10 },
+              callback: v => fmtRs(v)
+            },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          }
+        }
+      }
+    });
+  }
+
+  // ── 2. PRODUCT BREAKDOWN DOUGHNUT ────────────────────
+  // Count customers by product_type field
+  const productCounts = {};
+  customers.forEach(c => {
+    const label = (c.product_type || c.product || 'Other').trim() || 'Other';
+    productCounts[label] = (productCounts[label] || 0) + 1;
+  });
+
+  const productLabels = Object.keys(productCounts);
+  const productValues = productLabels.map(l => productCounts[l]);
+  const productTotal  = productValues.reduce((a, b) => a + b, 0);
+
+  // Update center label
+  const prodTotalEl = document.getElementById('productBreakdownTotal');
+  if (prodTotalEl) prodTotalEl.textContent = String(productTotal);
+
+  const prodCanvas = document.getElementById('productChart');
+  if (prodCanvas && typeof Chart !== 'undefined') {
+    if (productChart) { productChart.destroy(); productChart = null; }
+
+    productChart = new Chart(prodCanvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: productLabels,
+        datasets: [{
+          data: productValues,
+          backgroundColor: productLabels.map(label => getProductThemeColor(label)),
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const pct = productTotal
+                  ? Math.round((ctx.raw / productTotal) * 100)
+                  : 0;
+                return ` ${ctx.label}: ${ctx.raw} (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ── 3. PIPELINE VELOCITY (per-stage avg days) ────────
+  // Uses created_at → today to measure how long deals sit in each stage
+  const velocityData = ACTIVE_STAGES.map(stage => {
+    const stageDeals = customers.filter(c => c.status === stage && getCustomerStageReferenceDate(c));
+    if (!stageDeals.length) return 0;
+    const totalDays = stageDeals.reduce((sum, c) => sum + daysSince(getCustomerStageReferenceDate(c)), 0);
+    return Math.round(totalDays / stageDeals.length);
+  });
+
+  const velCanvas = document.getElementById('velocityChart');
+  if (velCanvas && typeof Chart !== 'undefined') {
+    if (velocityChart) { velocityChart.destroy(); velocityChart = null; }
+
+    velocityChart = new Chart(velCanvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ACTIVE_STAGES.map(s => s.length > 10 ? s.split(' ')[0] : s),
+        datasets: [{
+          label: 'Avg Days in Stage',
+          data: velocityData,
+          borderColor: '#d4af37',
+          backgroundColor: 'rgba(212,175,55,0.08)',
+          pointBackgroundColor: '#d4af37',
+          pointRadius: 5,
+          tension: 0.35,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: ctx => ` ${ctx.raw} days avg` }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#64748b', font: { size: 10 } },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#64748b',
+              font: { size: 10 },
+              callback: v => `${v}d`
+            },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          }
+        }
+      }
+    });
+  }
+
+  // ── 4. SUMMARY STAT CARDS ────────────────────────────
+  const activeDeals = customers.filter(c => ACTIVE_STAGES.includes(c.status));
+
+  // Active accounts count
+  const activeCountEl = document.getElementById('stat-active-accounts');
+  if (activeCountEl) activeCountEl.textContent = activeDeals.length;
+
+  // YTD revenue (Received transactions this calendar year)
+  const thisYear = new Date().getFullYear();
+  let ytd = 0;
+  customers.forEach(c => {
+    (c.transactions || []).forEach(t => {
+      if (
+        t.payment_status === 'Received' &&
+        new Date(t.order_date).getFullYear() === thisYear
+      ) {
+        ytd += toNum(t.amount);
+      }
+    });
+  });
+  const ytdEl = document.getElementById('stat-ytd-revenue');
+  if (ytdEl) ytdEl.textContent = fmtRs(ytd);
+
+  // Total outstanding
+  let outstanding = 0;
+  customers.forEach(c => {
+    (c.transactions || []).forEach(t => {
+      if (t.payment_status === 'Outstanding') outstanding += toNum(t.amount);
+    });
+  });
+  const outEl = document.getElementById('stat-outstanding');
+  if (outEl) outEl.textContent = fmtRs(outstanding);
+
+  // Conversion rate — deals that reached Production
+  const converted = customers.filter(c => c.status === 'Production (PI)').length;
+  const convRate  = customers.length ? Math.round((converted / customers.length) * 100) : 0;
+  const convEl    = document.getElementById('stat-conversion');
+  if (convEl) convEl.textContent = `${convRate}%`;
+}
 // ════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════
@@ -1447,7 +1745,35 @@ function ageInDays(createdAt){
   return Number.isFinite(days) && days>0 ? days : 0;
 }
 function getCustomerValue(c){
-  return toNum(c?.total_value ?? c?.totalValue ?? c?.price ?? c?.amount ?? c?.order_value ?? c?.orderValue ?? c?.value ?? 0);
+  const directValue = toNum(c?.total_value ?? c?.totalValue ?? c?.price ?? c?.amount ?? c?.order_value ?? c?.orderValue ?? c?.value ?? c?.quoted_price ?? 0);
+  if(directValue > 0) return directValue;
+
+  const outstandingTxValue = (c?.transactions || [])
+    .filter(t => t?.payment_status === 'Outstanding')
+    .reduce((sum, t) => sum + toNum(t?.amount), 0);
+  if(outstandingTxValue > 0) return outstandingTxValue;
+
+  return (c?.transactions || [])
+    .reduce((sum, t) => sum + toNum(t?.amount), 0);
+}
+function getCustomerStageReferenceDate(c){
+  const latestTransactionDate=(c?.transactions || [])
+    .map(t=>t?.order_date || t?.created_at)
+    .filter(Boolean)
+    .sort((a,b)=>new Date(b)-new Date(a))[0];
+
+  const latestStageLogDate=(c?.activity_logs || [])
+    .filter(l=>String(l?.log_type||'').toLowerCase()==='stage')
+    .map(l=>l?.created_at || l?.updated_at)
+    .filter(Boolean)
+    .sort((a,b)=>new Date(b)-new Date(a))[0];
+
+  return latestStageLogDate
+    || latestTransactionDate
+    || c?.updated_at
+    || c?.last_contact
+    || c?.created_at
+    || null;
 }
 function isActivePipelineStage(status){
   return ['Inquiry','Quoted','PO Received','Artwork Approval','Serial Number Approval'].includes(status);
@@ -1457,7 +1783,14 @@ function getCustomerProductLabel(c){
   const label=String(raw).trim();
   return label || 'Other';
 }
-let myChart=null;
+function getProductThemeColor(label){
+  const key=String(label||'Other').trim().toLowerCase();
+  if(key.includes('holo')) return '#d4af37';
+  if(key.includes('cert')) return '#60a5fa';
+  if(key.includes('other')) return '#94a3b8';
+  return '#e5c158';
+}
+
 function ddiff(ds){if(!ds)return null;const d=new Date(ds),t=new Date();if(isNaN(d))return null;t.setHours(0,0,0,0);d.setHours(0,0,0,0);return Math.floor((d-t)/864e5);}
 function dsince(ds){if(!ds)return null;const d=new Date(ds);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5);}
 function badge(s){
@@ -1757,13 +2090,18 @@ async function loadData(){
     const{data,error}=await sb.from('Diamond crM').select('*,transactions(*),activity_logs(*),logistics(*)').order('id');
     if(error) throw error;
     custs=data||[];
+    updateDashboard(custs);
+
+    updateAnalytics(custs);
   }catch{
     try{
       const{data}=await sb.from('Diamond crM').select('*,transactions(*),activity_logs(*)').order('id');
       custs=(data||[]).map(c=>({...c,logistics:[]}));
+      updateAnalytics(custs);
     }catch(e2){toast('DB Error: '+e2.message,'warn');return;}
   }
   updIntel();updKPIs();render();
+  renderTier1Charts();
   refreshAnalytics();
   custs.forEach(c=>{
     if(!qnCache[c.id] || qnCache[c.id].length===0) fetchRecentNotes(c.id);
@@ -2581,40 +2919,118 @@ function renderQNBubbles(customerId) {
   }).join('');
 }
 
-function renderTable(){
-  // 1. DEFINE THE LIST (This fixes your error)
+function getInitials(name) {
+  if (!name) return '??';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
+function getAvatarColor(name) {
+  const sets = [
+    { bg: 'rgba(212,175,55,.15)', color: '#d4af37' },
+    { bg: 'rgba(37,99,235,.18)', color: '#60a5fa' },
+    { bg: 'rgba(16,185,129,.15)', color: '#34d399' },
+    { bg: 'rgba(139,92,246,.15)', color: '#a78bfa' },
+    { bg: 'rgba(239,68,68,.15)', color: '#f87171' },
+  ];
+  const idx = (name || '').charCodeAt(0) % 5;
+  return sets[Number.isFinite(idx) ? idx : 0];
+}
+
+function relativeContact(dateStr) {
+  if (!dateStr) return { label: 'Never', stale: true };
+  const d = dsince(dateStr);
+  if (d === null) return { label: 'Never', stale: true };
+  if (d > 0 && d <= 1) return { label: 'Today', stale: false };
+  if (d <= 6) return { label: `${d}d ago`, stale: false };
+  return { label: `${d}d ago`, stale: true };
+}
+
+function getStagePercent(status) {
+  const idx = STAGES.indexOf(status);
+  if (idx < 0) return 0;
+  return Math.round((idx / Math.max(STAGES.length - 1, 1)) * 100);
+}
+
+function renderTable() {
   const list = filt(custs);
-  const q = $('gsearch').value;
-  
-  // 2. DESKTOP TABLE LOGIC (Claude's original design)
+  const q = ($('gsearch') || {}).value || '';
+  const rowPad = tableDensity === 'compact' ? 'px-3 py-2' : 'px-4 py-3.5';
+
+  const staleCount = list.filter(c => {
+    const d = dsince(c.last_contact);
+    return d === null || d >= 7;
+  }).length;
+  const overdueCount = list.filter(c =>
+    (c.logistics || []).some(l => {
+      const d = ddiff(l.eta);
+      return d !== null && d < 0 && l.lc_status !== 'Completed';
+    })
+  ).length;
+
   const tbody = $('tbody');
-  if(tbody) {
+  if (tbody) {
     tbody.innerHTML = list.map(c => {
-      const out = (c.transactions || []).filter(t => t.payment_status === 'Outstanding').reduce((s,t) => s + (parseFloat(t.amount) || 0), 0);
+      const out = (c.transactions || []).filter(t => t.payment_status === 'Outstanding').reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
       const s = SC[c.status] || SC['Inquiry'];
       const isDark = document.documentElement.classList.contains('dark');
       const statusColor = isDark ? s.darkColor : s.color;
-      const compact = tableDensity === 'compact';
-      const rowPad = compact ? 'px-3 py-2' : 'px-4 py-3';
+      const avatar = getAvatarColor(c.name);
+      const initials = getInitials(c.name);
+      const rc = relativeContact(c.last_contact);
+      const staleDays = dsince(c.last_contact);
+      const isStale = staleDays === null || staleDays >= 7;
+      const leftBorder = c.is_priority === true ? '#d4af37' : isStale ? '#f59e0b' : 'transparent';
 
-      return `<tr class="group transition-colors duration-200 hover:bg-navy-700/30" data-id="${c.id}" onclick="openModal(${c.id})">
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-          <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id)?'checked':''} class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/>
+      return `<tr data-id="${c.id}" onclick="openModal(${c.id})" class="group transition-colors duration-150 hover:bg-white/[0.03] cursor-pointer border-b border-white/5" style="border-left: 3px solid ${leftBorder}">
+        <td class="${rowPad}">
+          <input type="checkbox" onclick="event.stopPropagation();toggleBulkCheckbox(${c.id})" ${bulkSelected.has(c.id) ? 'checked' : ''} class="w-4 h-4 rounded border-gold-500/30 bg-navy-900"/>
         </td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-          <p class="font-bold text-white text-sm">${hl(c.name,q)}</p>
-          <p class="text-[11px] text-gold-500/80">${hl(c.product || '—',q)}</p>
+        <td class="${rowPad}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av-circle" style="background:${avatar.bg};color:${avatar.color}">
+              ${initials}
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:13px;color:#e2e8f0">
+                ${hl(c.name, q)}
+              </div>
+              <div style="font-size:10px;color:#475569;margin-top:1px;display:flex;align-items:center;gap:4px">
+                <span style="width:5px;height:5px;border-radius:50%;background:#d4af37;display:inline-block;flex-shrink:0"></span>
+                ${c.product || '—'}
+              </div>
+            </div>
+          </div>
         </td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold" style="color:${statusColor};background:${s.bg.replace('.2','.1').replace('.25','.1')}">${c.status}</span>
+        <td class="${rowPad}">
+          <div>
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:10px;font-weight:700;background:${s.bg};color:${statusColor};border:1px solid ${s.border}">
+              <span style="width:6px;height:6px;border-radius:50%;background:${statusColor};flex-shrink:0"></span>
+              ${c.status}
+            </span>
+            <div style="height:2px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:5px;width:80px">
+              <div class="stage-prog" style="height:100%;border-radius:2px;background:${statusColor};width:${getStagePercent(c.status)}%"></div>
+            </div>
+          </div>
         </td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden md:table-cell text-sm text-slate-300">${c.contact || '—'}</td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden lg:table-cell text-xs text-slate-400">${c.next_action || '—'}</td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40">
-          <span class="${out > 0 ? 'text-rose-400' : 'text-emerald-400'} font-semibold">${fmtK(out)}</span>
+        <td class="${rowPad} hidden md:table-cell">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b">
+            ${c.contact || '—'}
+            <span style="font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;background:${rc.stale ? 'rgba(245,158,11,.1)' : 'transparent'};color:${rc.stale ? '#f59e0b' : '#334155'}">
+              ${rc.label}
+            </span>
+            ${rc.stale ? '<span class="stale-pulse" style="width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0;display:inline-block"></span>' : ''}
+          </div>
         </td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 hidden md:table-cell">${etaBadge(c)}</td>
-        <td class="${rowPad} border-b border-white/5 bg-navy-800/40 qn-cell hidden xl:table-cell" id="qn-cell-${c.id}">
+        <td class="${rowPad} hidden lg:table-cell text-xs text-slate-400">${c.next_action || '—'}</td>
+        <td class="${rowPad}">
+          ${out > 0
+            ? `<span style="font-weight:700;font-size:13px;color:#f87171">${fmtK(out)}</span>`
+            : `<span style="font-weight:600;font-size:11px;color:#166534;background:rgba(16,185,129,.08);padding:2px 8px;border-radius:5px;border:1px solid rgba(16,185,129,.15)">Clear</span>`}
+        </td>
+        <td class="${rowPad} hidden md:table-cell">${etaBadge(c)}</td>
+        <td class="${rowPad} qn-cell hidden xl:table-cell" id="qn-cell-${c.id}">
           <div id="qn-display-${c.id}">
             <button class="qn-trigger-btn" onclick="event.stopPropagation();toggleQNEditor(${c.id})">
               📝 <span id="qn-label-${c.id}">Add note</span>
@@ -2627,24 +3043,85 @@ function renderTable(){
             <button class="qn-save-btn" id="qn-btn-${c.id}" onclick="saveQuickNote(${c.id})">Save Note</button>
           </div>
         </td>
+        <td class="${rowPad} hidden xl:table-cell" onclick="event.stopPropagation()">
+          <div class="row-act-group" style="display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .12s" id="rag-${c.id}">
+            <button onclick="openModal(${c.id})" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#475569" title="Open record">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z"/>
+              </svg>
+            </button>
+            <button onclick="openModal(${c.id});setTimeout(()=>{st('tai',document.querySelectorAll('.mtab')[6])},200)" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#475569" title="AI Email draft">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </button>
+            <button onclick="cid=${c.id};ccust=custs.find(x=>x.id===${c.id});delCust()" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f87171" title="Delete record">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
+        </td>
       </tr>`;
     }).join('');
+
+    document.querySelectorAll('#tbody tr').forEach(tr => {
+      const rag = tr.querySelector('.row-act-group');
+      if (!rag) return;
+      tr.addEventListener('mouseenter', () => rag.style.opacity = '1');
+      tr.addEventListener('mouseleave', () => rag.style.opacity = '0');
+    });
+
+    list.forEach(c => {
+      if (qnCache[c.id] && qnCache[c.id].length) renderQNBubbles(c.id);
+      else fetchRecentNotes(c.id);
+    });
   }
 
-  // 3. MOBILE BENTO LOGIC (The new Mobile-Sized design)
+  let footer = $('table-footer');
+  const tableWrap = document.querySelector('#vw-t .hidden.lg\\:block > div');
+  if (!footer) {
+    footer = document.createElement('div');
+    footer.id = 'table-footer';
+    if (tableWrap) tableWrap.insertAdjacentElement('afterend', footer);
+  }
+  if (footer) {
+    footer.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid rgba(255,255,255,.06);background:rgba(12,24,41,.8);border-radius:0 0 8px 8px;margin-top:-1px">
+        <span style="font-size:11px;color:#334155">
+          Showing ${list.length} of ${custs.length} records
+          ${staleCount > 0 ? '· <span style="color:#f59e0b;font-weight:600">' + staleCount + ' stale</span>' : ''}
+          ${overdueCount > 0 ? '· <span style="color:#ef4444;font-weight:600">' + overdueCount + ' overdue ETA</span>' : ''}
+        </span>
+        <span style="font-size:10px;color:#1e293b">
+          ${new Date().toLocaleTimeString('en-LK', {hour:'2-digit',minute:'2-digit'})} · live
+        </span>
+      </div>`;
+  }
+
   const mCards = $('mobile-cards');
-  if(mCards) {
+  if (mCards) {
     mCards.innerHTML = list.map(c => {
-      const out = (c.transactions || []).filter(t => t.payment_status === 'Outstanding').reduce((s,t) => s + (parseFloat(t.amount) || 0), 0);
+      const out = (c.transactions || []).filter(t => t.payment_status === 'Outstanding').reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
       const s = SC[c.status] || SC['Inquiry'];
-      
+      const isDark = document.documentElement.classList.contains('dark');
+      const statusColor = isDark ? s.darkColor : s.color;
+      const avatar = getAvatarColor(c.name);
+      const initials = getInitials(c.name);
+
       return `
       <div class="bento-card relative overflow-hidden mb-4 p-5" onclick="openModal(${c.id})">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${statusColor};border-radius:12px 12px 0 0"></div>
         <div class="absolute top-0 left-0 w-1.5 h-full" style="background:${s.color}"></div>
         <div class="flex justify-between items-start mb-4 pl-2">
-          <div>
-            <h3 class="text-lg font-bold text-white">${c.name}</h3>
-            <p class="text-xs text-gold-500/80">${c.product || 'Security Printing'}</p>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av-circle" style="background:${avatar.bg};color:${avatar.color}">
+              ${initials}
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white">${c.name}</h3>
+              <p class="text-xs text-gold-500/80">${c.product || 'Security Printing'}</p>
+            </div>
           </div>
           <span class="px-2 py-1 rounded-lg text-[10px] font-bold" style="background:${s.bg}; color:${s.color}; border: 1px solid ${s.border}">${c.status}</span>
         </div>
@@ -2865,6 +3342,8 @@ async function saveCust(){
       console.error('saveCust: error while reloading data or closing modal', e);
     }
 
+    updateAnalytics();
+    renderTier1Charts();
     toast('✓ Saved');
   }catch(err){
     // Surface full error for debugging
@@ -2887,7 +3366,8 @@ async function delCust(){
   closeModal();
 }
 async function deleteCustomer(){
-  return delCust();
+  await delCust();
+  updateAnalytics();
 }
 
 // ════════════════════════════════════════
@@ -3308,14 +3788,13 @@ function updateProductBreakdownChart(){
   const labels=[...counts.entries()].sort((a,b)=>b[1]-a[1]).map(([label])=>label);
   const values=labels.map(label=>counts.get(label)||0);
   const total=values.reduce((sum,val)=>sum+toNum(val),0);
-  const canvas=$('myChart');
+  const canvas=$('productChart');
   if(!canvas || typeof Chart==='undefined') return;
 
-  const colors=['#d4af37','#e5c158','#f0d77a','#cd7f32','#d9a066','#60a5fa','#34d399','#a78bfa','#94a3b8'];
-  const datasetColors=labels.map((_,i)=>colors[i%colors.length]);
+  const datasetColors=labels.map(label=>getProductThemeColor(label));
 
-  if(!myChart){
-    myChart=new Chart(canvas.getContext('2d'),{
+  if(!productChart){
+      productChart=new Chart(canvas.getContext('2d'),{
       type:'doughnut',
       data:{labels:[],datasets:[{data:[],backgroundColor:datasetColors,borderWidth:0,hoverOffset:4}]},
       options:{
@@ -3327,22 +3806,188 @@ function updateProductBreakdownChart(){
     });
   }
 
-  myChart.data.labels=labels;
-  myChart.data.datasets[0].data=values;
-  myChart.data.datasets[0].backgroundColor=datasetColors;
-  myChart.update();
+  productChart.data.labels=labels;
+    productChart.data.datasets[0].data=values;
+    productChart.data.datasets[0].backgroundColor=datasetColors;
+    productChart.update();
 
   const totalEl=$('productBreakdownTotal');
   if(totalEl) totalEl.textContent=String(total);
 }
 
-function refreshAnalytics(){
-  syncDashboard();
-  updateProductBreakdownChart();
+function updateAnalytics(customersParam){
+  const customers = customersParam || custs || [];
+  // --- CREDIT EXPOSURE (Bar Chart) grouped by stage ---
+  const exposureStages = ['Inquiry','Quoted','PO Received','Artwork Approval','Serial Number Approval'];
+  const exposureMap = customers
+    .filter(c=>exposureStages.includes(c.status))
+    .reduce((acc,c)=>{
+      const stage = c.status;
+      const val = getCustomerValue(c);
+      console.log(`Calculating for ${c.name}: Stage=${c.status}, Value=${val}`);
+      acc[stage] = (acc[stage] || 0) + val;
+      return acc;
+    }, {});
+  const exposureLabels = exposureStages.slice();
+  const exposureData = exposureLabels.map(l=>exposureMap[l]||0);
+
+  const expCanvas = $('exposureChart');
+  if(expCanvas && typeof Chart !== 'undefined'){
+    if(exposureChart){ try{ exposureChart.destroy(); }catch(e){} exposureChart = null; }
+    exposureChart = new Chart(expCanvas.getContext('2d'),{
+      type: 'bar',
+      data: { labels: exposureLabels, datasets: [{ label: 'Credit Exposure', data: exposureData, backgroundColor: '#ef4444' }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  // --- PRODUCT BREAKDOWN (Doughnut) ---
+  const counts = customers.reduce((acc,c)=>{ const k = getCustomerProductLabel(c); acc[k] = (acc[k]||0)+1; return acc; }, {});
+  const productLabels = Object.keys(counts);
+  const productValues = productLabels.map(l=>counts[l]);
+  const prodCanvas = $('productChart');
+  if(prodCanvas && typeof Chart !== 'undefined'){
+    if(productChart){ try{ productChart.destroy(); }catch(e){} productChart = null; }
+    productChart = new Chart(prodCanvas.getContext('2d'),{
+      type: 'doughnut',
+      data: { labels: productLabels, datasets: [{ data: productValues, backgroundColor: productLabels.map(label=>getProductThemeColor(label)) }] },
+      options: { responsive:true, maintainAspectRatio:false, cutout: '72%', plugins: { legend: { display: false } } }
+    });
+  }
+  const totalEl = $('productBreakdownTotal'); if(totalEl) totalEl.textContent = String(productValues.reduce((a,b)=>a+b,0)||0);
+
+  // --- PIPELINE VELOCITY (Avg days since created_at per stage) ---
+  const velStages = exposureStages.slice();
+  const velLabels = velStages.slice();
+  const velData = velLabels.map(s=>{
+    const rows = customers.filter(c=>c.status===s && getCustomerStageReferenceDate(c));
+    if(!rows.length) return 0;
+    const avg = rows.reduce((sum,c)=>sum + ageInDays(getCustomerStageReferenceDate(c)), 0) / rows.length;
+    return Math.round(avg);
+  });
+  const velCanvas = $('velocityChart');
+  if(velCanvas && typeof Chart !== 'undefined'){
+    if(velocityChart){ try{ velocityChart.destroy(); }catch(e){} velocityChart = null; }
+    velocityChart = new Chart(velCanvas.getContext('2d'),{
+      type: 'line',
+      data: { labels: velLabels, datasets: [{ label: 'Avg Days', data: velData, borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.12)', tension: 0.3 }] },
+      options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+    });
+  }
+
+  // keep legacy sync for other UI elements
+  try{ syncDashboard(); }catch(e){ console.warn('syncDashboard failed',e); }
 }
+
+function refreshAnalytics(){ updateAnalytics(); }
 // ════════════════════════════════════════
 // DASHBOARD SYNC
 // ════════════════════════════════════════
+function renderTier1Charts(){
+  if(typeof Chart!=='undefined'){
+    Chart.defaults.color='#64748b';
+    Chart.defaults.borderColor='rgba(255,255,255,0.06)';
+    Chart.defaults.font.family="'Inter', system-ui, sans-serif";
+    Chart.defaults.font.size=11;
+  }
+  renderRevenueWaterfallChart();
+}
+function setTier1Placeholder(baseId, show){
+  const canvas=$(baseId);
+  const empty=$(`${baseId}-empty`);
+  if(canvas) canvas.style.display=show?'none':'block';
+  if(empty){
+    empty.style.display=show?'flex':'none';
+    empty.classList.toggle('hidden', !show);
+  }
+}
+function destroyChartIfExists(canvasId){
+  if(typeof Chart==='undefined') return;
+  const existing=Chart.getChart(canvasId);
+  if(existing) existing.destroy();
+}
+function tier1Pill(text, tone='slate'){
+  const tones={
+    slate:'bg-navy-900/70 text-slate-300 border-white/5',
+    green:'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+    red:'bg-red-500/10 text-red-300 border-red-500/20',
+    gold:'bg-gold-500/10 text-gold-400 border-gold-500/20',
+    blue:'bg-sky-500/10 text-sky-300 border-sky-500/20'
+  };
+  return `<span class="px-3 py-1.5 text-xs font-semibold rounded-full border ${tones[tone]||tones.slate}">${text}</span>`;
+}
+function parseDateSafe(value){
+  if(!value) return null;
+  const date=new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function sameOrBeforeDate(a,b){
+  if(!a||!b) return false;
+  const da=new Date(a),db=new Date(b);
+  if(Number.isNaN(da.getTime())||Number.isNaN(db.getTime())) return false;
+  da.setHours(0,0,0,0);
+  db.setHours(0,0,0,0);
+  return da.getTime()<=db.getTime();
+}
+function renderRevenueWaterfallChart(){
+  try{
+    destroyChartIfExists('revenueWaterfallChart');
+    const months=[];
+    const now=new Date();
+    for(let i=11;i>=0;i--) months.push(new Date(now.getFullYear(), now.getMonth()-i, 1));
+    const received=new Map(months.map(d=>[`${d.getFullYear()}-${d.getMonth()}`,0]));
+    const outstanding=new Map(months.map(d=>[`${d.getFullYear()}-${d.getMonth()}`,0]));
+    (custs||[]).forEach(c=>{
+      (c.transactions||[]).forEach(t=>{
+        const d=parseDateSafe(t.order_date);
+        if(!d) return;
+        const key=`${d.getFullYear()}-${d.getMonth()}`;
+        if(!received.has(key)) return;
+        const amt=toNum(t.amount);
+        if(String(t.payment_status||'')==='Received') received.set(key, received.get(key)+amt);
+        if(String(t.payment_status||'')==='Outstanding') outstanding.set(key, outstanding.get(key)+amt);
+      });
+    });
+    const revenueData=months.map(d=>received.get(`${d.getFullYear()}-${d.getMonth()}`)||0);
+    const outstandingData=months.map(d=>outstanding.get(`${d.getFullYear()}-${d.getMonth()}`)||0);
+    if(!revenueData.some(Boolean) && !outstandingData.some(Boolean)){ setTier1Placeholder('revenueWaterfallChart',true); return; }
+    setTier1Placeholder('revenueWaterfallChart',false);
+    new Chart($('revenueWaterfallChart').getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:months.map(d=>d.toLocaleString('en-US',{month:'short'})),
+        datasets:[
+          {type:'bar',label:'Received Revenue',data:revenueData,backgroundColor:'#d4af37',borderRadius:6,borderSkipped:false},
+          {type:'line',label:'Outstanding Balance',data:outstandingData,borderColor:'#ef4444',backgroundColor:'#ef4444',pointBackgroundColor:'#ef4444',pointRadius:4,tension:0.3,yAxisID:'y1'}
+        ]
+      },
+      options:{
+        maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom'}},
+        scales:{
+          x:{grid:{display:false}},
+          y:{beginAtZero:true,ticks:{callback:v=>fmtK(v)}},
+          y1:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>fmtK(v)}}
+        }
+      }
+    });
+  }catch(err){
+    console.error('renderRevenueWaterfallChart failed',err);
+    setTier1Placeholder('revenueWaterfallChart',true);
+  }
+}
+function showSNConflicts(){
+  const existing=$('sn-conflict-modal');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='sn-conflict-modal';
+  overlay.className='modal-ovl';
+  overlay.style.display='flex';
+  const items=(snConflictCache||[]).map((entry,idx)=>`<div class="border border-red-500/20 rounded-xl p-4 bg-navy-900/60"><p class="text-sm font-semibold text-white">${idx+1}. ${entry.customer_name}</p><p class="text-xs text-slate-400 mt-2">Range A: ${entry.first.start.toLocaleString()} - ${entry.first.end.toLocaleString()} · ${entry.first.product} · ${entry.first.order_date}</p><p class="text-xs text-slate-400 mt-1">Range B: ${entry.second.start.toLocaleString()} - ${entry.second.end.toLocaleString()} · ${entry.second.product} · ${entry.second.order_date}</p></div>`).join('');
+  overlay.innerHTML=`<div class="rr-modal" style="max-width:760px;max-height:85vh;overflow-y:auto"><div class="flex items-start justify-between gap-4 mb-4"><div><p class="text-[10px] font-bold tracking-widest text-red-400 uppercase">Serial Number Risk</p><h3 class="text-xl font-bold text-white mt-1">Overlapping S/N Batches</h3><p class="text-sm text-slate-400 mt-2">${snConflictCache.length} overlap${snConflictCache.length===1?'':'s'} detected across customer transaction history.</p></div><button type="button" onclick="document.getElementById('sn-conflict-modal')?.remove()" class="px-3 py-1.5 text-xs font-medium text-slate-400 border border-slate-600 rounded hover:bg-slate-700/50">Close</button></div><div class="space-y-3">${items || '<div class="text-sm text-slate-500 text-center py-6">No conflicts detected.</div>'}</div></div>`;
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
 function syncDashboardLegacy() {
   if (!custs) return;
   const activeCusts = filt(custs);
@@ -3466,10 +4111,11 @@ function syncDashboardLegacy() {
 }
 
 function syncDashboard(){
-  if(!custs) return;
+  const executiveOverview=document.getElementById('executive-overview');
+  if(!executiveOverview || !custs) return;
   const activeCusts=(custs||[]).filter(c=>isActivePipelineStage(c.status));
 
-  const stats=document.querySelectorAll('.mt-6.grid .text-2xl');
+  const stats=executiveOverview.querySelectorAll('.mt-6.grid .text-2xl');
   if(stats.length>=4){
     stats[0].textContent=activeCusts.length;
     stats[1].textContent=$('kc-y').textContent;
@@ -3482,21 +4128,21 @@ function syncDashboard(){
   const stageAverages=pipelineStages.map(stage=>{
     const stageDeals=activeCusts.filter(c=>c.status===stage);
     if(!stageDeals.length) return 0;
-    return stageDeals.reduce((sum,c)=>sum+ageInDays(c.created_at),0)/stageDeals.length;
+    return stageDeals.reduce((sum,c)=>sum+ageInDays(getCustomerStageReferenceDate(c)),0)/stageDeals.length;
   });
   const maxVelocity=Math.max(...stageAverages,1);
-  const bars=document.querySelectorAll('#executive-overview .space-y-3 .bar-gold');
-  const texts=document.querySelectorAll('#executive-overview .space-y-3 .text-navy');
+  const bars=executiveOverview.querySelectorAll('.space-y-3 .bar-gold');
+  const texts=executiveOverview.querySelectorAll('.space-y-3 .text-navy');
   if(bars.length===5&&texts.length===5){
     stageAverages.forEach((avg,i)=>{
-      bars[i].style.width=((avg/maxVelocity)*100)+'%';
+      bars[i].style.width=(avg>0?Math.max((avg/maxVelocity)*100,8):0)+'%';
       texts[i].textContent=`${Math.round(avg)}d`;
     });
   }
 
   const exposureData=activeCusts.map(c=>({name:c.name||'Unnamed',value:getCustomerValue(c)})).filter(c=>c.value>0).sort((a,b)=>b.value-a.value).slice(0,5);
   const exposureTotal=exposureData.reduce((sum,c)=>sum+toNum(c.value),0);
-  const riskCols=document.querySelectorAll('.h-40 > div');
+  const riskCols=executiveOverview.querySelectorAll('.h-40 > div');
   if(riskCols.length>=5){
     const maxRisk=exposureData.length?Math.max(...exposureData.map(d=>d.value)):1;
     for(let i=0;i<5;i++){
@@ -3506,7 +4152,7 @@ function syncDashboard(){
       const nameText=col.querySelector('.text-slate-400');
       if(bar&&amtText&&nameText){
         if(exposureData[i]){
-          bar.style.height=((exposureData[i].value/maxRisk)*100)+'%';
+          bar.style.height=Math.max((exposureData[i].value/maxRisk)*100,12)+'%';
           amtText.textContent=fmtRs(exposureData[i].value);
           nameText.innerHTML=exposureData[i].name.substring(0,10);
           col.style.opacity='1';
@@ -3518,8 +4164,41 @@ function syncDashboard(){
         }
       }
     }
-    const totalOutText=document.querySelector('.text-red-400.font-semibold');
+    const totalOutText=executiveOverview.querySelector('.text-red-400.font-semibold');
     if(totalOutText) totalOutText.textContent=fmtRs(exposureTotal);
+  }
+
+  const productGroups={Holograms:0,Certificates:0,Other:0};
+  (custs||[]).forEach(c=>{
+    const label=String(getCustomerProductLabel(c)||'Other').toLowerCase();
+    if(label.includes('holo')) productGroups.Holograms+=1;
+    else if(label.includes('cert')) productGroups.Certificates+=1;
+    else productGroups.Other+=1;
+  });
+  const productTotal=productGroups.Holograms+productGroups.Certificates+productGroups.Other;
+  const productCanvas=executiveOverview.querySelector('#productChart');
+  const productTotalEl=executiveOverview.querySelector('#productBreakdownTotal');
+  if(productTotalEl) productTotalEl.textContent=String(productTotal);
+  if(productCanvas){
+    const holoPct=productTotal?Math.round((productGroups.Holograms/productTotal)*100):0;
+    const certPct=productTotal?Math.round((productGroups.Certificates/productTotal)*100):0;
+    const otherPct=Math.max(0,100-holoPct-certPct);
+
+    const legendRows=executiveOverview.querySelectorAll('.glass-card:last-child .w-full.space-y-2 > div');
+    if(legendRows.length>=3){
+      const legendDots=executiveOverview.querySelectorAll('.glass-card:last-child .w-2.h-2.rounded-full');
+      if(legendDots.length>=3){
+        legendDots[0].style.backgroundColor=getProductThemeColor('Holograms');
+        legendDots[1].style.backgroundColor=getProductThemeColor('Certificates');
+        legendDots[2].style.backgroundColor=getProductThemeColor('Other');
+      }
+      legendRows[0].querySelector('.text-gold').textContent=`${holoPct}%`;
+      legendRows[0].querySelector('.text-slate-500').textContent=String(productGroups.Holograms);
+      legendRows[1].querySelector('.text-gold').textContent=`${certPct}%`;
+      legendRows[1].querySelector('.text-slate-500').textContent=String(productGroups.Certificates);
+      legendRows[2].querySelector('.text-gold').textContent=`${otherPct}%`;
+      legendRows[2].querySelector('.text-slate-500').textContent=String(productGroups.Other);
+    }
   }
 }
 
